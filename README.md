@@ -61,9 +61,9 @@ Supported targets:
 
 Please visit [docs.soil-kt.com](https://docs.soil-kt.com/) for Quick Start, guides of features and more.
 
-* Getting started with [Query](https://docs.soil-kt.com/query/hello-query)
-* Getting started with [Form](https://docs.soil-kt.com/form/hello-form)
-* Getting started with [Space](https://docs.soil-kt.com/space/hello-space)
+* Getting started with [Query](https://docs.soil-kt.com/guide/query/hello-query)
+* Getting started with [Form](https://docs.soil-kt.com/guide/form/hello-form)
+* Getting started with [Space](https://docs.soil-kt.com/guide/space/hello-space)
 
 
 ## License
