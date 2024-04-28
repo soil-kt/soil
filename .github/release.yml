@@ -1,0 +1,23 @@
+# https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes#configuration-options
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+    authors:
+      - octocat
+  categories:
+    - title: "Breaking Changes :mega:"
+      labels:
+        - breaking-change
+    - title: "New Features :tada:"
+      labels:
+        - enhancement
+    - title: "Bugfixes :hammer_and_wrench:"
+      labels:
+        - bug
+    - title: "Dependency Updates :arrow_up:"
+      labels:
+        - dependencies
+    - title: "Other Changes :ninja:"
+      labels:
+        - "*"
