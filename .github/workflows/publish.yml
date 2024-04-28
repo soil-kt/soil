@@ -27,7 +27,7 @@ jobs:
             gh config set prompt disabled && \
             gh release create \
               --target "$GITHUB_REF_NAME" \
-              --title "v$VERSION" \
+              --title "$VERSION" \
               --generate-notes \
               $VERSION
         env:
