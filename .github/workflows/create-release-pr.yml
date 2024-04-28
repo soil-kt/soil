@@ -60,6 +60,6 @@ jobs:
             -f target_commitish="$RELEASE_PR_BRANCH" \
             -f previous_tag_name="$RELEASE_PREVIOUS_TAG" | jq -r .body > release.txt
 
-          gh pr create --title "Release v$RELEASE_VERSION" --body-file release.txt --base $GITHUB_REF_NAME --assignee $GITHUB_TRIGGERING_ACTOR
+          gh pr create --title "Release $RELEASE_VERSION" --body-file release.txt --base $GITHUB_REF_NAME --assignee $GITHUB_TRIGGERING_ACTOR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
