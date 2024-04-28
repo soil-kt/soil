@@ -1,0 +1,65 @@
+name: Create Release PR
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release
+        type: string
+        required: true
+
+jobs:
+  create-release-pr:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    env:
+      RELEASE_VERSION: ${{ github.event.inputs.version }}
+      RELEASE_PR_BRANCH: release/${{ github.event.inputs.version }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Git Config #https://github.com/orgs/community/discussions/26560
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Git Checkout
+        run: |
+          git checkout -b $RELEASE_PR_BRANCH origin/$GITHUB_REF_NAME
+
+      - name: Update Version
+        run: |
+          echo "Bump up version to $RELEASE_VERSION"
+          sed -i "/version=/c version=$RELEASE_VERSION" gradle.properties
+          if [[ -n $(git status -s) ]]; then
+            git add gradle.properties
+            git commit -m "Bump up version to $RELEASE_VERSION"
+          else
+            exit 1
+          fi
+
+      - name: Git Push
+        run: |
+          git push origin $RELEASE_PR_BRANCH
+
+      - name: Create PR
+        run: |
+          RELEASE_PREVIOUS_TAG=$(git describe --tags --abbrev=0 origin/$GITHUB_REF_NAME)
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            /repos/$GITHUB_REPOSITORY/releases/generate-notes \
+            -f configuration_file_path=".github/release.yml" \
+            -f tag_name="$RELEASE_VERSION" \
+            -f target_commitish="$RELEASE_PR_BRANCH" \
+            -f previous_tag_name="$RELEASE_PREVIOUS_TAG" | jq -r .body > release.txt
+
+          gh pr create --title "Release v$RELEASE_VERSION" --body-file release.txt --base $GITHUB_REF_NAME --assignee $GITHUB_TRIGGERING_ACTOR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
