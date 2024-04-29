@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.maven.publish)
+    alias(libs.plugins.dokka)
 }
 
 val buildTarget = the<BuildTargetExtension>()
