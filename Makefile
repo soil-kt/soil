@@ -17,6 +17,10 @@ dist.wasm:
 fmt:
 	@$(GRADLE_CMD) spotlessApply
 
+.PHONY: dokka
+dokka:
+	@$(GRADLE_CMD) dokkaHtmlMultiModule
+
 .PHONY: publish
 publish:
 	@$(GRADLE_CMD) publish
