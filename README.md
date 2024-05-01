@@ -66,6 +66,13 @@ Please visit [docs.soil-kt.com](https://docs.soil-kt.com/) for Quick Start, guid
 * Getting started with [Space](https://docs.soil-kt.com/guide/space/hello-space)
 
 
+## Special Thanks
+
+Thank you for featuring our library in the following sources:
+
+- [jetc.dev Newsletter Issue #212](https://jetc.dev/issues/212.html)
+
+
 ## License
 
 ```
