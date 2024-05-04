@@ -1,6 +1,11 @@
 GRADLE_CMD ?= ./gradlew
 ADB_CMD ?= adb
 
+.DEFAULT_GOAL := help
+.PHONY: help
+help:
+	@grep -E '^[a-zA-Z_-][a-zA-Z_\-\.]+:.*$$' $(MAKEFILE_LIST) | awk -F ':' '{ print $$1 }'
+
 .PHONY: clean
 clean:
 	@$(GRADLE_CMD) clean
@@ -8,10 +13,6 @@ clean:
 .PHONY: build
 build:
 	@$(GRADLE_CMD) assemble
-
-.PHONY: dist.wasm
-dist.wasm:
-	@$(GRADLE_CMD) wasmJsBrowserDistribution
 
 .PHONY: fmt
 fmt:
@@ -32,15 +33,19 @@ publish.local:
 
 ## ----- Sample App ----- ##
 
-.PHONY: play.wasm
-play.wasm:
-	@$(GRADLE_CMD) wasmJsBrowserDevelopmentRun
-
-.PHONY: play.desktop
-play.desktop:
-	@$(GRADLE_CMD) runDistributable
-
-.PHONY: play.android
-play.android:
+.PHONY: sample.android.run
+sample.android.run:
 	@$(GRADLE_CMD) installDebug
 	@$(ADB_CMD) shell am start -n soil.kmp/soil.kmp.MainActivity
+
+.PHONY: sample.desktop.run
+sample.desktop.run:
+	@$(GRADLE_CMD) runDistributable
+
+.PHONY: sample.wasm.dist
+sample.wasm.dist:
+	@$(GRADLE_CMD) wasmJsBrowserDistribution
+
+.PHONY: sample.wasm.run
+sample.wasm.run:
+	@$(GRADLE_CMD) wasmJsBrowserDevelopmentRun
