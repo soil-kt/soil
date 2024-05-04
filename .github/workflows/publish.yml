@@ -68,4 +68,4 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_PAGES_DEPLOY_API_TOKEN }}
-          command: pages deploy build/dokka/htmlMultiModule --project-name=soil-api-reference --branch $RELEASE_PAGES_BRANCH
+          command: pages deploy build/dokka/htmlMultiModule --project-name=soil-api-reference --branch ${{ env.RELEASE_PAGES_BRANCH }}
