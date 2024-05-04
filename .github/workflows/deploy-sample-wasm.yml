@@ -1,0 +1,34 @@
+name: Deploy Sample App
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    env:
+      RELEASE_PAGES_BRANCH: main
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Build WasmJs
+        run: ./gradlew wasmJsBrowserDistribution
+
+      - name: Deploy Sample to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_PAGES_DEPLOY_API_TOKEN }}
+          command: pages deploy sample/composeApp/build/dist/wasmJs/productionExecutable --project-name=soil-sample --branch $RELEASE_PAGES_BRANCH
