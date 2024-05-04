@@ -12,11 +12,19 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-
+/**
+ * [MutationOptions] providing settings related to the internal behavior of an [Mutation].
+ */
 data class MutationOptions(
-    // NOTE: Only allows mutate to execute once while active (until reset).
+
+    /**
+     * Only allows mutate to execute once while active (until reset).
+     */
     val isOneShot: Boolean = false,
-    // NOTE: Requires revision match as a precondition for executing mutate.
+
+    /**
+     * Requires revision match as a precondition for executing mutate.
+     */
     val isStrictMode: Boolean = false,
 
     // ----- ActorOptions ----- //

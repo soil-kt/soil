@@ -6,18 +6,69 @@ package soil.query
 import soil.query.internal.SurrogateKey
 import soil.query.internal.UniqueId
 
+/**
+ * [InfiniteQueryKey] for managing [Query] associated with [id].
+ *
+ * The difference from [QueryKey] is that it's an interface for infinite fetching data using a retrieval method known as "infinite scroll."
+ *
+ * @param T Type of data to retrieve.
+ * @param S Type of parameter.
+ */
 interface InfiniteQueryKey<T, S> {
+
+    /**
+     * A unique identifier used for managing [InfiniteQueryKey].
+     */
     val id: InfiniteQueryId<T, S>
+
+    /**
+     * Suspending function to retrieve data.
+     *
+     * @receiver QueryReceiver You can use a custom QueryReceiver within the fetch function.
+     */
     val fetch: suspend QueryReceiver.(param: S) -> T
+
+    /**
+     * Function returning the initial parameter.
+     */
     val initialParam: () -> S
+
+    /**
+     * Function returning the parameter for additional fetching.
+     *
+     * `chunks` contains the retrieved data.
+     */
     val loadMoreParam: (chunks: QueryChunks<T, S>) -> S?
+
+    /**
+     * Configure the Query [options].
+     *
+     * If unspecified, the default value of [SwrCachePolicy] is used.
+     */
     val options: QueryOptions?
 
+    /**
+     * Function to specify placeholder data.
+     *
+     * You can specify placeholder data instead of the initial loading state.
+     *
+     * @see QueryPlaceholderData
+     */
     fun onPlaceholderData(): QueryPlaceholderData<QueryChunks<T, S>>? = null
 
+    /**
+     * Function to convert specific exceptions as data.
+     *
+     * Depending on the type of exception that occurred during data retrieval, it is possible to recover it as normal data.
+     *
+     * @see QueryRecoverData
+     */
     fun onRecoverData(): QueryRecoverData<QueryChunks<T, S>>? = null
 }
 
+/**
+ * Unique identifier for [InfiniteQueryKey].
+ */
 @Suppress("unused")
 open class InfiniteQueryId<T, S>(
     override val namespace: String,
@@ -46,6 +97,22 @@ internal fun <T, S> InfiniteQueryKey<T, S>.hasMore(chunks: QueryChunks<T, S>): B
     return loadMoreParam(chunks) != null
 }
 
+/**
+ * Function for building implementations of [InfiniteQueryKey] using [Kotlin Delegation](https://kotlinlang.org/docs/delegation.html).
+ *
+ * **Note:** By implementing through delegation, you can reduce the impact of future changes to [InfiniteQueryKey] interface extensions.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * class GetPostsKey(userId: Int? = null) : InfiniteQueryKey<Posts, PageParam> by buildInfiniteQueryKey(
+ *   id = Id(userId),
+ *   fetch = { param -> ... }
+ *   initialParam = { PageParam(limit = 20) },
+ *   loadMoreParam = { chunks -> ... }
+ * )
+ * ```
+ */
 fun <T, S> buildInfiniteQueryKey(
     id: InfiniteQueryId<T, S>,
     fetch: suspend QueryReceiver.(param: S) -> T,

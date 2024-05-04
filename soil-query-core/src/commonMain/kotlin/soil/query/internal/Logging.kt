@@ -3,6 +3,17 @@
 
 package soil.query.internal
 
+/**
+ * Logger functional interface to output log messages.
+ *
+ * This functional interface provides logging for debugging purposes for developers.
+ */
 fun interface LoggerFn {
+
+    /**
+     * Outputs the log message.
+     *
+     * @param message Log message.
+     */
     fun log(message: String)
 }

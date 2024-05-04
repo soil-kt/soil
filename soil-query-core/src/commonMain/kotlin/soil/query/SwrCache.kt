@@ -43,6 +43,28 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
+/**
+ * Implementation of the [SwrClient] interface.
+ *
+ * [Query] internally manages two categories:
+ * - Active: When there is one or more references or within the [QueryOptions.keepAliveTime] period
+ * - Inactive: When there are no references and past the [QueryOptions.keepAliveTime] period
+ *
+ * [Query] in the Active state does not disappear from memory unless one of the following conditions is met:
+ * - [vacuum] is executed due to memory pressure
+ * - [removeQueries] is explicitly called
+ *
+ * On the other hand, [Query] in the Inactive state gradually disappears from memory when one of the following conditions is met:
+ * - Exceeds the maximum retention count of [TimeBasedCache]
+ * - Past the [QueryOptions.gcTime] period since saved in [TimeBasedCache]
+ * - [evictCache] or [clearCache] is executed for unnecessary memory release
+ *
+ * [Mutation] is managed similarly to Active state [Query], but it is not explicitly deleted like [removeQueries].
+ * Typically, since the result of [Mutation] execution is not reused, it does not cache after going inactive.
+ *
+ * @param policy The policy for the [SwrCache].
+ * @constructor Creates a new [SwrCache] instance.
+ */
 class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClient {
 
     constructor(coroutineScope: CoroutineScope) : this(SwrCachePolicy(coroutineScope))
@@ -61,6 +83,9 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     private var mountedIds: Set<String> = emptySet()
     private var mountedScope: CoroutineScope? = null
 
+    /**
+     * Releases data in memory based on the specified [level].
+     */
     @Suppress("MemberVisibilityCanBePrivate")
     fun gc(level: MemoryPressureLevel = MemoryPressureLevel.Low) {
         when (level) {
@@ -662,22 +687,94 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     }
 }
 
+/**
+ * Policy for the [SwrCache].
+ */
 data class SwrCachePolicy(
+
+    /**
+     * [CoroutineScope] for coroutines executed on the [SwrCache].
+     *
+     * **Note:**
+     * The [SwrCache] internals are not thread-safe.
+     * Always use a scoped implementation such as [SwrCacheScope] or [kotlinx.coroutines.MainScope] with limited concurrency.
+     */
     val coroutineScope: CoroutineScope,
+
+    /**
+     * Default [MutationOptions] applied to [Mutation].
+     */
     val mutationOptions: MutationOptions = MutationOptions(),
+
+    /**
+     * Extension receiver for referencing external instances needed when executing [mutate][MutationKey.mutate].
+     */
     val mutationReceiver: MutationReceiver = MutationReceiver,
+
+    /**
+     * Management of active [Mutation] instances.
+     */
     val mutationStore: MutableMap<UniqueId, SwrCache.ManagedMutation<*>> = mutableMapOf(),
+
+    /**
+     * Default [QueryOptions] applied to [Query].
+     */
     val queryOptions: QueryOptions = QueryOptions(),
+
+    /**
+     * Extension receiver for referencing external instances needed when executing [fetch][QueryKey.fetch].
+     */
     val queryReceiver: QueryReceiver = QueryReceiver,
+
+    /**
+     * Management of active [Query] instances.
+     */
     val queryStore: MutableMap<UniqueId, SwrCache.ManagedQuery<*>> = mutableMapOf(),
+
+    /**
+     * Management of cached data for inactive [Query] instances.
+     */
     val queryCache: TimeBasedCache<UniqueId, QueryState<*>> = TimeBasedCache(DEFAULT_CAPACITY),
+
+    /**
+     * Receiving events of memory pressure.
+     */
     val memoryPressure: MemoryPressure = MemoryPressure.Unsupported,
+
+    /**
+     * Receiving events of network connectivity.
+     */
     val networkConnectivity: NetworkConnectivity = NetworkConnectivity.Unsupported,
+
+    /**
+     * The delay time to resume queries after network connectivity is reconnected.
+     *
+     * **Note:**
+     * This setting is only effective when [networkConnectivity] is available.
+     */
     val networkResumeAfterDelay: Duration = 2.seconds,
+
+    /**
+     * The specified filter to resume queries after network connectivity is reconnected.
+     *
+     * **Note:**
+     * This setting is only effective when [networkConnectivity] is available.
+     */
     val networkResumeQueriesFilter: ResumeQueriesFilter = ResumeQueriesFilter(
         predicate = { it.isFailure }
     ),
+
+    /**
+     * Receiving events of window visibility.
+     */
     val windowVisibility: WindowVisibility = WindowVisibility.Unsupported,
+
+    /**
+     * The specified filter to resume queries after window visibility is refocused.
+     *
+     * **Note:**
+     * This setting is only effective when [windowVisibility] is available.
+     */
     val windowResumeQueriesFilter: ResumeQueriesFilter = ResumeQueriesFilter(
         predicate = { it.isStaled() }
     )
@@ -687,6 +784,9 @@ data class SwrCachePolicy(
     }
 }
 
+/**
+ * [CoroutineScope] with limited concurrency for [SwrCache].
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 class SwrCacheScope(parent: Job? = null) : CoroutineScope {
     override val coroutineContext: CoroutineContext =

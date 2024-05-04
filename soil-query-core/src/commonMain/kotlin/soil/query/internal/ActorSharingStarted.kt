@@ -10,6 +10,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.onEach
 import kotlin.time.Duration
 
+/**
+ * Implementation of [SharingStarted] for Actor's custom [SharingStarted.WhileSubscribed] implementations.
+ *
+ * @see [ActorOptions.newSharingStarted]
+ */
 class ActorSharingStarted(
     keepAliveTime: Duration,
     private val onActive: ActorCallback? = null,
@@ -33,4 +38,7 @@ class ActorSharingStarted(
         }
 }
 
+/**
+ * Callback handler to notify based on the active state of the Actor.
+ */
 typealias ActorCallback = () -> Unit

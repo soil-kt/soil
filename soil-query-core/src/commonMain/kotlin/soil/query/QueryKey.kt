@@ -6,16 +6,54 @@ package soil.query
 import soil.query.internal.SurrogateKey
 import soil.query.internal.UniqueId
 
+/**
+ * [QueryKey] for managing [Query] associated with [id].
+ *
+ * @param T Type of data to retrieve.
+ */
 interface QueryKey<T> {
+
+    /**
+     * A unique identifier used for managing [QueryKey].
+     */
     val id: QueryId<T>
+
+    /**
+     * Suspending function to retrieve data.
+     *
+     * @receiver QueryReceiver You can use a custom QueryReceiver within the fetch function.
+     */
     val fetch: suspend QueryReceiver.() -> T
+
+    /**
+     * Configure the Query [options].
+     *
+     * If unspecified, the default value of [SwrCachePolicy] is used.
+     */
     val options: QueryOptions?
 
+    /**
+     * Function to specify placeholder data.
+     *
+     * You can specify placeholder data instead of the initial loading state.
+     *
+     * @see QueryPlaceholderData
+     */
     fun onPlaceholderData(): QueryPlaceholderData<T>? = null
 
+    /**
+     * Function to convert specific exceptions as data.
+     *
+     * Depending on the type of exception that occurred during data retrieval, it is possible to recover it as normal data.
+     *
+     * @see QueryRecoverData
+     */
     fun onRecoverData(): QueryRecoverData<T>? = null
 }
 
+/**
+ * Unique identifier for [QueryKey].
+ */
 @Suppress("unused")
 open class QueryId<T>(
     override val namespace: String,
@@ -40,6 +78,20 @@ open class QueryId<T>(
     }
 }
 
+/**
+ * Function for building implementations of [QueryKey] using [Kotlin Delegation](https://kotlinlang.org/docs/delegation.html).
+ *
+ * **Note:** By implementing through delegation, you can reduce the impact of future changes to [QueryKey] interface extensions.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * class GetPostKey(private val postId: Int) : QueryKey<Post> by buildQueryKey(
+ *   id = Id(postId),
+ *   fetch = { ... }
+ * )
+ * ```
+ */
 fun <T> buildQueryKey(
     id: QueryId<T>,
     fetch: suspend QueryReceiver.() -> T,

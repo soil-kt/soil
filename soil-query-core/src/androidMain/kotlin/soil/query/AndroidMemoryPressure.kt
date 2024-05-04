@@ -9,6 +9,23 @@ import android.content.res.Configuration
 import soil.query.internal.MemoryPressure
 import soil.query.internal.MemoryPressureLevel
 
+/**
+ * Implementation of [MemoryPressure] for Android.
+ *
+ * In the Android system, [ComponentCallbacks2] is used to monitor memory pressure states.
+ * It notifies the memory pressure state based on the level parameter of [ComponentCallbacks2.onTrimMemory].
+ *
+ *     | Android Trim Level             | MemoryPressureLevel   |
+ *     |:-------------------------------|:----------------------|
+ *     | TRIM_MEMORY_UI_HIDDEN          | Low                   |
+ *     | TRIM_MEMORY_MODERATE           | Low                   |
+ *     | TRIM_MEMORY_RUNNING_MODERATE   | Low                   |
+ *     | TRIM_MEMORY_BACKGROUND         | High                  |
+ *     | TRIM_MEMORY_RUNNING_LOW        | High                  |
+ *     | TRIM_MEMORY_COMPLETE           | Critical              |
+ *     | TRIM_MEMORY_RUNNING_CRITICAL   | Critical              |
+ *
+ */
 class AndroidMemoryPressure(
     private val context: Context
 ) : MemoryPressure {
@@ -23,6 +40,9 @@ class AndroidMemoryPressure(
         obw = null
     }
 
+    /**
+     * Implementation of [ComponentCallbacks2] for observing memory pressure.
+     */
     class ObserverWrapper(
         private val observer: MemoryPressure.Observer
     ) : ComponentCallbacks2 {

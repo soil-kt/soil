@@ -12,6 +12,17 @@ import androidx.annotation.RequiresPermission
 import soil.query.internal.NetworkConnectivity
 import soil.query.internal.NetworkConnectivityEvent
 
+/**
+ * Implementation of [NetworkConnectivity] for Android.
+ *
+ * In the Android system, [ConnectivityManager] is used to monitor network connectivity states.
+ *
+ * **Note**: This implementation requires the `ACCESS_NETWORK_STATE` permission.
+ *
+ * ```
+ * <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+ * ```
+ */
 class AndroidNetworkConnectivity(
     private val context: Context
 ) : NetworkConnectivity {
@@ -37,6 +48,9 @@ class AndroidNetworkConnectivity(
         obw = null
     }
 
+    /**
+     * Implementation of [ConnectivityManager.NetworkCallback] for observing network connectivity.
+     */
     class ObserverWrapper(
         private val observer: NetworkConnectivity.Observer
     ) : ConnectivityManager.NetworkCallback() {

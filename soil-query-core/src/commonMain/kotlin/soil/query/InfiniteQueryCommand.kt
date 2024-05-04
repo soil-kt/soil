@@ -7,6 +7,16 @@ import soil.query.internal.RetryFn
 import soil.query.internal.exponentialBackOff
 import kotlin.coroutines.cancellation.CancellationException
 
+/**
+ * Fetches data for the [InfiniteQueryKey] using the value of [variable].
+ *
+ * @receiver [QueryCommand.Context] for [InfiniteQueryKey].
+ * @param T Type of data to retrieve.
+ * @param S Type of parameter.
+ * @param key Instance of a class implementing [InfiniteQueryKey].
+ * @param variable Value of the parameter required for fetching data for [InfiniteQueryKey].
+ * @param retryFn Retry strategy.
+ */
 suspend fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.fetch(
     key: InfiniteQueryKey<T, S>,
     variable: S,
@@ -22,6 +32,15 @@ suspend fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.fetch(
     }
 }
 
+/**
+ * Revalidates the data for the [InfiniteQueryKey] using the value of [chunks].
+ *
+ * @receiver [QueryCommand.Context] for [InfiniteQueryKey].
+ * @param T Type of data to retrieve.
+ * @param S Type of parameter.
+ * @param key Instance of a class implementing [InfiniteQueryKey].
+ * @param chunks Data to revalidate.
+ */
 suspend fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.revalidate(
     key: InfiniteQueryKey<T, S>,
     chunks: QueryChunks<T, S>
@@ -47,6 +66,15 @@ suspend fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.revalidate(
     return Result.success(newData)
 }
 
+/**
+ * Dispatches the result of fetching data for the [InfiniteQueryKey].
+ *
+ * @receiver [QueryCommand.Context] for [InfiniteQueryKey].
+ * @param T Type of data to retrieve.
+ * @param S Type of parameter.
+ * @param key Instance of a class implementing [InfiniteQueryKey].
+ * @param variable Value of the parameter required for fetching data for [InfiniteQueryKey].
+ */
 suspend inline fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.dispatchFetchChunksResult(
     key: InfiniteQueryKey<T, S>,
     variable: S
@@ -59,6 +87,15 @@ suspend inline fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.dispatchFetchC
         .onFailure(::dispatchFetchFailure)
 }
 
+/**
+ * Dispatches the result of revalidating data for the [InfiniteQueryKey].
+ *
+ * @receiver [QueryCommand.Context] for [InfiniteQueryKey].
+ * @param T Type of data to retrieve.
+ * @param S Type of parameter.
+ * @param key Instance of a class implementing [InfiniteQueryKey].
+ * @param chunks Data to revalidate.
+ */
 suspend inline fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.dispatchRevalidateChunksResult(
     key: InfiniteQueryKey<T, S>,
     chunks: QueryChunks<T, S>

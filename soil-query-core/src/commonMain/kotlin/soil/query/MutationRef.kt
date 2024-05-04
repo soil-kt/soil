@@ -9,11 +9,27 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 
+/**
+ * A reference to a [Mutation] for [MutationKey].
+ *
+ * @param T Type of the return value from the mutation.
+ * @param S Type of the variable to be mutated.
+ * @property key Instance of a class implementing [MutationKey].
+ * @param mutation The mutation to perform.
+ * @constructor Creates a [MutationRef].
+ */
 class MutationRef<T, S>(
     val key: MutationKey<T, S>,
     mutation: Mutation<T>
 ) : Mutation<T> by mutation {
 
+    /**
+     * Starts the [Mutation].
+     *
+     * This function must be invoked when a new mount point (subscriber) is added.
+     *
+     * @param scope The [CoroutineScope] to launch the [Mutation] actor.
+     */
     fun start(scope: CoroutineScope) {
         actor.launchIn(scope = scope)
         scope.launch {
@@ -21,6 +37,12 @@ class MutationRef<T, S>(
         }
     }
 
+    /**
+     * Mutates the variable.
+     *
+     * @param variable The variable to be mutated.
+     * @return The result of the mutation.
+     */
     suspend fun mutate(variable: S): T {
         mutateAsync(variable)
         val submittedAt = state.value.submittedAt
@@ -34,10 +56,18 @@ class MutationRef<T, S>(
         }
     }
 
+    /**
+     * Mutates the variable asynchronously.
+     *
+     * @param variable The variable to be mutated.
+     */
     suspend fun mutateAsync(variable: S) {
         command.send(MutationCommands.Mutate(key, variable, state.value.revision))
     }
 
+    /**
+     * Resets the mutation state.
+     */
     suspend fun reset() {
         command.send(MutationCommands.Reset())
     }
