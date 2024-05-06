@@ -11,6 +11,12 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import soil.query.internal.WindowVisibility
 import soil.query.internal.WindowVisibilityEvent
 
+/**
+ * Implementation of [WindowVisibility] for Android.
+ *
+ * In the Android system, [ProcessLifecycleOwner] is used to monitor window visibility states.
+ * It notifies the window visibility state based on the lifecycle state of [ProcessLifecycleOwner].
+ */
 class AndroidWindowVisibility(
     private val lifecycleOwner: LifecycleOwner = ProcessLifecycleOwner.get()
 ) : WindowVisibility {
@@ -36,6 +42,9 @@ class AndroidWindowVisibility(
         }
     }
 
+    /**
+     * Implementation of [DefaultLifecycleObserver] for observing window visibility.
+     */
     class CallbackWrapper(
         private val callback: WindowVisibility.Observer
     ) : DefaultLifecycleObserver {

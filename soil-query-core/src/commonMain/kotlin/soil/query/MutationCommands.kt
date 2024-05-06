@@ -5,7 +5,22 @@ package soil.query
 
 import soil.query.internal.vvv
 
+/**
+ * Mutation commands are used to update the [mutation state][MutationState].
+ *
+ * @param T Type of the return value from the mutation.
+ */
 sealed class MutationCommands<T> : MutationCommand<T> {
+
+    /**
+     * Executes the [mutate][MutationKey.mutate] function of the specified [MutationKey].
+     *
+     * **Note:** The mutation is not executed if the revision is different.
+     *
+     * @param key Instance of a class implementing [MutationKey].
+     * @param variable The variable to be mutated.
+     * @param revision The revision of the mutation state.
+     */
     data class Mutate<T, S>(
         val key: MutationKey<T, S>,
         val variable: S,
@@ -22,6 +37,9 @@ sealed class MutationCommands<T> : MutationCommand<T> {
         }
     }
 
+    /**
+     * Resets the mutation state.
+     */
     class Reset<T> : MutationCommands<T>() {
 
         override suspend fun handle(ctx: MutationCommand.Context<T>) {

@@ -3,7 +3,21 @@
 
 package soil.query
 
-// NOTE: Extension receiver for referencing external instances needed when executing query.
+/**
+ * Extension receiver for referencing external instances needed when executing query.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * class KtorReceiver(
+ *     val client: HttpClient
+ * ) : QueryReceiver, MutationReceiver
+ * ```
+ */
 interface QueryReceiver {
+
+    /**
+     * Default implementation for [QueryReceiver].
+     */
     companion object : QueryReceiver
 }

@@ -8,6 +8,9 @@ import org.w3c.dom.events.Event
 import soil.query.internal.NetworkConnectivity
 import soil.query.internal.NetworkConnectivityEvent
 
+/**
+ * Implementation of [NetworkConnectivity] for WasmJs.
+ */
 class WasmJsNetworkConnectivity : NetworkConnectivity {
 
     private var onlineListener: ((Event) -> Unit)? = null

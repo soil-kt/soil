@@ -5,6 +5,15 @@ package soil.query.internal
 
 import kotlin.time.Duration
 
+/**
+ * A time-based cache that evicts entries based on their time-to-live (TTL).
+ *
+ * @param K The type of keys maintained by this cache.
+ * @param V The type of mapped values.
+ * @property capacity The maximum number of entries that this cache can hold.
+ * @property time A function that returns the current time in seconds since the epoch.
+ * @constructor Creates a new time-based cache with the specified capacity and time function.
+ */
 class TimeBasedCache<K : Any, V : Any>(
     private val capacity: Int,
     private val time: () -> Long = { epoch() }
@@ -13,12 +22,23 @@ class TimeBasedCache<K : Any, V : Any>(
     private val cache = LinkedHashMap<K, Item<K, V>>(capacity)
     private val queue = PriorityQueue<Item<K, V>>(capacity)
 
+    /**
+     * Returns the number of entries in this cache.
+     */
     val size: Int
         get() = cache.size
 
+    /**
+     * Returns the keys contained in this cache.
+     */
     val keys: Set<K>
         get() = cache.keys
 
+    /**
+     * Returns the value of the specified key in this cache
+     *
+     * @return `null` if the key is not found or has expired.
+     */
     operator fun get(key: K): V? {
         val item = cache[key]
         if (item != null && time() < item.expires) {
@@ -27,6 +47,12 @@ class TimeBasedCache<K : Any, V : Any>(
         return null
     }
 
+    /**
+     * Save the specified key with value in this cache.
+     *
+     * - If the cache is full, the oldest entry will be evicted.
+     * - If the key already exists, delete the old entry and save the new entry.
+     */
     fun set(key: K, value: V, ttl: Duration) {
         val now = time()
         if (cache.containsKey(key)) {
@@ -41,6 +67,9 @@ class TimeBasedCache<K : Any, V : Any>(
         queue.push(item)
     }
 
+    /**
+     * Updates the value associated with the specified key in this cache.
+     */
     fun swap(key: K, edit: V.() -> V) {
         val current = cache[key] ?: return
         val changed = current.copy(value = current.value.edit())
@@ -49,7 +78,9 @@ class TimeBasedCache<K : Any, V : Any>(
         queue.push(changed)
     }
 
-
+    /**
+     * Evicts entries that have expired.
+     */
     fun evict(now: Long = time()) {
         if (cache.isEmpty()) {
             return
@@ -70,11 +101,17 @@ class TimeBasedCache<K : Any, V : Any>(
         }
     }
 
+    /**
+     * Removes the entry for the specified key from this cache if it is present.
+     */
     fun delete(key: K) {
         val item = cache.remove(key) ?: return
         queue.remove(item)
     }
 
+    /**
+     * Removes all entries from this cache.
+     */
     fun clear() {
         cache.clear()
         queue.clear()
@@ -84,6 +121,16 @@ class TimeBasedCache<K : Any, V : Any>(
         return "TimeBasedCache[capacity=$capacity, keys=${cache.keys}]"
     }
 
+    /**
+     * An item in the cache that holds a key, a value, and an expiration time.
+     *
+     * @param K The type of keys maintained by this cache
+     * @param V The type of mapped values
+     * @property key The key of this item
+     * @property value The value of this item
+     * @property expires The expiration time of this item
+     * @constructor Creates a new item with the specified key, value, and expiration time.
+     */
     data class Item<K : Any, V : Any>(
         val key: K,
         val value: V,

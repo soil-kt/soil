@@ -9,6 +9,9 @@ import soil.query.internal.WindowVisibility
 import soil.query.internal.WindowVisibilityEvent
 import soil.query.internal.document as documentAlt
 
+/**
+ * Implementation of [WindowVisibility] for WasmJs.
+ */
 class WasmJsWindowVisibility : WindowVisibility {
 
     private var visibilityListener: ((Event) -> Unit)? = null

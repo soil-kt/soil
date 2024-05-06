@@ -10,10 +10,23 @@ import soil.query.internal.exponentialBackOff
 import soil.query.internal.vvv
 import kotlin.coroutines.cancellation.CancellationException
 
+/**
+ * Mutation command to handle mutation.
+ *
+ * @param T Type of the return value from the mutation.
+ */
 interface MutationCommand<T> {
 
+    /**
+     * Handles the mutation.
+     */
     suspend fun handle(ctx: Context<T>)
 
+    /**
+     * Context for mutation command.
+     *
+     * @param T Type of the return value from the mutation.
+     */
     interface Context<T> {
         val receiver: MutationReceiver
         val options: MutationOptions
@@ -23,6 +36,11 @@ interface MutationCommand<T> {
     }
 }
 
+/**
+ * Determines whether a mutation operation is necessary based on the current state.
+ *
+ * @return `true` if mutation operation is allowed, `false` otherwise.
+ */
 fun <T> MutationCommand.Context<T>.shouldMutate(revision: String): Boolean {
     if (options.isOneShot && state.isMutated) {
         return false
@@ -33,7 +51,14 @@ fun <T> MutationCommand.Context<T>.shouldMutate(revision: String): Boolean {
     return !state.isPending
 }
 
-
+/**
+ * Mutates the data.
+ *
+ * @param key Instance of a class implementing [MutationKey].
+ * @param variable The variable to be mutated.
+ * @param retryFn The retry function.
+ * @return The result of the mutation.
+ */
 suspend fun <T, S> MutationCommand.Context<T>.mutate(
     key: MutationKey<T, S>,
     variable: S,
@@ -49,6 +74,12 @@ suspend fun <T, S> MutationCommand.Context<T>.mutate(
     }
 }
 
+/**
+ * Dispatches the mutation result.
+ *
+ * @param key Instance of a class implementing [MutationKey].
+ * @param variable The variable to be mutated.
+ */
 suspend inline fun <T, S> MutationCommand.Context<T>.dispatchMutateResult(
     key: MutationKey<T, S>,
     variable: S

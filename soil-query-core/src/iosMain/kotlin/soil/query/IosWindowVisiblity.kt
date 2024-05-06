@@ -15,6 +15,13 @@ import platform.darwin.NSObject
 import soil.query.internal.WindowVisibility
 import soil.query.internal.WindowVisibilityEvent
 
+/**
+ * Implementation of [WindowVisibility] for iOS.
+ *
+ * In the iOS system, [UIApplicationDidBecomeActiveNotification] and [UIApplicationWillResignActiveNotification]
+ * are used to monitor window visibility states.
+ * It notifies the window visibility state based on the notification received.
+ */
 @OptIn(BetaInteropApi::class, ExperimentalForeignApi::class)
 class IosWindowVisibility : WindowVisibility {
 

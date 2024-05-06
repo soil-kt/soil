@@ -7,16 +7,49 @@ import soil.query.internal.SurrogateKey
 import soil.query.internal.UniqueId
 import soil.query.internal.uuid
 
+/**
+ * Interface for mutations key.
+ *
+ * MutationKey is typically used to perform side effects on external resources, such as creating, updating, or deleting data.
+ *
+ * @param T Type of the return value from the mutation.
+ * @param S Type of the variable to be mutated.
+ */
 interface MutationKey<T, S> {
+
+    /**
+     * A unique identifier used for managing [MutationKey].
+     */
     val id: MutationId<T, S>
+
+    /**
+     * Suspending function to mutate the variable.
+     *
+     * @receiver MutationReceiver You can use a custom MutationReceiver within the mutate function.
+     */
     val mutate: suspend MutationReceiver.(variable: S) -> T
+
+    /**
+     * Configure the Mutation [options].
+     *
+     * If unspecified, the default value of [MutationOptions] is used.
+     */
     val options: MutationOptions?
 
-    // Pessimistic Updates
-    // https://redux-toolkit.js.org/rtk-query/usage/manual-cache-updates#pessimistic-updates
+    /**
+     * Function to update the query cache after the mutation is executed.
+     *
+     * This is often referred to as ["Pessimistic Updates"](https://redux-toolkit.js.org/rtk-query/usage/manual-cache-updates#pessimistic-updates).
+     *
+     * @param variable The variable to be mutated.
+     * @param data The data returned by the mutation.
+     */
     fun onQueryUpdate(variable: S, data: T): QueryEffect? = null
 }
 
+/**
+ * Unique identifier for [MutationKey].
+ */
 @Suppress("unused")
 open class MutationId<T, S>(
     override val namespace: String,
@@ -41,6 +74,14 @@ open class MutationId<T, S>(
     }
 
     companion object {
+
+        /**
+         * Automatically generates a [MutationId].
+         *
+         * Generates an ID for one-time use, so it cannot be shared among multiple places of use.
+         *
+         * FIXME: Since this function is for automatic ID assignment, it might be better not to have arguments.
+         */
         fun <T, S> auto(
             namespace: String = "auto/${uuid()}",
             vararg tags: SurrogateKey
@@ -50,6 +91,19 @@ open class MutationId<T, S>(
     }
 }
 
+/**
+ * Function for building implementations of [MutationKey] using [Kotlin Delegation](https://kotlinlang.org/docs/delegation.html).
+ *
+ * **Note:** By implementing through delegation, you can reduce the impact of future changes to [MutationKey] interface extensions.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * class CreatePostKey : MutationKey<Post, PostForm> by buildMutationKey(
+ *   mutate = { body -> ... }
+ * )
+ * ```
+ */
 fun <T, S> buildMutationKey(
     id: MutationId<T, S> = MutationId.auto(),
     mutate: suspend MutationReceiver.(variable: S) -> T,

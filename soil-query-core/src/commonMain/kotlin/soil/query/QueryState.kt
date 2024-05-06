@@ -3,6 +3,9 @@
 
 package soil.query
 
+/**
+ * State for managing the execution result of [Query].
+ */
 data class QueryState<out T>(
     override val data: T? = null,
     override val dataUpdatedAt: Long = 0,

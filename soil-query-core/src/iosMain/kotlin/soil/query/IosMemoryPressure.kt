@@ -15,6 +15,17 @@ import platform.darwin.NSObject
 import soil.query.internal.MemoryPressure
 import soil.query.internal.MemoryPressureLevel
 
+/**
+ * Implementation of [MemoryPressure] for iOS.
+ *
+ * In the iOS system, [NSNotificationCenter] is used to monitor memory pressure states.
+ *
+ *    | iOS Notification                        | MemoryPressureLevel   |
+ *    |:----------------------------------------|:----------------------|
+ *    | UIApplicationDidEnterBackground         | Low                   |
+ *    | UIApplicationDidReceiveMemoryWarning    | Critical              |
+ *
+ */
 @OptIn(BetaInteropApi::class, ExperimentalForeignApi::class)
 class IosMemoryPressure : MemoryPressure {
 

@@ -5,8 +5,22 @@ package soil.query
 
 import soil.query.internal.vvv
 
+/**
+ * Query command for [InfiniteQueryKey].
+ *
+ * @param T Type of data to retrieve.
+ * @param S Type of parameter.
+ */
 sealed class InfiniteQueryCommands<T, S> : QueryCommand<QueryChunks<T, S>> {
 
+    /**
+     * Performs data fetching and validation based on the current data state.
+     *
+     * This command is invoked via [InfiniteQueryRef] when a new mount point (subscriber) is added.
+     *
+     * @param key Instance of a class implementing [InfiniteQueryKey].
+     * @param revision The revision of the data to be fetched.
+     */
     data class Connect<T, S>(
         val key: InfiniteQueryKey<T, S>,
         val revision: String? = null
@@ -26,6 +40,14 @@ sealed class InfiniteQueryCommands<T, S> : QueryCommand<QueryChunks<T, S>> {
         }
     }
 
+    /**
+     * Invalidates the data and performs data fetching and validation based on the current data state.
+     *
+     * This command is invoked via [InfiniteQueryRef] when the data is invalidated.
+     *
+     * @param key Instance of a class implementing [InfiniteQueryKey].
+     * @param revision The revision of the data to be invalidated.
+     */
     data class Invalidate<T, S>(
         val key: InfiniteQueryKey<T, S>,
         val revision: String
@@ -45,6 +67,12 @@ sealed class InfiniteQueryCommands<T, S> : QueryCommand<QueryChunks<T, S>> {
         }
     }
 
+    /**
+     * Fetches additional data for [InfiniteQueryKey] using [param].
+     *
+     * @param key Instance of a class implementing [InfiniteQueryKey].
+     * @param param The parameter required for fetching data for [InfiniteQueryKey].
+     */
     data class LoadMore<T, S>(
         val key: InfiniteQueryKey<T, S>,
         val param: S

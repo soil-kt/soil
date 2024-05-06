@@ -3,7 +3,16 @@
 
 package soil.query.internal
 
+/**
+ * Interface providing settings for logging output for debugging purposes.
+ */
 interface LoggingOptions {
+
+    /**
+     * Specifies the logger function.
+     *
+     * **Note:** When LoggerFn is set, it writes internal logic state changes to the log.
+     */
     val logger: LoggerFn?
 }
 
