@@ -48,8 +48,7 @@ fun rememberQueriesErrorReset(
 @Composable
 fun KeepAlive(
     key: QueryKey<*>,
-    // TODO Use QueryClient instead of SwrClient
-    client: SwrClient = LocalSwrClient.current
+    client: QueryClient = LocalSwrClient.current
 ) {
     val query = remember(key) { client.getQuery(key) }
     LaunchedEffect(Unit) {
@@ -68,8 +67,7 @@ fun KeepAlive(
 @Composable
 fun KeepAlive(
     key: InfiniteQueryKey<*, *>,
-    // TODO Use QueryClient instead of SwrClient
-    client: SwrClient = LocalSwrClient.current
+    client: QueryClient = LocalSwrClient.current
 ) {
     val query = remember(key) { client.getInfiniteQuery(key) }
     LaunchedEffect(Unit) {
