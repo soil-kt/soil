@@ -19,29 +19,6 @@ import soil.query.compose.QueryRefreshErrorObject
 import soil.query.compose.QuerySuccessObject
 import soil.query.internal.uuid
 
-@Composable
-inline fun <T> Await(
-    state: Loadable<T>,
-    key: Any? = null,
-    host: AwaitHost = LocalAwaitHost.current,
-    content: @Composable (T) -> Unit
-) {
-    val id = remember(key) { key ?: uuid() }
-    when (state) {
-        is Loadable.Fulfilled -> content(state.data)
-        is Loadable.Rejected,
-        is Loadable.Pending -> Unit
-    }
-    LaunchedEffect(id, state) {
-        host[id] = state is Loadable.Pending
-    }
-    DisposableEffect(id) {
-        onDispose {
-            host.remove(id)
-        }
-    }
-}
-
 /**
  * Await for a [QueryModel] to be fulfilled.
  *
