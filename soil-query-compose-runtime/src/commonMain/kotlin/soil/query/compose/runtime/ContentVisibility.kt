@@ -11,8 +11,17 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.invisibleToUser
 
-// NOTE: Visibility must be treated similarly to Android View's invisible because it needs to receive the loading state from Await placed as a child.
-// (If AnimatedVisibility's visible=false, the content isn't called while it's hidden, so Await won't function)
+/**
+ * A composable that can hide its [content] without removing it from the layout.
+ *
+ * **Note:**
+ * Visibility must be treated similarly to Android View's invisible because it needs to receive the loading state from Await placed as a child.
+ * (If AnimatedVisibility's visible=false, the content isn't called while it's hidden, so Await won't function)
+ *
+ * @param hidden Whether the content should be hidden.
+ * @param modifier The modifier to be applied to the layout.
+ * @param content The content of the [ContentVisibility].
+ */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ContentVisibility(

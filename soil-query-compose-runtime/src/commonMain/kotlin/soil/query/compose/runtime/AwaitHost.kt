@@ -6,17 +6,37 @@ package soil.query.compose.runtime
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
 
+/**
+ * A host to manage the await state of a key.
+ *
+ * @see Await
+ */
 @Stable
 interface AwaitHost {
 
+    /**
+     * Returns the set of keys that are awaited.
+     */
     val keys: Set<Any>
 
+    /**
+     * Returns `true` if the key is awaited.
+     */
     operator fun get(key: Any): Boolean
 
+    /**
+     * Sets the key to be awaited or not.
+     */
     operator fun set(key: Any, isAwaited: Boolean)
 
+    /**
+     * Removes the key from the awaited set.
+     */
     fun remove(key: Any)
 
+    /**
+     * A noop implementation of [AwaitHost].
+     */
     companion object Noop : AwaitHost {
 
         override val keys: Set<Any> = emptySet()
@@ -29,6 +49,9 @@ interface AwaitHost {
     }
 }
 
+/**
+ * CompositionLocal for [AwaitHost].
+ */
 val LocalAwaitHost = compositionLocalOf<AwaitHost> {
     AwaitHost
 }

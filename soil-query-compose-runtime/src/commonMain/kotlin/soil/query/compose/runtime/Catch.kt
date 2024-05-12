@@ -46,6 +46,13 @@ fun <T : Throwable> Catch(
     }
 }
 
+/**
+ * Catch for a [QueryModel] to be rejected.
+ *
+ * @param state The [QueryModel] to catch.
+ * @param isEnabled Whether to catch the error.
+ * @param content The content to display when the query is rejected. By default, it [throws][CatchScope.Throw] the error.
+ */
 @Composable
 fun Catch(
     state: QueryModel<*>,
@@ -60,6 +67,14 @@ fun Catch(
     )
 }
 
+/**
+ * Catch for any [QueryModel]s to be rejected.
+ *
+ * @param state1 The first [QueryModel] to catch.
+ * @param state2 The second [QueryModel] to catch.
+ * @param isEnabled Whether to catch the error.
+ * @param content The content to display when the query is rejected. By default, it [throws][CatchScope.Throw] the error.
+ */
 @Composable
 fun Catch(
     state1: QueryModel<*>,
@@ -76,6 +91,15 @@ fun Catch(
     )
 }
 
+/**
+ * Catch for any [QueryModel]s to be rejected.
+ *
+ * @param state1 The first [QueryModel] to catch.
+ * @param state2 The second [QueryModel] to catch.
+ * @param state3 The third [QueryModel] to catch.
+ * @param isEnabled Whether to catch the error.
+ * @param content The content to display when the query is rejected. By default, it [throws][CatchScope.Throw] the error.
+ */
 @Composable
 fun Catch(
     state1: QueryModel<*>,
@@ -94,6 +118,13 @@ fun Catch(
     )
 }
 
+/**
+ * Catch for any [QueryModel]s to be rejected.
+ *
+ * @param states The [QueryModel]s to catch.
+ * @param isEnabled Whether to catch the error.
+ * @param content The content to display when the query is rejected. By default, it [throws][CatchScope.Throw] the error.
+ */
 @Composable
 fun Catch(
     vararg states: QueryModel<*>,
@@ -108,6 +139,14 @@ fun Catch(
     )
 }
 
+/**
+ * Catch for a [QueryModel] to be rejected.
+ *
+ * @param state The [QueryModel] to catch.
+ * @param filterIsInstance A function to filter the error.
+ * @param isEnabled Whether to catch the error.
+ * @param content The content to display when the query is rejected. By default, it [throws][CatchScope.Throw] the error.
+ */
 @Composable
 fun <T : Throwable> Catch(
     state: QueryModel<*>,
@@ -121,6 +160,15 @@ fun <T : Throwable> Catch(
     }
 }
 
+/**
+ * Catch for any [QueryModel]s to be rejected.
+ *
+ * @param state1 The first [QueryModel] to catch.
+ * @param state2 The second [QueryModel] to catch.
+ * @param filterIsInstance A function to filter the error.
+ * @param isEnabled Whether to catch the error.
+ * @param content The content to display when the query is rejected. By default, it [throws][CatchScope.Throw] the error.
+ */
 @Composable
 fun <T : Throwable> Catch(
     state1: QueryModel<*>,
@@ -138,6 +186,16 @@ fun <T : Throwable> Catch(
     }
 }
 
+/**
+ * Catch for any [QueryModel]s to be rejected.
+ *
+ * @param state1 The first [QueryModel] to catch.
+ * @param state2 The second [QueryModel] to catch.
+ * @param state3 The third [QueryModel] to catch.
+ * @param filterIsInstance A function to filter the error.
+ * @param isEnabled Whether to catch the error.
+ * @param content The content to display when the query is rejected. By default, it [throws][CatchScope.Throw] the error.
+ */
 @Composable
 fun <T : Throwable> Catch(
     state1: QueryModel<*>,
@@ -156,6 +214,14 @@ fun <T : Throwable> Catch(
     }
 }
 
+/**
+ * Catch for any [QueryModel]s to be rejected.
+ *
+ * @param states The [QueryModel]s to catch.
+ * @param filterIsInstance A function to filter the error.
+ * @param isEnabled Whether to catch the error.
+ * @param content The content to display when the query is rejected. By default, it [throws][CatchScope.Throw] the error.
+ */
 @Composable
 fun <T : Throwable> Catch(
     vararg states: QueryModel<*>,
@@ -172,8 +238,18 @@ fun <T : Throwable> Catch(
     }
 }
 
-
+/**
+ * A scope for handling error content within the [Catch] function.
+ */
 object CatchScope {
+
+    /**
+     * Throw propagates the caught exception to a [CatchThrowHost].
+     *
+     * @param error The caught exception.
+     * @param key The key to identify the caught exception.
+     * @param host The [CatchThrowHost] to manage the caught exception. By default, it uses the [LocalCatchThrowHost].
+     */
     @Composable
     fun Throw(
         error: Throwable,
