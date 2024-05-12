@@ -10,42 +10,6 @@ import androidx.compose.runtime.remember
 import soil.query.QueryModel
 import soil.query.internal.uuid
 
-@Composable
-fun Catch(
-    state: Loadable<*>,
-    isEnabled: Boolean = true,
-    content: @Composable CatchScope.(err: Throwable) -> Unit = { Throw(error = it) }
-) {
-    Catch(
-        state = state,
-        filterIsInstance = { it },
-        isEnabled = isEnabled,
-        content = content
-    )
-}
-
-@Composable
-fun <T : Throwable> Catch(
-    state: Loadable<*>,
-    filterIsInstance: (err: Throwable) -> T?,
-    isEnabled: Boolean = true,
-    content: @Composable CatchScope.(err: T) -> Unit = { Throw(error = it) }
-) {
-    when (state) {
-        is Loadable.Rejected -> {
-            val err = remember(state.error, isEnabled) {
-                state.error.takeIf { isEnabled }?.let(filterIsInstance)
-            }
-            if (err != null) {
-                with(CatchScope) { content(err) }
-            }
-        }
-
-        is Loadable.Fulfilled,
-        is Loadable.Pending -> Unit
-    }
-}
-
 /**
  * Catch for a [QueryModel] to be rejected.
  *
