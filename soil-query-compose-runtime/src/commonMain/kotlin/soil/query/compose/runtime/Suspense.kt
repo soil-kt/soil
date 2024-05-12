@@ -20,7 +20,33 @@ import kotlinx.coroutines.delay
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-
+/**
+ * Suspense render a fallback UI while some asynchronous work is being done.
+ *
+ * Typically, this function is defined at least once at the top level of a screen and used for initial loading.
+ * Suspense can be nested as needed, which is useful for performing partial loading.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * Suspense(
+ *     fallback = { ContentLoading(modifier = Modifier.matchParentSize()) },
+ *     modifier = Modifier.fillMaxSize()
+ * ) {
+ *     val query = rememberGetPostsQuery()
+ *     Await(query) { posts ->
+ *         PostList(posts)
+ *     }
+ * }
+ * ```
+ *
+ * @param fallback The fallback UI to render components like loading.
+ * @param modifier The modifier to be applied to the layout.
+ * @param state The [SuspenseState] to manage the suspense.
+ * @param contentThreshold The duration after which the initial content load is considered complete.
+ * @param content The content to display when the suspense is not awaited.
+ * @see Await
+ */
 @Composable
 fun Suspense(
     fallback: @Composable BoxScope.() -> Unit,
@@ -49,6 +75,9 @@ fun Suspense(
     }
 }
 
+/**
+ * State of the [Suspense].
+ */
 @Stable
 class SuspenseState : AwaitHost {
     private val hostMap = mutableStateMapOf<Any, Boolean>()
@@ -67,6 +96,9 @@ class SuspenseState : AwaitHost {
         hostMap.remove(key)
     }
 
+    /**
+     * Returns `true` if any of the [Await] is awaited.
+     */
     fun isAwaited(): Boolean {
         return hostMap.any { it.value }
     }

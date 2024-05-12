@@ -16,6 +16,52 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 
+/**
+ * Wrap an ErrorBoundary around other [Catch] composable functions to catch errors and render a fallback UI.
+ *
+ * **Note:**
+ * Typically, this function is defined at the top level of a screen and used for default error handling.
+ * Do not propagate errors from ErrorBoundary to higher-level components since the error state is managed by [state].
+ * Instead, it's recommended to catch and handle domain-specific exceptions within [Catch] content blocks.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * ErrorBoundary(
+ *     modifier = Modifier.fillMaxSize(),
+ *     fallback = {
+ *         ContentUnavailable(
+ *             error = it.err,
+ *             reset = it.reset,
+ *             modifier = Modifier.matchParentSize()
+ *         )
+ *     },
+ *     onError = { e -> println(e.toString()) },
+ *     onReset = rememberQueriesErrorReset()
+ * ) {
+ *     Suspense(..) {
+ *         val query = rememberGetPostsQuery()
+ *         ..
+ *         Catch(query) { e ->
+ *             // You can also write your own error handling logic.
+ *             if (e is DomainSpecificException) {
+ *                 Alert(..)
+ *                 return@Catch
+ *             }
+ *             Throw(e)
+ *         }
+ *     }
+ * }
+ * ```
+ *
+ * @param modifier The modifier to be applied to the layout.
+ * @param fallback The fallback UI to render when an error is caught.
+ * @param onError The callback to be called when an error is caught.
+ * @param onReset The callback to be called when the reset button is clicked.
+ * @param state The state of the [ErrorBoundary].
+ * @param content The content of the [ErrorBoundary].
+ * @see Catch
+ */
 @Composable
 fun ErrorBoundary(
     modifier: Modifier = Modifier,
@@ -52,16 +98,28 @@ fun ErrorBoundary(
     }
 }
 
+/**
+ * Context information to pass to the fallback UI of [ErrorBoundary].
+ *
+ * @property err The caught error.
+ * @property reset The callback to invoke when the reset button placed within the content is clicked.
+ */
 @Stable
 class ErrorBoundaryContext(
     val err: Throwable,
     val reset: (() -> Unit)?
 )
 
+/**
+ * State of the [ErrorBoundary].
+ */
 @Stable
 class ErrorBoundaryState : CatchThrowHost {
     private val hostMap = mutableStateMapOf<Any, Throwable>()
 
+    /**
+     * Returns the caught error.
+     */
     val error: Throwable?
         get() = hostMap.values.firstOrNull()
 

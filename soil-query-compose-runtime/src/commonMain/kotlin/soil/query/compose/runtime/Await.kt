@@ -19,7 +19,6 @@ import soil.query.compose.QueryRefreshErrorObject
 import soil.query.compose.QuerySuccessObject
 import soil.query.internal.uuid
 
-
 @Composable
 inline fun <T> Await(
     state: Loadable<T>,
@@ -43,6 +42,18 @@ inline fun <T> Await(
     }
 }
 
+/**
+ * Await for a [QueryModel] to be fulfilled.
+ *
+ * The content will be displayed when the query is fulfilled.
+ * The await will be managed by the [AwaitHost].
+ *
+ * @param T Type of data to retrieve.
+ * @param state The [QueryModel] to await.
+ * @param key The key to identify the await.
+ * @param host The [AwaitHost] to manage the await. By default, it uses the [LocalAwaitHost].
+ * @param content The content to display when the query is fulfilled.
+ */
 @Composable
 inline fun <T> Await(
     state: QueryModel<T>,
@@ -64,6 +75,20 @@ inline fun <T> Await(
     }
 }
 
+/**
+ * Await for two [QueryModel] to be fulfilled.
+ *
+ * The content will be displayed when the queries are fulfilled.
+ * The await will be managed by the [AwaitHost].
+ *
+ * @param T1 Type of data to retrieve.
+ * @param T2 Type of data to retrieve.
+ * @param state1 The first [QueryModel] to await.
+ * @param state2 The second [QueryModel] to await.
+ * @param key The key to identify the await.
+ * @param host The [AwaitHost] to manage the await. By default, it uses the [LocalAwaitHost].
+ * @param content The content to display when the queries are fulfilled.
+ */
 @Composable
 inline fun <T1, T2> Await(
     state1: QueryModel<T1>,
@@ -88,6 +113,22 @@ inline fun <T1, T2> Await(
     }
 }
 
+/**
+ * Await for three [QueryModel] to be fulfilled.
+ *
+ * The content will be displayed when the queries are fulfilled.
+ * The await will be managed by the [AwaitHost].
+ *
+ * @param T1 Type of data to retrieve.
+ * @param T2 Type of data to retrieve.
+ * @param T3 Type of data to retrieve.
+ * @param state1 The first [QueryModel] to await.
+ * @param state2 The second [QueryModel] to await.
+ * @param state3 The third [QueryModel] to await.
+ * @param key The key to identify the await.
+ * @param host The [AwaitHost] to manage the await. By default, it uses the [LocalAwaitHost].
+ * @param content The content to display when the queries are fulfilled.
+ */
 @Composable
 inline fun <T1, T2, T3> Await(
     state1: QueryModel<T1>,
@@ -115,6 +156,24 @@ inline fun <T1, T2, T3> Await(
     }
 }
 
+/**
+ * Await for four [QueryModel] to be fulfilled.
+ *
+ * The content will be displayed when the queries are fulfilled.
+ * The await will be managed by the [AwaitHost].
+ *
+ * @param T1 Type of data to retrieve.
+ * @param T2 Type of data to retrieve.
+ * @param T3 Type of data to retrieve.
+ * @param T4 Type of data to retrieve.
+ * @param state1 The first [QueryModel] to await.
+ * @param state2 The second [QueryModel] to await.
+ * @param state3 The third [QueryModel] to await.
+ * @param state4 The fourth [QueryModel] to await.
+ * @param key The key to identify the await.
+ * @param host The [AwaitHost] to manage the await. By default, it uses the [LocalAwaitHost].
+ * @param content The content to display when the queries are fulfilled.
+ */
 @Composable
 inline fun <T1, T2, T3, T4> Await(
     state1: QueryModel<T1>,
@@ -145,6 +204,26 @@ inline fun <T1, T2, T3, T4> Await(
     }
 }
 
+/**
+ * Await for five [QueryModel] to be fulfilled.
+ *
+ * The content will be displayed when the queries are fulfilled.
+ * The await will be managed by the [AwaitHost].
+ *
+ * @param T1 Type of data to retrieve.
+ * @param T2 Type of data to retrieve.
+ * @param T3 Type of data to retrieve.
+ * @param T4 Type of data to retrieve.
+ * @param T5 Type of data to retrieve.
+ * @param state1 The first [QueryModel] to await.
+ * @param state2 The second [QueryModel] to await.
+ * @param state3 The third [QueryModel] to await.
+ * @param state4 The fourth [QueryModel] to await.
+ * @param state5 The fifth [QueryModel] to await.
+ * @param key The key to identify the await.
+ * @param host The [AwaitHost] to manage the await. By default, it uses the [LocalAwaitHost].
+ * @param content The content to display when the queries are fulfilled.
+ */
 @Composable
 inline fun <T1, T2, T3, T4, T5> Await(
     state1: QueryModel<T1>,
@@ -178,6 +257,16 @@ inline fun <T1, T2, T3, T4, T5> Await(
     }
 }
 
+/**
+ * Await for [QueryModel] to be fulfilled.
+ *
+ * This function is part of the [Await].
+ * It is used to handle the [QueryModel] state and display the content when the query is fulfilled.
+ *
+ * @param T Type of data to retrieve.
+ * @param state The [QueryModel] to await.
+ * @param content The content to display when the query is fulfilled.
+ */
 @Composable
 fun <T> AwaitHandler(
     state: QueryModel<T>,
@@ -202,6 +291,9 @@ fun <T> AwaitHandler(
     }
 }
 
+/**
+ * Returns true if the [QueryModel] is awaited.
+ */
 fun QueryModel<*>.isAwaited(): Boolean {
     return isPending
         || (isFailure && fetchStatus == QueryFetchStatus.Fetching)
