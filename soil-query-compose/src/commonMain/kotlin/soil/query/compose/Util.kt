@@ -86,8 +86,7 @@ fun KeepAlive(
 @Composable
 fun KeepAlive(
     key: MutationKey<*, *>,
-    // TODO Use MutationClient instead of SwrClient
-    client: SwrClient = LocalSwrClient.current
+    client: MutationClient = LocalSwrClient.current
 ) {
     val query = remember(key) { client.getMutation(key) }
     LaunchedEffect(Unit) {
