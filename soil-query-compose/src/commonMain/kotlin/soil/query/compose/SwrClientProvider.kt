@@ -10,6 +10,12 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import soil.query.SwrClient
 import soil.query.internal.uuid
 
+/**
+ * Provides a [SwrClient] to the [content] over [LocalSwrClient]
+ *
+ * @param client Applying to [LocalSwrClient].
+ * @param content The content under the [CompositionLocalProvider].
+ */
 @Composable
 fun SwrClientProvider(
     client: SwrClient,
@@ -27,6 +33,9 @@ fun SwrClientProvider(
     }
 }
 
+/**
+ * CompositionLocal for [SwrClient].
+ */
 val LocalSwrClient = staticCompositionLocalOf<SwrClient> {
     error("CompositionLocal 'SwrClient' not present")
 }

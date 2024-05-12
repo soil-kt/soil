@@ -14,6 +14,14 @@ import soil.query.QueryRef
 import soil.query.QueryState
 import soil.query.QueryStatus
 
+/**
+ * Remember a [QueryObject] and subscribes to the query state of [key].
+ *
+ * @param T Type of data to retrieve.
+ * @param key The [QueryKey] for managing [query][soil.query.Query].
+ * @param client The [QueryClient] to resolve [key]. By default, it uses the [LocalSwrClient].
+ * @return A [QueryObject] each the query state changed.
+ */
 @Composable
 fun <T> rememberQuery(
     key: QueryKey<T>,
@@ -29,6 +37,16 @@ fun <T> rememberQuery(
     }
 }
 
+/**
+ * Remember a [QueryObject] and subscribes to the query state of [key].
+ *
+ * @param T Type of data to retrieve.
+ * @param U Type of selected data.
+ * @param key The [QueryKey] for managing [query][soil.query.Query].
+ * @param select A function to select data from [T].
+ * @param client The [QueryClient] to resolve [key]. By default, it uses the [LocalSwrClient].
+ * @return A [QueryObject] with selected data each the query state changed.
+ */
 @Composable
 fun <T, U> rememberQuery(
     key: QueryKey<T>,

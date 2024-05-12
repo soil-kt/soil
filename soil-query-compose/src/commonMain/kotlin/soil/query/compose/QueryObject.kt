@@ -10,11 +10,25 @@ import soil.query.QueryModel
 import soil.query.QueryStatus
 
 
+/**
+ * A QueryObject represents [QueryModel]s interface for fetching data.
+ *
+ * @param T Type of data to retrieve.
+ */
 @Stable
 sealed interface QueryObject<out T> : QueryModel<T> {
+
+    /**
+     * Refreshes the data.
+     */
     val refresh: suspend () -> Unit
 }
 
+/**
+ * A QueryIdleObject represents the initial loading state of the [QueryObject].
+ *
+ * @param T Type of data to retrieve.
+ */
 @Immutable
 data class QueryLoadingObject<T>(
     override val data: T?,
@@ -30,6 +44,11 @@ data class QueryLoadingObject<T>(
     override val status: QueryStatus = QueryStatus.Pending
 }
 
+/**
+ * A QueryLoadingErrorObject represents the initial loading error state of the [QueryObject].
+ *
+ * @param T Type of data to retrieve.
+ */
 @Immutable
 data class QueryLoadingErrorObject<T>(
     override val data: T?,
@@ -45,6 +64,11 @@ data class QueryLoadingErrorObject<T>(
     override val status: QueryStatus = QueryStatus.Failure
 }
 
+/**
+ * A QuerySuccessObject represents the successful state of the [QueryObject].
+ *
+ * @param T Type of data to retrieve.
+ */
 @Immutable
 data class QuerySuccessObject<T>(
     override val data: T,
@@ -60,6 +84,14 @@ data class QuerySuccessObject<T>(
     override val status: QueryStatus = QueryStatus.Success
 }
 
+/**
+ * A QueryRefreshErrorObject represents the refresh error state of the [QueryObject].
+ *
+ * This state is used when the data is successfully retrieved once, but an error occurs during the refresh.
+ *
+ * @param T Type of data to retrieve.
+ * @constructor Creates a [QueryRefreshErrorObject].
+ */
 @Immutable
 data class QueryRefreshErrorObject<T>(
     override val data: T,
