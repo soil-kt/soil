@@ -14,6 +14,15 @@ import soil.query.MutationRef
 import soil.query.MutationState
 import soil.query.MutationStatus
 
+/**
+ * Remember a [MutationObject] and subscribes to the mutation state of [key].
+ *
+ * @param T Type of the return value from the mutation.
+ * @param S Type of the variable to be mutated.
+ * @param key The [MutationKey] for managing [mutation][soil.query.Mutation] associated with [id][soil.query.MutationId].
+ * @param client The [MutationClient] to resolve [key]. By default, it uses the [LocalSwrClient].
+ * @return A [MutationObject] each the mutation state changed.
+ */
 @Composable
 fun <T, S> rememberMutation(
     key: MutationKey<T, S>,
@@ -28,7 +37,6 @@ fun <T, S> rememberMutation(
         state.toObject(mutation = mutation)
     }
 }
-
 
 private fun <T, S> MutationState<T>.toObject(
     mutation: MutationRef<T, S>,

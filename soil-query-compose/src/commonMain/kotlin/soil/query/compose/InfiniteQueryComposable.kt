@@ -15,6 +15,15 @@ import soil.query.QueryClient
 import soil.query.QueryState
 import soil.query.QueryStatus
 
+/**
+ * Remember a [InfiniteQueryObject] and subscribes to the query state of [key].
+ *
+ * @param T Type of data to retrieve.
+ * @param S Type of parameter.
+ * @param key The [InfiniteQueryKey] for managing [query][soil.query.Query] associated with [id][soil.query.InfiniteQueryId].
+ * @param client The [QueryClient] to resolve [key]. By default, it uses the [LocalSwrClient].
+ * @return A [InfiniteQueryObject] each the query state changed.
+ */
 @Composable
 fun <T, S> rememberInfiniteQuery(
     key: InfiniteQueryKey<T, S>,
@@ -30,6 +39,16 @@ fun <T, S> rememberInfiniteQuery(
     }
 }
 
+/**
+ * Remember a [InfiniteQueryObject] and subscribes to the query state of [key].
+ *
+ * @param T Type of data to retrieve.
+ * @param S Type of parameter.
+ * @param key The [InfiniteQueryKey] for managing [query][soil.query.Query] associated with [id][soil.query.InfiniteQueryId].
+ * @param select A function to select data from [QueryChunks].
+ * @param client The [QueryClient] to resolve [key]. By default, it uses the [LocalSwrClient].
+ * @return A [InfiniteQueryObject] with selected data each the query state changed.
+ */
 @Composable
 fun <T, S, U> rememberInfiniteQuery(
     key: InfiniteQueryKey<T, S>,

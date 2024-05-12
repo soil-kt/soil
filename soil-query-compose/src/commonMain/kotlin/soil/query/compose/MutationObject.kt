@@ -8,13 +8,37 @@ import androidx.compose.runtime.Stable
 import soil.query.MutationModel
 import soil.query.MutationStatus
 
+/**
+ * A MutationObject represents [MutationModel]s interface for mutating data.
+ *
+ * @param T Type of the return value from the mutation.
+ * @param S Type of the variable to be mutated.
+ */
 @Stable
 sealed interface MutationObject<out T, S> : MutationModel<T> {
+
+    /**
+     * Mutates the variable.
+     */
     val mutate: suspend (variable: S) -> T
+
+    /**
+     * Mutates the variable asynchronously.
+     */
     val mutateAsync: suspend (variable: S) -> Unit
+
+    /**
+     * Resets the mutation state.
+     */
     val reset: suspend () -> Unit
 }
 
+/**
+ * A MutationIdleObject represents the initial idle state of the [MutationObject].
+ *
+ * @param T Type of the return value from the mutation.
+ * @param S Type of the variable to be mutated.
+ */
 @Immutable
 data class MutationIdleObject<T, S>(
     override val data: T?,
@@ -29,6 +53,12 @@ data class MutationIdleObject<T, S>(
     override val status: MutationStatus = MutationStatus.Idle
 }
 
+/**
+ * A Mutation Loading Object represents the waiting execution result state of the [Mutation Object].
+ *
+ * @param T Type of the return value from the mutation.
+ * @param S Type of the variable to be mutated.
+ */
 @Immutable
 data class MutationLoadingObject<T, S>(
     override val data: T?,
@@ -43,6 +73,12 @@ data class MutationLoadingObject<T, S>(
     override val status: MutationStatus = MutationStatus.Pending
 }
 
+/**
+ * A MutationErrorObject represents the error state of the [MutationObject].
+ *
+ * @param T Type of the return value from the mutation.
+ * @param S Type of the variable to be mutated.
+ */
 @Immutable
 data class MutationErrorObject<T, S>(
     override val data: T?,
@@ -57,6 +93,12 @@ data class MutationErrorObject<T, S>(
     override val status: MutationStatus = MutationStatus.Failure
 }
 
+/**
+ * A MutationSuccessObject represents the successful state of the [MutationObject].
+ *
+ * @param T Type of the return value from the mutation.
+ * @param S Type of the variable to be mutated.
+ */
 @Immutable
 data class MutationSuccessObject<T, S>(
     override val data: T,
