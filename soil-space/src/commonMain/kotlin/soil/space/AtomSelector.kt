@@ -36,11 +36,9 @@ interface AtomSelector {
  *
  * @param T The type of the value to be retrieved.
  * @property block The function that retrieves the value derived from one or more [Atom] references key.
- *
- * TODO: The constructor should be internal.
  */
 @Immutable
-class AtomRef<T>(
+class AtomRef<T> internal constructor(
     val block: AtomSelector.() -> T
 )
 

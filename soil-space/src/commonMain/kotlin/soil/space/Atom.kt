@@ -27,11 +27,9 @@ import kotlin.jvm.JvmName
  * @property initialValue The initial value to be stored.
  * @property saver The saver to be used to save and restore the value.
  * @property scope The scope to be used to manage the value.
- *
- * TODO constructor should be internal
  */
 @Immutable
-class Atom<T>(
+class Atom<T> internal constructor(
     val initialValue: T,
     val saver: AtomSaver<T>? = null,
     val scope: AtomScope? = null
@@ -397,10 +395,8 @@ fun charSequenceArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<CharSeque
  * val counter1Atom = atom(0, scope = navGraphScope)
  * val counter2Atom = atom(0, scope = screenScope)
  * ```
- *
- * TODO constructor should be internal
  */
-class AtomScope
+class AtomScope internal constructor()
 
 /**
  * Creates an [AtomScope].
