@@ -5,7 +5,8 @@ package soil.space
 
 import androidx.core.os.BundleCompat
 
-actual inline fun <reified T : CommonParcelable> parcelableSaver(key: AtomSaverKey): AtomSaver<T> {
+@PublishedApi
+internal actual inline fun <reified T : CommonParcelable> parcelableSaver(key: AtomSaverKey): AtomSaver<T> {
     return object : AtomSaver<T> {
         override fun save(bundle: CommonBundle, value: T) {
             bundle.putParcelable(key, value)
@@ -17,7 +18,8 @@ actual inline fun <reified T : CommonParcelable> parcelableSaver(key: AtomSaverK
     }
 }
 
-actual inline fun <reified T : CommonParcelable> parcelableArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<T>> {
+@PublishedApi
+internal actual inline fun <reified T : CommonParcelable> parcelableArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<T>> {
     return object : AtomSaver<ArrayList<T>> {
         override fun save(bundle: CommonBundle, value: ArrayList<T>) {
             bundle.putParcelableArrayList(key, value)
@@ -30,7 +32,8 @@ actual inline fun <reified T : CommonParcelable> parcelableArrayListSaver(key: A
 }
 
 @Suppress("UNCHECKED_CAST")
-actual inline fun <reified T : CommonParcelable> parcelableArraySaver(key: AtomSaverKey): AtomSaver<Array<T>> {
+@PublishedApi
+internal actual inline fun <reified T : CommonParcelable> parcelableArraySaver(key: AtomSaverKey): AtomSaver<Array<T>> {
     return object : AtomSaver<Array<T>> {
         override fun save(bundle: CommonBundle, value: Array<T>) {
             bundle.putParcelableArray(key, value)
@@ -43,7 +46,8 @@ actual inline fun <reified T : CommonParcelable> parcelableArraySaver(key: AtomS
 }
 
 @Suppress("DEPRECATION")
-actual inline fun <reified T : CommonSerializable> serializableSaver(key: AtomSaverKey): AtomSaver<T> {
+@PublishedApi
+internal actual inline fun <reified T : CommonSerializable> serializableSaver(key: AtomSaverKey): AtomSaver<T> {
     return object : AtomSaver<T> {
         override fun save(bundle: CommonBundle, value: T) {
             bundle.putSerializable(key, value)
