@@ -12,6 +12,13 @@ import androidx.compose.runtime.remember
 import soil.space.Atom
 import soil.space.AtomStore
 
+/**
+ * [MutableState] for handling the state values of [Atom] managed by [AtomStore].
+ *
+ * @param T The type of the state value.
+ * @param state The [State] used to retrieve the state value.
+ * @param update A function to update the state value.
+ */
 @Stable
 class AtomState<T>(
     private val state: State<T>,
@@ -25,6 +32,14 @@ class AtomState<T>(
     override operator fun component2(): (T) -> Unit = update
 }
 
+/**
+ * Remember an [AtomState] for the specified [Atom] reference key.
+ *
+ * @param T The type of the state value.
+ * @param atom The reference key.
+ * @param store The [AtomStore] that manages the state using the [atom] reference key. By default, it resolves using [LocalAtomOwner].
+ * @return The [AtomState] for the specified [Atom] reference key.
+ */
 @Composable
 fun <T> rememberAtomState(
     atom: Atom<T>,

@@ -11,6 +11,17 @@ import soil.space.Atom
 import soil.space.AtomScope
 import soil.space.AtomStore
 
+/**
+ * Provides multiple [AtomStore]. You can provide [AtomStore] corresponding to [AtomScope] with different lifecycles.
+ *
+ * To use the Remember API for handling [Atom] within [content], it is essential to declare [AtomRoot] somewhere in the parent tree.
+ * The scoped store is provided to child components using the Remember API via [LocalAtomOwner].
+ *
+ * @param primary The specified [AtomScope] used preferentially as the default value for [fallbackScope].
+ * @param others Additional [AtomScope] and [AtomStore] pairs with lifecycles different from [primary].
+ * @param fallbackScope A function that returns an alternate [AtomScope] if a corresponding [AtomScope] for an [Atom] is not found. By default, it returns the [AtomScope] of [primary].
+ * @param content The content of the [AtomRoot].
+ */
 @Composable
 fun AtomRoot(
     primary: Pair<AtomScope, AtomStore>,
@@ -26,6 +37,15 @@ fun AtomRoot(
     }
 }
 
+/**
+ * Provides a single [AtomStore].
+ *
+ * To use the Remember API for handling [Atom] within [content], it is essential to declare [AtomRoot] somewhere in the parent tree.
+ * The [store] is provided to child components using the Remember API via [LocalAtomOwner].
+ *
+ * @param store An instance of [AtomStore].
+ * @param content The content of the [AtomRoot].
+ */
 @Composable
 fun AtomRoot(
     store: AtomStore,
@@ -54,6 +74,9 @@ private class ScopedAtomStore(
     }
 }
 
+/**
+ * CompositionLocal for [AtomStore].
+ */
 val LocalAtomOwner = staticCompositionLocalOf<AtomStore> {
     error("CompositionLocal 'LocalAtomOwner' not present")
 }
