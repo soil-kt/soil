@@ -228,8 +228,8 @@ interface AtomSaver<T> {
 
 typealias AtomSaverKey = String
 
-// TODO Switch to internal using @PublishedApi
-fun stringSaver(key: AtomSaverKey): AtomSaver<String> {
+@PublishedApi
+internal fun stringSaver(key: AtomSaverKey): AtomSaver<String> {
     return object : AtomSaver<String> {
         override fun save(bundle: CommonBundle, value: String) {
             bundle.putString(key, value)
@@ -241,7 +241,8 @@ fun stringSaver(key: AtomSaverKey): AtomSaver<String> {
     }
 }
 
-fun booleanSaver(key: AtomSaverKey): AtomSaver<Boolean> {
+@PublishedApi
+internal fun booleanSaver(key: AtomSaverKey): AtomSaver<Boolean> {
     return object : AtomSaver<Boolean> {
         override fun save(bundle: CommonBundle, value: Boolean) {
             bundle.putBoolean(key, value)
@@ -253,7 +254,8 @@ fun booleanSaver(key: AtomSaverKey): AtomSaver<Boolean> {
     }
 }
 
-fun intSaver(key: AtomSaverKey): AtomSaver<Int> {
+@PublishedApi
+internal fun intSaver(key: AtomSaverKey): AtomSaver<Int> {
     return object : AtomSaver<Int> {
         override fun save(bundle: CommonBundle, value: Int) {
             bundle.putInt(key, value)
@@ -265,7 +267,8 @@ fun intSaver(key: AtomSaverKey): AtomSaver<Int> {
     }
 }
 
-fun longSaver(key: AtomSaverKey): AtomSaver<Long> {
+@PublishedApi
+internal fun longSaver(key: AtomSaverKey): AtomSaver<Long> {
     return object : AtomSaver<Long> {
         override fun save(bundle: CommonBundle, value: Long) {
             bundle.putLong(key, value)
@@ -277,7 +280,8 @@ fun longSaver(key: AtomSaverKey): AtomSaver<Long> {
     }
 }
 
-fun doubleSaver(key: AtomSaverKey): AtomSaver<Double> {
+@PublishedApi
+internal fun doubleSaver(key: AtomSaverKey): AtomSaver<Double> {
     return object : AtomSaver<Double> {
         override fun save(bundle: CommonBundle, value: Double) {
             bundle.putDouble(key, value)
@@ -289,7 +293,8 @@ fun doubleSaver(key: AtomSaverKey): AtomSaver<Double> {
     }
 }
 
-fun floatSaver(key: AtomSaverKey): AtomSaver<Float> {
+@PublishedApi
+internal fun floatSaver(key: AtomSaverKey): AtomSaver<Float> {
     return object : AtomSaver<Float> {
         override fun save(bundle: CommonBundle, value: Float) {
             bundle.putFloat(key, value)
@@ -301,7 +306,8 @@ fun floatSaver(key: AtomSaverKey): AtomSaver<Float> {
     }
 }
 
-fun charSaver(key: AtomSaverKey): AtomSaver<Char> {
+@PublishedApi
+internal fun charSaver(key: AtomSaverKey): AtomSaver<Char> {
     return object : AtomSaver<Char> {
         override fun save(bundle: CommonBundle, value: Char) {
             bundle.putChar(key, value)
@@ -313,7 +319,8 @@ fun charSaver(key: AtomSaverKey): AtomSaver<Char> {
     }
 }
 
-fun shortSaver(key: AtomSaverKey): AtomSaver<Short> {
+@PublishedApi
+internal fun shortSaver(key: AtomSaverKey): AtomSaver<Short> {
     return object : AtomSaver<Short> {
         override fun save(bundle: CommonBundle, value: Short) {
             bundle.putShort(key, value)
@@ -325,7 +332,8 @@ fun shortSaver(key: AtomSaverKey): AtomSaver<Short> {
     }
 }
 
-fun byteSaver(key: AtomSaverKey): AtomSaver<Byte> {
+@PublishedApi
+internal fun byteSaver(key: AtomSaverKey): AtomSaver<Byte> {
     return object : AtomSaver<Byte> {
         override fun save(bundle: CommonBundle, value: Byte) {
             bundle.putByte(key, value)
@@ -337,15 +345,20 @@ fun byteSaver(key: AtomSaverKey): AtomSaver<Byte> {
     }
 }
 
-expect inline fun <reified T : CommonParcelable> parcelableSaver(key: AtomSaverKey): AtomSaver<T>
+@PublishedApi
+internal expect inline fun <reified T : CommonParcelable> parcelableSaver(key: AtomSaverKey): AtomSaver<T>
 
-expect inline fun <reified T : CommonParcelable> parcelableArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<T>>
+@PublishedApi
+internal expect inline fun <reified T : CommonParcelable> parcelableArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<T>>
 
-expect inline fun <reified T : CommonParcelable> parcelableArraySaver(key: AtomSaverKey): AtomSaver<Array<T>>
+@PublishedApi
+internal expect inline fun <reified T : CommonParcelable> parcelableArraySaver(key: AtomSaverKey): AtomSaver<Array<T>>
 
-expect inline fun <reified T : CommonSerializable> serializableSaver(key: AtomSaverKey): AtomSaver<T>
+@PublishedApi
+internal expect inline fun <reified T : CommonSerializable> serializableSaver(key: AtomSaverKey): AtomSaver<T>
 
-fun integerArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<Int>> {
+@PublishedApi
+internal fun integerArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<Int>> {
     return object : AtomSaver<ArrayList<Int>> {
         override fun save(bundle: CommonBundle, value: ArrayList<Int>) {
             bundle.putIntegerArrayList(key, value)
@@ -357,7 +370,8 @@ fun integerArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<Int>> {
     }
 }
 
-fun stringArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<String>> {
+@PublishedApi
+internal fun stringArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<String>> {
     return object : AtomSaver<ArrayList<String>> {
         override fun save(bundle: CommonBundle, value: ArrayList<String>) {
             bundle.putStringArrayList(key, value)
@@ -369,7 +383,8 @@ fun stringArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<String>> {
     }
 }
 
-fun charSequenceArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<CharSequence>> {
+@PublishedApi
+internal fun charSequenceArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<CharSequence>> {
     return object : AtomSaver<ArrayList<CharSequence>> {
         override fun save(bundle: CommonBundle, value: ArrayList<CharSequence>) {
             bundle.putCharSequenceArrayList(key, value)
