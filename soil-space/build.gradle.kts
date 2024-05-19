@@ -47,6 +47,7 @@ kotlin {
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.runtimeSaveable)
+            api(libs.kotlinx.coroutines.core)
         }
 
         androidMain.dependencies {

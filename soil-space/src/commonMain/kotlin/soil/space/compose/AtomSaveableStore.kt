@@ -5,12 +5,12 @@ package soil.space.compose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.currentCompositeKeyHash
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.LocalSaveableStateRegistry
+import kotlinx.coroutines.flow.MutableStateFlow
 import soil.space.Atom
+import soil.space.AtomNode
 import soil.space.AtomStore
 import soil.space.CommonBundle
 import soil.space.CommonSavedStateProvider
@@ -25,46 +25,42 @@ class AtomSaveableStore(
     private val savedState: CommonBundle? = null
 ) : AtomStore, CommonSavedStateProvider {
 
-    private val stateMap: MutableMap<Atom<*>, ManagedState<*>> = mutableMapOf()
+    private val nodeMap: MutableMap<Atom<*>, ManagedAtomNode<*>> = mutableMapOf()
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T> get(atom: Atom<T>): T {
-        var state = stateMap[atom] as? ManagedState<T>
-        if (state == null) {
-            val newState = ManagedState(atom).also { stateMap[atom] = it }
+    override fun <T> bind(atom: Atom<T>): AtomNode<T> {
+        var node = nodeMap[atom] as? ManagedAtomNode<T>
+        if (node == null) {
+            val newState = ManagedAtomNode(atom).also { nodeMap[atom] = it }
             if (savedState != null) {
                 newState.onRestore(savedState)
             }
-            state = newState
+            node = newState
         }
-        return state.value
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    override fun <T> set(atom: Atom<T>, value: T) {
-        val state = stateMap[atom] as? ManagedState<T>
-        state?.value = value
+        return node
     }
 
     override fun saveState(): CommonBundle {
         val box = savedState ?: CommonBundle()
-        stateMap.keys.forEach { atom ->
-            val value = stateMap[atom] as ManagedState<*>
+        nodeMap.keys.forEach { atom ->
+            val value = nodeMap[atom] as ManagedAtomNode<*>
             value.onSave(box)
         }
         return box
     }
 
-    class ManagedState<T>(
+    class ManagedAtomNode<T>(
         private val atom: Atom<T>,
-    ) : MutableState<T> by mutableStateOf(atom.initialValue) {
+        override val state: MutableStateFlow<T> = MutableStateFlow(atom.initialValue),
+        override val update: (value: T) -> Unit = { state.value = it }
+    ) : AtomNode<T> {
 
         fun onSave(bundle: CommonBundle) {
-            atom.saver?.save(bundle, value)
+            atom.saver?.save(bundle, state.value)
         }
 
         fun onRestore(bundle: CommonBundle) {
-            atom.saver?.restore(bundle)?.let { value = it }
+            atom.saver?.restore(bundle)?.let { state.value = it }
         }
     }
 }

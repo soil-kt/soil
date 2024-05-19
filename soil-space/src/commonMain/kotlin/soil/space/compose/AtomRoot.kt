@@ -8,6 +8,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import soil.space.Atom
+import soil.space.AtomNode
 import soil.space.AtomScope
 import soil.space.AtomStore
 
@@ -61,12 +62,8 @@ private class ScopedAtomStore(
     private val fallbackScope: (Atom<*>) -> AtomScope
 ) : AtomStore {
 
-    override fun <T> get(atom: Atom<T>): T {
-        return store(atom).get(atom)
-    }
-
-    override fun <T> set(atom: Atom<T>, value: T) {
-        store(atom).set(atom, value)
+    override fun <T> bind(atom: Atom<T>): AtomNode<T> {
+        return store(atom).bind(atom)
     }
 
     private fun store(atom: Atom<*>): AtomStore {

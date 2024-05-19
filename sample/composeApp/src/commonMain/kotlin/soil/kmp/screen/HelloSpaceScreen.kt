@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -97,7 +96,7 @@ private fun CounterContainer(
 ) {
     var counter by rememberAtomState(counterAtom)
     val counterSelector by rememberAtomValue(counterSelectorAtom)
-    val state by remember { derivedStateOf { CounterState(counter, { counter = it }, counterSelector) } }
+    val state = remember(counter, counterSelector) { CounterState(counter, { counter = it }, counterSelector) }
     content(state)
 }
 

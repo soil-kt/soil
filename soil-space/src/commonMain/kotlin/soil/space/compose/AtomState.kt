@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import soil.space.Atom
 import soil.space.AtomStore
@@ -45,7 +45,7 @@ fun <T> rememberAtomState(
     atom: Atom<T>,
     store: AtomStore = LocalAtomOwner.current
 ): AtomState<T> {
-    val state = remember(store, atom) { derivedStateOf { store.get(atom) } }
-    val update = remember<(T) -> Unit>(store, atom) { { store.set(atom, it) } }
-    return remember(state, update) { AtomState(state, update) }
+    val node = remember(store, atom) { store.bind(atom) }
+    val state = node.state.collectAsState()
+    return remember(state, node.update) { AtomState(state, node.update) }
 }
