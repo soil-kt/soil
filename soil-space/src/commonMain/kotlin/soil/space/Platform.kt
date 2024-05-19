@@ -3,9 +3,21 @@
 
 package soil.space
 
+/**
+ * Interface for handling Android platform-specific Parcelable within KMP.
+ */
 expect interface CommonParcelable
+
+/**
+ * Class for handling JVM-specific Serializable within KMP.
+ */
 expect interface CommonSerializable
 
+/**
+ * Class for handling Android platform-specific Bundle within KMP.
+ *
+ * Currently, this class provides operations specific to the Android platform's Bundle.
+ */
 expect class CommonBundle() {
     fun containsKey(key: String): Boolean
     fun putString(key: String?, value: String?)
@@ -42,6 +54,9 @@ expect class CommonBundle() {
     fun getCharSequenceArrayList(key: String?): ArrayList<CharSequence>?
 }
 
+/**
+ * Interface for handling Android platform-specific SavedStateProvider within KMP.
+ */
 expect fun interface CommonSavedStateProvider {
     fun saveState(): CommonBundle
 }

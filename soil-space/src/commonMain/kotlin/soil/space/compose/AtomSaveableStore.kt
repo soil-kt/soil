@@ -15,6 +15,11 @@ import soil.space.AtomStore
 import soil.space.CommonBundle
 import soil.space.CommonSavedStateProvider
 
+/**
+ * A [AtomStore] implementation that saves and restores the state of [Atom]s.
+ *
+ * @param savedState The saved state to be restored.
+ */
 @Suppress("SpellCheckingInspection")
 class AtomSaveableStore(
     private val savedState: CommonBundle? = null
@@ -64,6 +69,16 @@ class AtomSaveableStore(
     }
 }
 
+/**
+ * Remember a [AtomSaveableStore] that saves and restores the state of [Atom]s.
+ *
+ * **Note:**
+ * [LocalSaveableStateRegistry] is required to save and restore the state.
+ * If [LocalSaveableStateRegistry] is not found, the state will not be saved and restored.
+ *
+ * @param key The key to save and restore the state. By default, it resolves using [currentCompositeKeyHash].
+ * @return The remembered [AtomSaveableStore].
+ */
 @Suppress("SpellCheckingInspection")
 @Composable
 fun rememberSaveableStore(key: String? = null): AtomStore {

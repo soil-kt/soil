@@ -6,6 +6,30 @@ package soil.space
 import androidx.compose.runtime.Immutable
 import kotlin.jvm.JvmName
 
+/**
+ * Atom is a unit of state in Space.
+ *
+ * The instance created serves as a key to store values of a specified type in [AtomStore].
+ * It is designed so that the instance itself acts as the reference key, instead of the user having to assign a unique key.
+ * Therefore, even if the definitions are exactly the same, different instances will be managed as separate keys.
+ *
+ * **Note:**
+ * Specifying a [saver] is optional, but if you expect state restoration on the Android platform, it is crucial to specify it.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * val counterAtom = atom(0)
+ * val titleAtom = atom("hello, world", saverKey = "title")
+ * ```
+ *
+ * @param T The type of the value to be stored.
+ * @property initialValue The initial value to be stored.
+ * @property saver The saver to be used to save and restore the value.
+ * @property scope The scope to be used to manage the value.
+ *
+ * TODO constructor should be internal
+ */
 @Immutable
 class Atom<T>(
     val initialValue: T,
@@ -13,6 +37,15 @@ class Atom<T>(
     val scope: AtomScope? = null
 )
 
+/**
+ * Creates an [Atom].
+ *
+ * @param T The type of the value to be stored.
+ * @param initialValue The initial value to be stored.
+ * @param saver The saver to be used to save and restore the value.
+ * @param scope The scope to be used to manage the value.
+ * @return The created Atom.
+ */
 fun <T> atom(
     initialValue: T,
     saver: AtomSaver<T>? = null,
@@ -21,6 +54,30 @@ fun <T> atom(
     return Atom(initialValue, saver, scope)
 }
 
+/**
+ * Creates an [Atom] using [AtomSaverKey].
+ *
+ * Automatically selects an [AtomSaver] for the [Type][T] if it matches any of the following.
+ * The [saverKey] is used as a key for the [AtomSaver].
+ *
+ *    | Type        | AtomSaver     |
+ *    | :---------- | :-------------|
+ *    | String      | stringSaver   |
+ *    | Boolean     | booleanSaver  |
+ *    | Int         | intSaver      |
+ *    | Long        | longSaver     |
+ *    | Double      | doubleSaver   |
+ *    | Float       | floatSaver    |
+ *    | Char        | charSaver     |
+ *    | Short       | shortSaver    |
+ *    | Byte        | byteSaver     |
+ *
+ * @param T The type of the value to be stored.
+ * @param initialValue The initial value to be stored.
+ * @param saverKey The key to be used to save and restore the value.
+ * @param scope The scope to be used to manage the value.
+ * @return The created Atom.
+ */
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> atom(
     initialValue: T,
@@ -42,6 +99,15 @@ inline fun <reified T> atom(
     return atom(initialValue, saver, scope)
 }
 
+/**
+ * Creates an [Atom] using [AtomSaverKey] for [CommonParcelable].
+ *
+ * @param T The type of the value to be stored.
+ * @param initialValue The initial value to be stored.
+ * @param saverKey The key to be used to save and restore the value.
+ * @param scope The scope to be used to manage the value.
+ * @return The created Atom.
+ */
 inline fun <reified T : CommonParcelable> atom(
     initialValue: T,
     saverKey: AtomSaverKey,
@@ -50,6 +116,25 @@ inline fun <reified T : CommonParcelable> atom(
     return atom(initialValue, parcelableSaver(saverKey), scope)
 }
 
+/**
+ * Creates an [Atom] using [AtomSaverKey] for [ArrayList].
+ *
+ * Automatically selects an [AtomSaver] for the [Type][T] if it matches any of the following.
+ * The [saverKey] is used as a key for the [AtomSaver].
+ *
+ *    | Type            | AtomSaver                     |
+ *    | :-------------- | :---------------------------- |
+ *    | String          | stringArrayListSaver          |
+ *    | Int             | integerArrayListSaver         |
+ *    | CharSequence    | charSequenceArrayListSaver    |
+ *
+ *
+ * @param T The type of the value to be stored.
+ * @param initialValue The initial value to be stored.
+ * @param saverKey The key to be used to save and restore the value.
+ * @param scope The scope to be used to manage the value.
+ * @return The created Atom.
+ */
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> atom(
     initialValue: ArrayList<T>,
@@ -65,6 +150,15 @@ inline fun <reified T> atom(
     return atom(initialValue, saver, scope)
 }
 
+/**
+ * Creates an [Atom] using [AtomSaverKey] for [ArrayList] with [CommonParcelable][T].
+ *
+ * @param T The type of the value to be stored.
+ * @param initialValue The initial value to be stored.
+ * @param saverKey The key to be used to save and restore the value.
+ * @param scope The scope to be used to manage the value.
+ * @return The created Atom.
+ */
 @JvmName("atomWithParcelable")
 inline fun <reified T : CommonParcelable> atom(
     initialValue: ArrayList<T>,
@@ -74,6 +168,15 @@ inline fun <reified T : CommonParcelable> atom(
     return atom(initialValue, parcelableArrayListSaver(saverKey), scope)
 }
 
+/**
+ * Creates an [Atom] using [AtomSaverKey] for [Array] with [CommonParcelable][T].
+ *
+ * @param T The type of the value to be stored.
+ * @param initialValue The initial value to be stored.
+ * @param saverKey The key to be used to save and restore the value.
+ * @param scope The scope to be used to manage the value.
+ * @return The created Atom.
+ */
 inline fun <reified T : CommonParcelable> atom(
     initialValue: Array<T>,
     saverKey: AtomSaverKey,
@@ -82,6 +185,15 @@ inline fun <reified T : CommonParcelable> atom(
     return atom(initialValue, parcelableArraySaver(saverKey), scope)
 }
 
+/**
+ * Creates an [Atom] using [AtomSaverKey] for [CommonSerializable].
+ *
+ * @param T The type of the value to be stored.
+ * @param initialValue The initial value to be stored.
+ * @param saverKey The key to be used to save and restore the value.
+ * @param scope The scope to be used to manage the value.
+ * @return The created Atom.
+ */
 inline fun <reified T : CommonSerializable> atom(
     initialValue: T,
     saverKey: AtomSaverKey,
@@ -90,13 +202,35 @@ inline fun <reified T : CommonSerializable> atom(
     return atom(initialValue, serializableSaver(saverKey), scope)
 }
 
+/**
+ * Interface for saving and restoring values to a [CommonBundle].
+ *
+ * Currently, this restoration feature is designed specifically for the Android Platform.
+ *
+ * @param T The type of the value to be saved and restored.
+ */
 interface AtomSaver<T> {
+
+    /**
+     * Saves a value to a [CommonBundle].
+     *
+     * @param bundle The [CommonBundle] to save the value to.
+     * @param value The value to save.
+     */
     fun save(bundle: CommonBundle, value: T)
+
+    /**
+     * Restores a value from a [CommonBundle].
+     *
+     * @param bundle The [CommonBundle] to restore the value from.
+     * @return The restored value.
+     */
     fun restore(bundle: CommonBundle): T?
 }
 
 typealias AtomSaverKey = String
 
+// TODO Switch to internal using @PublishedApi
 fun stringSaver(key: AtomSaverKey): AtomSaver<String> {
     return object : AtomSaver<String> {
         override fun save(bundle: CommonBundle, value: String) {
@@ -249,6 +383,26 @@ fun charSequenceArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<CharSeque
     }
 }
 
+/**
+ * Provides a scope for creating [Atom]s that manage state in different [AtomStore]s.
+ *
+ * Similar to [Atom], each instance acts as a key representing a single scope.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * val navGraphScope = atomScope()
+ * val screenScope = atomScope()
+ *
+ * val counter1Atom = atom(0, scope = navGraphScope)
+ * val counter2Atom = atom(0, scope = screenScope)
+ * ```
+ *
+ * TODO constructor should be internal
+ */
 class AtomScope
 
+/**
+ * Creates an [AtomScope].
+ */
 fun atomScope() = AtomScope()

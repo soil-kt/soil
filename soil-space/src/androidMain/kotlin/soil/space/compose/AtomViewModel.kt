@@ -15,6 +15,11 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import soil.space.AtomStore
 
+/**
+ * A [ViewModel] for managing [AtomStore].
+ *
+ * @param handle The [SavedStateHandle] to save the state of the [AtomStore].
+ */
 class AtomViewModel(
     handle: SavedStateHandle
 ) : ViewModel() {
@@ -31,8 +36,12 @@ class AtomViewModel(
     }
 }
 
-// Note:
-// ref. https://developer.android.com/topic/libraries/architecture/viewmodel/viewmodel-apis#compose
+/**
+ * Remember an [AtomStore] using [AtomViewModel].
+ *
+ * @param key The key to identify the [AtomViewModel].
+ * @return The [AtomStore] remembered by [AtomViewModel].
+ */
 @Composable
 fun rememberViewModelStore(
     key: String?
@@ -48,6 +57,13 @@ fun rememberViewModelStore(
     return remember(vm) { vm.store }
 }
 
+/**
+ * Remember an [AtomStore] using [AtomViewModel].
+ *
+ * @param viewModelStoreOwner The [ViewModelStoreOwner] to create the [AtomViewModel].
+ * @param key The key to identify the [AtomViewModel].
+ * @return The [AtomStore] remembered by [AtomViewModel].
+ */
 @Composable
 fun rememberViewModelStore(
     viewModelStoreOwner: ViewModelStoreOwner,
