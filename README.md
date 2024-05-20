@@ -68,6 +68,7 @@ Please visit [docs.soil-kt.com](https://docs.soil-kt.com/) for Quick Start, guid
 Thank you for featuring our library in the following sources:
 
 - [jetc.dev Newsletter Issue #212](https://jetc.dev/issues/212.html)
+- [Android Dev Notes #Twitter](https://twitter.com/androiddevnotes/status/1792409220484350109)
 
 
 ## License
