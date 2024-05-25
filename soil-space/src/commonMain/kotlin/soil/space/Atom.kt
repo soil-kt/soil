@@ -1,5 +1,6 @@
 // Copyright 2024 Soil Contributors
 // SPDX-License-Identifier: Apache-2.0
+
 @file:Suppress("NOTHING_TO_INLINE", "KotlinRedundantDiagnosticSuppress")
 package soil.space
 
