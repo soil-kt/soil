@@ -47,6 +47,8 @@ kotlin {
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.runtimeSaveable)
+            api(libs.jbx.savedstate)
+            api(libs.jbx.core.bundle)
         }
 
         androidMain.dependencies {

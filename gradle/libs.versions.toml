@@ -9,6 +9,8 @@ androidx-lifecycle = "2.7.0"
 compose = "1.6.7"
 compose-multiplatform = "1.6.10"
 dokka = "1.9.20"
+jbx-core-bundle = "1.0.0"
+jbx-savedstate = "1.2.0"
 kotlin = "1.9.23"
 kotlinx-coroutines = "1.8.0"
 kotlinx-serialization = "1.6.3"
@@ -28,6 +30,8 @@ compose-ui-test-junit4-android = { module = "androidx.compose.ui:ui-test-junit4-
 compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "compose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
+jbx-core-bundle = { module = "org.jetbrains.androidx.core:core-bundle", version.ref = "jbx-core-bundle" }
+jbx-savedstate = { module = "org.jetbrains.androidx.savedstate:savedstate", version.ref = "jbx-savedstate" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
