@@ -13,6 +13,29 @@ import soil.form.ValidationRuleBuilder
 import soil.form.ValidationRuleSet
 import soil.form.rules
 
+/**
+ * Remembers a field control for the given field name with the given rule set.
+ *
+ * Usage:
+ * ```kotlin
+ * rememberFieldRuleControl(
+ *     name = "First name",
+ *     select = { firstName },
+ *     update = { copy(firstName = it) }
+ * ) {
+ *     notBlank { "must be not blank" }
+ * }
+ * ```
+ *
+ * @param T The type of the form value.
+ * @param V The type of the field value.
+ * @param name The name of the field.
+ * @param select The function to select the field value.
+ * @param update The function to update the field value.
+ * @param enabled The function to determine if the field is enabled.
+ * @param dependsOn The set of field names that this field depends on.
+ * @param builder The block to build the rule set.
+ */
 @Composable
 fun <T : Any, V> FormScope<T>.rememberFieldRuleControl(
     name: FieldName,
@@ -32,6 +55,32 @@ fun <T : Any, V> FormScope<T>.rememberFieldRuleControl(
     )
 }
 
+/**
+ * Remembers a field control for the given field name with the given rule set.
+ *
+ * Usage:
+ * ```kotlin
+ * val ruleSet = rules<String> {
+ *     notBlank { "must be not blank" }
+ * }
+ *
+ * rememberFieldRuleControl(
+ *     name = "First name",
+ *     select = { firstName },
+ *     update = { copy(firstName = it) },
+ *     ruleSet = ruleSet
+ * )
+ * ```
+ *
+ * @param T The type of the form value.
+ * @param V The type of the field value.
+ * @param name The name of the field.
+ * @param select The function to select the field value.
+ * @param update The function to update the field value.
+ * @param enabled The function to determine if the field is enabled.
+ * @param dependsOn The set of field names that this field depends on.
+ * @param ruleSet The rule set to validate the field value.
+ */
 @Composable
 fun <T : Any, V> FormScope<T>.rememberFieldRuleControl(
     name: FieldName,
@@ -57,6 +106,9 @@ fun <T : Any, V> FormScope<T>.rememberFieldRuleControl(
     )
 }
 
+/**
+ * Remembers a submission rule control that automatically controls state of the form.
+ */
 @Composable
 fun <T : Any> FormScope<T>.rememberSubmissionRuleAutoControl(): SubmissionControl<T> {
     return rememberSubmissionControl(validate = { rules, dryRun ->
@@ -69,6 +121,13 @@ fun <T : Any> FormScope<T>.rememberSubmissionRuleAutoControl(): SubmissionContro
     })
 }
 
+/**
+ * Remembers a watch value that automatically updates when the form state changes.
+ *
+ * @param T The type of the form value.
+ * @param V The type of the watch value.
+ * @param select The function to select the watch value.
+ */
 @Composable
 fun <T : Any, V> FormScope<T>.rememberWatch(select: T.() -> V): V {
     val value by remember { derivedStateOf { with(formState.value) { select() } } }

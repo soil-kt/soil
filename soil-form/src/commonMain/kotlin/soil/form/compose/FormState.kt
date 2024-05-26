@@ -16,23 +16,71 @@ import soil.form.FormErrors
 import soil.form.FormFieldDependencies
 import soil.form.FormFieldNames
 import soil.form.FormPolicy
-import soil.form.FormTriggers
-import soil.form.FormRules
 import soil.form.FormRule
+import soil.form.FormRules
+import soil.form.FormTriggers
 
+/**
+ * The managed state of a form.
+ *
+ * @param T The type of the form value.
+ */
 @Stable
 interface FormState<T> {
+
+    /**
+     * The initial value of the form.
+     */
     val initialValue: T
+
+    /**
+     * The current value of the form.
+     */
     val value: T
+
+    /**
+     * Whether the form is currently submitting.
+     */
     val isSubmitting: Boolean
+
+    /**
+     * Whether the form has been submitted.
+     */
     val isSubmitted: Boolean
+
+    /**
+     * The number of times submission process was called.
+     */
     val submitCount: Int
+
+    /**
+     * The validation errors of the form.
+     */
     val errors: FormErrors
+
+    /**
+     * The validation triggers of the form.
+     */
     val triggers: FormTriggers
+
+    /**
+     * The validation rules of the form.
+     */
     val rules: FormRules<T>
+
+    /**
+     * The dependencies of the form fields.
+     */
     val dependsOn: FormFieldDependencies
+
+    /**
+     * The field dependencies of the form fields.
+     */
     val watchers: FormFieldDependencies
 
+    /**
+     * Returns `true` if the form has validation error, `false` otherwise.
+     */
     val hasError: Boolean
         get() = errors.values.any { it.isNotEmpty() }
 }

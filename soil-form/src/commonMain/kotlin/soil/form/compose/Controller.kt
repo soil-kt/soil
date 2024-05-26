@@ -26,6 +26,26 @@ import soil.form.FieldName
 import soil.form.FieldValidateOn
 import soil.form.Submission
 
+/**
+ * A controller for a form [field control][FieldControl].
+ *
+ * To minimize the impact of re-composition due to updates in input values,
+ * the [FieldControl] is passed to a [Controller], which then connects the actual input component with the [Field] interface.
+ *
+ * Usage:
+ * ```kotlin
+ * Form(..) {
+ *   ..
+ *     Controller(control = rememberFirstNameFieldControl()) { field ->
+ *       TextField(value = field.value, onValueChange = field.onChange, ...)
+ *     }
+ * }
+ * ```
+ *
+ * @param V The type of the field value.
+ * @param control The field control to be managed.
+ * @param content The content to be displayed.
+ */
 @OptIn(FlowPreview::class)
 @Composable
 fun <V> Controller(
@@ -139,6 +159,26 @@ internal class FieldController<V>(
     }
 }
 
+/**
+ * A controller for a form [submission control][SubmissionControl].
+ *
+ * To minimize the impact of re-composition due to updates in input values,
+ * the [SubmissionControl] is passed to a [Controller], which then connects the actual input component with the [Submission] interface.
+ *
+ * Usage:
+ * ```kotlin
+ * Form(..) {
+ *   ..
+ *     Controller(control = rememberSubmissionRuleAutoControl()) { submission ->
+ *       Button(onClick = submission.onSubmit, enabled = submission.canSubmit, ...)
+ *     }
+ * }
+ * ```
+ *
+ * @param T The type of the submission value.
+ * @param control The submission control to be managed.
+ * @param content The content to be displayed.
+ */
 @OptIn(FlowPreview::class)
 @Composable
 fun <T> Controller(
