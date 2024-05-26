@@ -8,6 +8,12 @@ import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
 import soil.form.Field
 
+/**
+ * Adds a callback to be invoked when the focus state of the field changes.
+ *
+ * @param target The field to observe.
+ * @return The applied modifier.
+ */
 fun Modifier.onFocusChanged(target: Field<*>): Modifier {
     return this then Modifier.onFocusChanged(target::onFocusChanged)
 }

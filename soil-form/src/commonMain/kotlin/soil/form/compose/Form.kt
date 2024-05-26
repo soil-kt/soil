@@ -28,6 +28,37 @@ import soil.form.FormPolicy
 import soil.form.FormRule
 import soil.form.FormValidationException
 
+/**
+ * A Form to manage the state and actions of input fields, and create a child block of [FormScope].
+ *
+ * Usage:
+ * ```kotlin
+ * Form(
+ *     onSubmit = {
+ *         // Handle submit
+ *     },
+ *     initialValue = "",
+ *     policy = FormPolicy.Minimal
+ * ) { // this: FormScope<String>
+ *   ..
+ * }
+ * ```
+ *
+ * **Note:**
+ * If you are expecting state restoration on the Android platform, please check if the type specified in [initialValue] is restorable.
+ * Inside the Form, `rememberSaveable` is used to manage input values, and runtime errors will be thrown from the API for unsupported types.
+ *
+ * @param T The type of the form value.
+ * @param onSubmit The submit handler to call when the form is submit.
+ * @param initialValue The initial value of the form.
+ * @param modifier The modifier to apply to this layout node.
+ * @param onError The error handler to call when an error occurs on submit.
+ * @param saver The saver to save and restore the form state.
+ * @param key The key to reset the form state.
+ * @param policy The policy to apply to the form.
+ * @param coroutineScope The coroutine scope to launch the submit handler.
+ * @param content The content block to create the child block of [FormScope].
+ */
 @Composable
 fun <T : Any> Form(
     onSubmit: suspend (T) -> Unit,

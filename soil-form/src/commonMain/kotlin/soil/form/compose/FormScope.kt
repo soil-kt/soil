@@ -13,15 +13,49 @@ import soil.form.FieldValidateOn
 import soil.form.FormRule
 import soil.form.FormRules
 
-
+/**
+ * A scope to manage the state and actions of input fields in a form.
+ *
+ * @param T The type of the form value.
+ */
 @Stable
 class FormScope<T : Any> internal constructor(
     private val state: FormStateImpl<T>,
     private val submitHandler: SubmitHandler<T>
 ) {
 
+    /**
+     * The current form state.
+     */
     val formState: FormState<T> get() = state
 
+    /**
+     * Remembers a field control for the given field name.
+     *
+     * Usage:
+     * ```kotlin
+     * rememberFieldControl(
+     *     name = "First name",
+     *     select = { firstName },
+     *     update = { copy(firstName = it) }
+     * ) {
+     *     if (firstName.isNotBlank()) {
+     *         noErrors
+     *     } else {
+     *         fieldError("must be not blank")
+     *     }
+     * }
+     * ```
+     *
+     * @param V The type of the field value.
+     * @param name The name of the field.
+     * @param select The function to select the field value.
+     * @param update The function to update the field value.
+     * @param enabled The function to determine if the field is enabled.
+     * @param dependsOn The set of field names that this field depends on.
+     * @param validate The function to validate the field value.
+     * @return The remembered [field control][FieldControl].
+     */
     @Composable
     fun <V> rememberFieldControl(
         name: FieldName,
@@ -100,6 +134,19 @@ class FormScope<T : Any> internal constructor(
         }
     }
 
+    /**
+     * Remembers a submission control for the form.
+     *
+     * Usage:
+     * ```kotlin
+     * rememberSubmissionControl { rules, dryRun ->
+     *     rules.values.map { it.test(this, dryRun = dryRun) }.all { it }
+     * }
+     * ```
+     *
+     * @param validate The function to validate the form value.
+     * @return The remembered [submission control][SubmissionControl].
+     */
     @Composable
     fun rememberSubmissionControl(
         validate: T.(rules: FormRules<T>, dryRun: Boolean) -> Boolean
