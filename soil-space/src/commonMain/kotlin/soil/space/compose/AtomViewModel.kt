@@ -3,9 +3,9 @@
 
 package soil.space.compose
 
-import android.os.Bundle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.core.bundle.Bundle
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelStoreOwner
@@ -44,7 +44,7 @@ class AtomViewModel(
  */
 @Composable
 fun rememberViewModelStore(
-    key: String?
+    key: String? = null
 ): AtomStore {
     val vm = viewModel<AtomViewModel>(
         factory = viewModelFactory {
