@@ -89,8 +89,7 @@ kotlin {
             implementation(libs.ktor.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
-            implementation(libs.voyager.navigator)
-            implementation(libs.voyager.screenModel)
+            implementation(libs.jbx.navigation.compose)
         }
 
         androidMain.dependencies {

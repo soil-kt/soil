@@ -11,6 +11,7 @@ compose-multiplatform = "1.6.10"
 dokka = "1.9.20"
 jbx-core-bundle = "1.0.0"
 jbx-lifecycle = "2.8.0"
+jbx-navigation = "2.7.0-alpha07"
 jbx-savedstate = "1.2.0"
 kotlin = "1.9.23"
 kotlinx-coroutines = "1.8.0"
@@ -32,6 +33,7 @@ compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview"
 jbx-core-bundle = { module = "org.jetbrains.androidx.core:core-bundle", version.ref = "jbx-core-bundle" }
 jbx-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "jbx-lifecycle" }
 jbx-lifecycle-viewmodel-savedstate = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate", version.ref = "jbx-lifecycle" }
+jbx-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "jbx-navigation" }
 jbx-savedstate = { module = "org.jetbrains.androidx.savedstate:savedstate", version.ref = "jbx-savedstate" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }

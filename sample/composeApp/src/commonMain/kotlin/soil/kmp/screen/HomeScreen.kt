@@ -14,43 +14,43 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.navigator.LocalNavigator
-import cafe.adriel.voyager.navigator.currentOrThrow
+import soil.playground.router.NavLink
 
-object HomeScreen : Screen {
-
-    @Composable
-    override fun Content() {
-        val navigator = LocalNavigator.currentOrThrow
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.fillMaxSize()
+@Composable
+fun HomeScreen() {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+                .widthIn(max = 360.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-                    .widthIn(max = 360.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+            NavLink(to = NavScreen.HelloQuery) {
                 OutlinedButton(
-                    onClick = { navigator.push(HelloQueryScreen()) },
+                    onClick = it,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(80.dp)
                 ) {
                     Text("Query")
                 }
+            }
+            NavLink(to = NavScreen.HelloForm) {
                 OutlinedButton(
-                    onClick = { navigator.push(HelloFormScreen()) },
+                    onClick = it,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(80.dp)
                 ) {
                     Text("Form")
                 }
+            }
+            NavLink(to = NavScreen.HelloSpace) {
                 OutlinedButton(
-                    onClick = { navigator.push(HelloSpaceScreen()) },
+                    onClick = it,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(80.dp)
