@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.core.screen.Screen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import soil.form.compose.Controller
@@ -44,20 +43,16 @@ import soil.playground.form.compose.rememberAsRadio
 import soil.playground.form.compose.rememberAsSelect
 import soil.playground.style.withAppTheme
 
-
-class HelloFormScreen : Screen {
-
-    @Composable
-    override fun Content() {
-        val feedback = LocalFeedbackHost.current
-        val coroutineScope = rememberCoroutineScope()
-        HelloFormContent(
-            onSubmitted = {
-                coroutineScope.launch { feedback.showAlert("Form submitted successfully") }
-            },
-            modifier = Modifier.fillMaxSize()
-        )
-    }
+@Composable
+fun HelloFormScreen() {
+    val feedback = LocalFeedbackHost.current
+    val coroutineScope = rememberCoroutineScope()
+    HelloFormContent(
+        onSubmitted = {
+            coroutineScope.launch { feedback.showAlert("Form submitted successfully") }
+        },
+        modifier = Modifier.fillMaxSize()
+    )
 }
 
 // The form input fields are based on the Live Demo used in React Hook Form.

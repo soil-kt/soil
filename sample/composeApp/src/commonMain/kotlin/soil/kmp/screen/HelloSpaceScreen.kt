@@ -16,33 +16,31 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.navigator.LocalNavigator
-import cafe.adriel.voyager.navigator.currentOrThrow
-import soil.kmp.integration.voyager.rememberNavigatorScreenStore
-import soil.kmp.integration.voyager.rememberScreenStore
 import soil.playground.space.compose.Counter
 import soil.playground.style.withAppTheme
+import soil.space.AtomStore
 import soil.space.atom
 import soil.space.atomScope
 import soil.space.compose.AtomRoot
 import soil.space.compose.rememberAtomState
 import soil.space.compose.rememberAtomValue
+import soil.space.compose.rememberViewModelStore
 
-class HelloSpaceScreen : Screen {
 
-    @Composable
-    override fun Content() {
-        val navigator = LocalNavigator.currentOrThrow
-        AtomRoot(
-            currentScreen to rememberScreenStore(),
-            navScreen to navigator.rememberNavigatorScreenStore(),
-            fallbackScope = { currentScreen }
-        ) {
-            HelloSpaceContent(
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+@Composable
+fun HelloSpaceScreen(
+    navStore: AtomStore
+) {
+    AtomRoot(
+        currentScreen to rememberViewModelStore(),
+        navScreen to navStore,
+        fallbackScope = { currentScreen }
+        // If fallbackScope is set to navScreen, the value of Counter is preserved even if it navigates back and then forward again.
+        // fallbackScope = { navScreen }
+    ) {
+        HelloSpaceContent(
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
 

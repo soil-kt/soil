@@ -47,14 +47,14 @@ kotlin {
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.runtimeSaveable)
+            implementation(libs.jbx.lifecycle.viewmodel.compose)
+            implementation(libs.jbx.lifecycle.viewmodel.savedstate)
             api(libs.jbx.savedstate)
             api(libs.jbx.core.bundle)
         }
 
         androidMain.dependencies {
             implementation(libs.androidx.core)
-            implementation(libs.androidx.lifecycle.viewmodel.compose)
-            implementation(libs.androidx.lifecycle.viewmodel.savedstate)
         }
 
         val skikoMain by creating {
