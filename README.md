@@ -1,6 +1,6 @@
 ![Soil](art/Logo.svg)
 
-[![Release](https://img.shields.io/badge/Release-1.0.0--alpha01-62CC6A?style=for-the-badge)](https://github.com/soil-kt/soil)
+[![Release](https://img.shields.io/maven-central/v/com.soil-kt.soil/query-core?style=for-the-badge&color=62CC6A)](https://github.com/soil-kt/soil)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.23-blue.svg?style=for-the-badge&logo=kotlin)](https://kotlinlang.org)
 
 # Compose-First Power Packs
@@ -35,7 +35,7 @@ Soil is available on `mavenCentral()`.
 
 ```kts
 dependencies {
-    val soil = "1.0.0-alpha01"
+    val soil = "1.0.0-alpha02"
     implementation("com.soil-kt.soil:query-core:$soil")
     implementation("com.soil-kt.soil:query-compose:$soil")
     implementation("com.soil-kt.soil:query-compose-runtime:$soil")
