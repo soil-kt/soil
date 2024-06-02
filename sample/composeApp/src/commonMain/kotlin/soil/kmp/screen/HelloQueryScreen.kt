@@ -121,4 +121,3 @@ private data class ListSectionState(
     val loadMoreParam: PageParam?,
     val loadMore: suspend (PageParam) -> Unit
 )
-
