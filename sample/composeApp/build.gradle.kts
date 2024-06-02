@@ -75,11 +75,6 @@ kotlin {
             implementation(projects.internal.playground)
             implementation(compose.runtime)
             implementation(compose.foundation)
-            // FIXME:
-            // > Task :sample:composeApp:compileDevelopmentExecutableKotlinWasmJs FAILED
-            // e: Could not find "org.jetbrains.compose.material:material" in [/xxx/Library/Application Support/kotlin/daemon]
-            // ref. https://slack-chats.kotlinlang.org/t/14174274/hey-all-i-m-unable-to-get-a-successful-build-in-a-kmm-projec
-            implementation(compose.material)
             implementation(compose.material3)
             implementation(compose.ui)
             implementation(compose.components.resources)
