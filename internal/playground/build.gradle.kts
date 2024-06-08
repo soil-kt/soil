@@ -4,9 +4,10 @@ import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.kotlin.compose.compiler)
     alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.kotlin.serialization)
-    id("kotlin-parcelize")
 }
 
 val buildTarget = the<BuildTargetExtension>()
@@ -19,6 +20,8 @@ kotlin {
         compilations.all {
             kotlinOptions {
                 jvmTarget = buildTarget.javaVersion.get().toString()
+                // Workaround: https://issuetracker.google.com/issues/315775835#comment16
+                freeCompilerArgs += listOf("-P", "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=soil.playground.CommonParcelize")
             }
         }
         publishLibraryVariants("release")
