@@ -1,8 +1,9 @@
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.kotlin.compose.compiler)
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.dokka)
@@ -15,11 +16,6 @@ kotlin {
 
     jvm()
     androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = buildTarget.javaVersion.get().toString()
-            }
-        }
         publishLibraryVariants("release")
     }
 
@@ -53,7 +49,7 @@ kotlin {
             dependsOn(skikoMain)
         }
 
-        named("wasmJsMain") {
+        wasmJsMain {
             dependsOn(skikoMain)
         }
     }

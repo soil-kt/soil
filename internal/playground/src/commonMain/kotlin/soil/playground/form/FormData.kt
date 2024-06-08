@@ -1,12 +1,11 @@
 package soil.playground.form
 
-import soil.playground.CommonParcelable
-import soil.playground.CommonParcelize
+import kotlinx.serialization.Serializable
 
 // The form input fields are based on the Live Demo used in React Hook Form.
 // You can reference it here: https://react-hook-form.com/
 
-@CommonParcelize
+@Serializable
 data class FormData(
     val firstName: String = "",
     val lastName: String = "",
@@ -14,7 +13,7 @@ data class FormData(
     val mobileNumber: String = "",
     val title: Title? = null,
     val developer: Boolean? = null
-) : CommonParcelable
+)
 
 enum class Title {
     Mr,

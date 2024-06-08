@@ -1,6 +1,8 @@
 [versions]
-# Kotlin Multiplatform <-> Android Gradle Plugin compatibility issue:
-# Maximum tested Android Gradle Plugin version: 8.2
+# Kotlin Multiplatform Gradle plugin compatibility:
+# - Gradle: 8.8
+# - Android Gradle plugin: 8.5.0
+# https://kotlinlang.org/docs/multiplatform-compatibility-guide.html#version-compatibility
 android-gradle = "8.2.2"
 androidx-activity = "1.8.2"
 androidx-annotation = "1.7.1"
@@ -16,9 +18,9 @@ jbx-lifecycle = "2.8.0"
 jbx-navigation = "2.7.0-alpha07"
 jbx-savedstate = "1.2.0"
 junit = "4.13.2"
-kotlin = "1.9.23"
-kotlinx-coroutines = "1.8.0"
-kotlinx-serialization = "1.6.3"
+kotlin = "2.0.20"
+kotlinx-coroutines = "1.8.1"
+kotlinx-serialization = "1.7.0"
 ktor = "3.0.0-beta-2"
 maven-publish = "0.28.0"
 robolectric = "4.12.2"
@@ -43,7 +45,6 @@ jbx-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigatio
 jbx-savedstate = { module = "org.jetbrains.androidx.savedstate:savedstate", version.ref = "jbx-savedstate" }
 junit = { module = "junit:junit", version.ref = "junit" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
@@ -63,6 +64,7 @@ android-application = { id = "com.android.application", version.ref = "android-g
 android-library = { id = "com.android.library", version.ref = "android-gradle" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+kotlin-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }
