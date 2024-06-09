@@ -8,8 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.invisibleToUser
+import androidx.compose.ui.semantics.semantics
 
 /**
  * A composable that can hide its [content] without removing it from the layout.
@@ -32,7 +32,7 @@ fun ContentVisibility(
     Box(
         modifier = modifier
             .alpha(if (hidden) 0f else 1f)
-            .clearAndSetSemantics {
+            .semantics {
                 if (hidden) {
                     invisibleToUser()
                 }
