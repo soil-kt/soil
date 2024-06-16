@@ -6,6 +6,8 @@ androidx-activity = "1.8.2"
 androidx-annotation = "1.7.1"
 androidx-core = "1.12.0"
 androidx-lifecycle = "2.7.0"
+androidx-test = "1.5.0"
+androidx-test-ext-junit = "1.1.5"
 compose = "1.6.7"
 compose-multiplatform = "1.6.10"
 dokka = "1.9.20"
@@ -13,19 +15,24 @@ jbx-core-bundle = "1.0.0"
 jbx-lifecycle = "2.8.0"
 jbx-navigation = "2.7.0-alpha07"
 jbx-savedstate = "1.2.0"
+junit = "4.13.2"
 kotlin = "1.9.23"
 kotlinx-coroutines = "1.8.0"
 kotlinx-serialization = "1.6.3"
 ktor = "3.0.0-wasm2"
 maven-publish = "0.28.0"
+robolectric = "4.12.2"
 spotless = "6.25.0"
 voyager = "1.1.0-alpha04"
+
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidx-annotation" }
 androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
 androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "androidx-lifecycle" }
+androidx-test-core = { module = "androidx.test:core", version.ref = "androidx-test" }
+androidx-test-ext-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-test-ext-junit" }
 compose-ui-test-junit4-android = { module = "androidx.compose.ui:ui-test-junit4-android", version.ref = "compose" }
 compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "compose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
@@ -35,7 +42,9 @@ jbx-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:l
 jbx-lifecycle-viewmodel-savedstate = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate", version.ref = "jbx-lifecycle" }
 jbx-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "jbx-navigation" }
 jbx-savedstate = { module = "org.jetbrains.androidx.savedstate:savedstate", version.ref = "jbx-savedstate" }
+junit = { module = "junit:junit", version.ref = "junit" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
@@ -46,6 +55,7 @@ ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negoti
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" }
 voyager-screenModel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyager" }
 

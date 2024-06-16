@@ -45,5 +45,6 @@ include(
 // Private modules
 include(
     ":sample:composeApp",
-    ":internal:playground"
+    ":internal:playground",
+    ":internal:testing"
 )
