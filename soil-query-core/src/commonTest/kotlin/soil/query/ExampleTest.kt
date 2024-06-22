@@ -3,10 +3,11 @@
 
 package soil.query
 
+import soil.testing.UnitTest
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
-class ExampleTest {
+class ExampleTest : UnitTest() {
 
     @Test
     fun sample() {
