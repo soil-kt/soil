@@ -58,6 +58,7 @@ kotlin {
             implementation(compose.runtime)
             implementation(compose.ui)
             implementation(compose.material)
+            implementation(projects.internal.testing)
         }
 
         jvmTest.dependencies {
@@ -91,6 +92,10 @@ android {
     compileOptions {
         sourceCompatibility = buildTarget.javaVersion.get()
         targetCompatibility = buildTarget.javaVersion.get()
+    }
+    @Suppress("UnstableApiUsage")
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
     }
     dependencies {
         debugImplementation(libs.compose.ui.tooling)

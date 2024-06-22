@@ -90,6 +90,10 @@ android {
         sourceCompatibility = buildTarget.javaVersion.get()
         targetCompatibility = buildTarget.javaVersion.get()
     }
+    @Suppress("UnstableApiUsage")
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
     dependencies {
         debugImplementation(libs.compose.ui.tooling)
     }
