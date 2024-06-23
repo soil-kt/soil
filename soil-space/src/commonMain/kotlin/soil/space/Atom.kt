@@ -6,6 +6,10 @@ package soil.space
 
 import androidx.compose.runtime.Immutable
 import androidx.core.bundle.Bundle
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
+import soil.serialization.bundle.Bundler
 import kotlin.jvm.JvmName
 
 /**
@@ -258,6 +262,44 @@ interface AtomSaver<T> {
 }
 
 typealias AtomSaverKey = String
+
+/**
+ * Create an [AtomSaver] for Kotlin Serialization.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * @Serializable
+ * data class CounterData(
+ *     val value: Int = 0
+ * )
+ *
+ * @OptIn(ExperimentalSerializationApi::class)
+ * private val counterAtom = atom(CounterData(), saver = serializationSaver("counter"))
+ *```
+ *
+ * @param T The type of the value to save and restore.
+ * @param key The key to be used to save and restore the value.
+ * @param serializer The serializer to use for the value.
+ * @param bundler The bundler to encode and decode the value. Default is [Bundler].
+ * @return The [AtomSaver] for the value.
+ */
+@ExperimentalSerializationApi
+inline fun <reified T> serializationSaver(
+    key: AtomSaverKey,
+    serializer: KSerializer<T> = serializer(),
+    bundler: Bundler = Bundler
+): AtomSaver<T> {
+    return object : AtomSaver<T> {
+        override fun save(bundle: Bundle, value: T) {
+            bundle.putBundle(key, bundler.encodeToBundle(value, serializer))
+        }
+
+        override fun restore(bundle: Bundle): T? {
+            return bundle.getBundle(key)?.let { bundler.decodeFromBundle(it, serializer) }
+        }
+    }
+}
 
 @PublishedApi
 internal fun stringSaver(key: AtomSaverKey): AtomSaver<String> {
