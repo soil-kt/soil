@@ -39,6 +39,7 @@ include(
     ":soil-query-compose",
     ":soil-query-compose-runtime",
     ":soil-form",
+    ":soil-serialization-bundle",
     ":soil-space"
 )
 
