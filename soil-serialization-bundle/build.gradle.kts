@@ -34,8 +34,8 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.kotlinx.serialization.core)
-            implementation(libs.jbx.core.bundle)
+            api(libs.kotlinx.serialization.core)
+            api(libs.jbx.core.bundle)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

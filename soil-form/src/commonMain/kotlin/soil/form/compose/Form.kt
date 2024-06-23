@@ -17,9 +17,13 @@ import androidx.compose.runtime.saveable.mapSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.toMutableStateMap
 import androidx.compose.ui.Modifier
+import androidx.core.bundle.Bundle
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 import soil.form.FieldErrors
 import soil.form.FieldName
 import soil.form.FieldValidateOn
@@ -27,6 +31,7 @@ import soil.form.FormFieldNames
 import soil.form.FormPolicy
 import soil.form.FormRule
 import soil.form.FormValidationException
+import soil.serialization.bundle.Bundler
 
 /**
  * A Form to manage the state and actions of input fields, and create a child block of [FormScope].
@@ -149,6 +154,53 @@ fun <T : Any> Form(
     Box(modifier = modifier) {
         with(formScope) { content() }
     }
+}
+
+/**
+ * Create an [Saver] for Kotlin Serialization.
+ *
+ * Usage:
+ *
+ * ```kotlin
+ * @Serializable
+ * data class FormData(
+ *     val firstName: String = "",
+ *     val lastName: String = "",
+ *     val email: String = "",
+ *     val mobileNumber: String = "",
+ *     val title: Title? = null,
+ *     val developer: Boolean? = null
+ * )
+ *
+ * enum class Title {
+ *     Mr,
+ *     Mrs,
+ *     Miss,
+ *     Dr,
+ * }
+ *
+ * Form(
+ *     onSubmit = { .. },
+ *     initialValue = FormData(),
+ *     modifier = modifier,
+ *     saver = serializationSaver()
+ * ) { .. }
+ * ```
+ *
+ * @param T The type of the value to save and restore.
+ * @param serializer The serializer to use for the value.
+ * @param bundler The bundler to encode and decode the value. Default is [Bundler].
+ * @return The [Saver] for the value.
+ */
+@ExperimentalSerializationApi
+inline fun <reified T> serializationSaver(
+    serializer: KSerializer<T> = serializer(),
+    bundler: Bundler = Bundler
+): Saver<T, Any> {
+    return Saver(
+        save = { value -> bundler.encodeToBundle(value, serializer) },
+        restore = { bundle -> bundler.decodeFromBundle(bundle as Bundle, serializer) }
+    )
 }
 
 @Suppress("UNCHECKED_CAST")

@@ -38,6 +38,7 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.foundation)
             implementation(libs.kotlinx.coroutines.core)
+            api(projects.soilSerializationBundle)
         }
 
         val skikoMain by creating {

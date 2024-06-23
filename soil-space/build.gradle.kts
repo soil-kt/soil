@@ -51,6 +51,7 @@ kotlin {
             implementation(libs.jbx.lifecycle.viewmodel.savedstate)
             api(libs.jbx.savedstate)
             api(libs.jbx.core.bundle)
+            api(projects.soilSerializationBundle)
         }
 
         androidMain.dependencies {
