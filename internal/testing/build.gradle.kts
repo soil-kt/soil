@@ -1,14 +1,9 @@
-import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.maven.publish)
-    alias(libs.plugins.dokka)
 }
 
 val buildTarget = the<BuildTargetExtension>()
@@ -24,16 +19,6 @@ kotlin {
             }
         }
         publishLibraryVariants("release")
-
-        // ref. https://www.jetbrains.com/help/kotlin-multiplatform-dev/compose-test.html
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        instrumentedTestVariant {
-            sourceSetTree.set(KotlinSourceSetTree.test)
-            dependencies {
-                implementation(libs.compose.ui.test.junit4.android)
-                debugImplementation(libs.compose.ui.test.manifest)
-            }
-        }
     }
 
     iosX64()
@@ -46,29 +31,47 @@ kotlin {
     }
 
     sourceSets {
+        all {
+            languageSettings {
+                @OptIn(ExperimentalKotlinGradlePluginApi::class)
+                compilerOptions {
+                    // https://youtrack.jetbrains.com/issue/KT-61573
+                    freeCompilerArgs.add("-Xexpect-actual-classes")
+                }
+            }
+        }
+
         commonMain.dependencies {
-            api(projects.soilQueryCore)
-            implementation(compose.runtime)
-        }
-
-        commonTest.dependencies {
             implementation(libs.kotlin.test)
-            @OptIn(ExperimentalComposeLibrary::class)
-            implementation(compose.uiTest)
-            implementation(compose.runtime)
-            implementation(compose.ui)
-            implementation(compose.material)
-            implementation(projects.internal.testing)
         }
 
-        jvmTest.dependencies {
-            implementation(compose.desktop.currentOs)
+        androidMain.dependencies {
+            implementation(libs.junit)
+            implementation(libs.robolectric)
+            implementation(libs.androidx.test.core)
+            implementation(libs.androidx.test.ext.junit)
+        }
+
+        val skikoMain by creating {
+            dependsOn(commonMain.get())
+        }
+
+        iosMain {
+            dependsOn(skikoMain)
+        }
+
+        jvmMain {
+            dependsOn(skikoMain)
+        }
+
+        named("wasmJsMain") {
+            dependsOn(skikoMain)
         }
     }
 }
 
 android {
-    namespace = "soil.query.compose"
+    namespace = "soil.testing"
     compileSdk = buildTarget.androidCompileSdk.get()
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
@@ -77,7 +80,6 @@ android {
 
     defaultConfig {
         minSdk = buildTarget.androidMinSdk.get()
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     packaging {
         resources {
@@ -92,10 +94,6 @@ android {
     compileOptions {
         sourceCompatibility = buildTarget.javaVersion.get()
         targetCompatibility = buildTarget.javaVersion.get()
-    }
-    @Suppress("UnstableApiUsage")
-    testOptions {
-        unitTests.isIncludeAndroidResources = true
     }
     dependencies {
         debugImplementation(libs.compose.ui.tooling)

@@ -39,6 +39,7 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
+            implementation(projects.internal.testing)
         }
 
         androidMain.dependencies {
@@ -88,6 +89,10 @@ android {
     compileOptions {
         sourceCompatibility = buildTarget.javaVersion.get()
         targetCompatibility = buildTarget.javaVersion.get()
+    }
+    @Suppress("UnstableApiUsage")
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
     }
     dependencies {
         debugImplementation(libs.compose.ui.tooling)
