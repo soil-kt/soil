@@ -106,10 +106,12 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     private fun vacuum() {
         clearCache()
         // NOTE: Releases items that are active due to keepAliveTime but have no subscribers.
-        queryStore.keys.asSequence()
+        queryStore.keys.toSet()
+            .asSequence()
             .filter { id -> queryStore[id]?.ping()?.not() ?: false }
             .forEach { id -> queryStore.remove(id)?.close() }
-        mutationStore.keys.asSequence()
+        mutationStore.keys.toSet()
+            .asSequence()
             .filter { id -> mutationStore[id]?.ping()?.not() ?: false }
             .forEach { id -> mutationStore.remove(id)?.close() }
     }
@@ -588,7 +590,8 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
             QueryFilterType.Active -> queryStore.keys
             QueryFilterType.Inactive -> queryCache.keys
         }
-        queryIds.asSequence()
+        queryIds.toSet()
+            .asSequence()
             .filter { id ->
                 if (keys.isNullOrEmpty()) true
                 else keys.any { id.tags.contains(it) }
