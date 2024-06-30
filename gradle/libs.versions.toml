@@ -23,7 +23,6 @@ ktor = "3.0.0-wasm2"
 maven-publish = "0.28.0"
 robolectric = "4.12.2"
 spotless = "6.25.0"
-voyager = "1.1.0-alpha04"
 
 
 [libraries]
@@ -57,8 +56,6 @@ ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "kto
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
-voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" }
-voyager-screenModel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyager" }
 
 
 [plugins]
