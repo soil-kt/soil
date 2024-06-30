@@ -7,6 +7,7 @@ import soil.query.internal.ActorOptions
 import soil.query.internal.LoggerFn
 import soil.query.internal.LoggingOptions
 import soil.query.internal.RetryOptions
+import soil.query.internal.UniqueId
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -26,6 +27,11 @@ data class MutationOptions(
      * Requires revision match as a precondition for executing mutate.
      */
     val isStrictMode: Boolean = false,
+
+    /**
+     * This callback function will be called if some mutation encounters an error.
+     */
+    val onError: ((Throwable, MutationModel<*>, UniqueId) -> Unit)? = null,
 
     // ----- ActorOptions ----- //
     override val keepAliveTime: Duration = 5.seconds,

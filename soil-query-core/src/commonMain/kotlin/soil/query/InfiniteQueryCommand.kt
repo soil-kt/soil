@@ -85,6 +85,7 @@ suspend inline fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.dispatchFetchC
         .run { key.onRecoverData()?.let(::recoverCatching) ?: this }
         .onSuccess(::dispatchFetchSuccess)
         .onFailure(::dispatchFetchFailure)
+        .onFailure { options.onError?.invoke(it, state, key.id) }
 }
 
 /**
@@ -104,4 +105,5 @@ suspend inline fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.dispatchRevali
         .run { key.onRecoverData()?.let(::recoverCatching) ?: this }
         .onSuccess(::dispatchFetchSuccess)
         .onFailure(::dispatchFetchFailure)
+        .onFailure { options.onError?.invoke(it, state, key.id) }
 }
