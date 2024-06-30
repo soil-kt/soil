@@ -126,3 +126,4 @@ typealias QueryPlaceholderData<T> = QueryReadonlyClient.() -> T?
 typealias QueryEffect = QueryMutableClient.() -> Unit
 
 typealias QueryRecoverData<T> = (error: Throwable) -> T
+typealias QueryOptionsOverride = (QueryOptions) -> QueryOptions

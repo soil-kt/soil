@@ -274,7 +274,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     @Suppress("UNCHECKED_CAST")
     override fun <T> getQuery(key: QueryKey<T>): QueryRef<T> {
         val id = key.id
-        val options = key.options ?: defaultQueryOptions
+        val options = key.onConfigureOptions()?.invoke(defaultQueryOptions) ?: defaultQueryOptions
         var query = queryStore[id] as? ManagedQuery<T>
         if (query == null) {
             query = newQuery(
@@ -367,7 +367,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         key: InfiniteQueryKey<T, S>
     ): InfiniteQueryRef<T, S> {
         val id = key.id
-        val options = key.options ?: defaultQueryOptions
+        val options = key.onConfigureOptions()?.invoke(defaultQueryOptions) ?: defaultQueryOptions
         var query = queryStore[id] as? ManagedQuery<QueryChunks<T, S>>
         if (query == null) {
             query = newInfiniteQuery(
