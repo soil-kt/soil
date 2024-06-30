@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
  */
 class InfiniteQueryRef<T, S>(
     val key: InfiniteQueryKey<T, S>,
+    val options: QueryOptions,
     query: Query<QueryChunks<T, S>>
 ) : Query<QueryChunks<T, S>> by query {
 
