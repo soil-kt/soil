@@ -30,7 +30,7 @@ interface MutationCommand<T> {
     interface Context<T> {
         val receiver: MutationReceiver
         val options: MutationOptions
-        val state: MutationState<T>
+        val state: MutationModel<T>
         val dispatch: MutationDispatch<T>
         val notifier: MutationNotifier
     }
@@ -90,6 +90,7 @@ suspend inline fun <T, S> MutationCommand.Context<T>.dispatchMutateResult(
             key.onQueryUpdate(variable, data)?.let(notifier::onMutateSuccess)
         }
         .onFailure { dispatch(MutationAction.MutateFailure(it)) }
+        .onFailure { options.onError?.invoke(it, state, key.id) }
 }
 
 internal fun <T> MutationCommand.Context<T>.onRetryCallback(

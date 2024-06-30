@@ -32,7 +32,7 @@ interface QueryCommand<T> {
     interface Context<T> {
         val receiver: QueryReceiver
         val options: QueryOptions
-        val state: QueryState<T>
+        val state: QueryModel<T>
         val dispatch: QueryDispatch<T>
     }
 }
@@ -103,6 +103,7 @@ suspend inline fun <T> QueryCommand.Context<T>.dispatchFetchResult(key: QueryKey
         .run { key.onRecoverData()?.let(::recoverCatching) ?: this }
         .onSuccess(::dispatchFetchSuccess)
         .onFailure(::dispatchFetchFailure)
+        .onFailure { options.onError?.invoke(it, state, key.id) }
 }
 
 /**

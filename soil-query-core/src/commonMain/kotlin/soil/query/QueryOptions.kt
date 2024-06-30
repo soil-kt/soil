@@ -8,6 +8,7 @@ import soil.query.internal.LoggerFn
 import soil.query.internal.LoggingOptions
 import soil.query.internal.RetryOptions
 import soil.query.internal.Retryable
+import soil.query.internal.UniqueId
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -59,6 +60,11 @@ data class QueryOptions(
      * This setting is only effective when [soil.query.internal.WindowVisibility] is available.
      */
     val revalidateOnFocus: Boolean = true,
+
+    /**
+     * This callback function will be called if some query encounters an error.
+     */
+    val onError: ((Throwable, QueryModel<*>, UniqueId) -> Unit)? = null,
 
     // ----- ActorOptions ----- //
     override val keepAliveTime: Duration = 5.seconds,
