@@ -209,6 +209,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         }
         return MutationRef(
             key = key,
+            options = options,
             mutation = mutation
         )
     }
@@ -707,7 +708,7 @@ data class SwrCachePolicy(
     /**
      * Default [MutationOptions] applied to [Mutation].
      */
-    val mutationOptions: MutationOptions = MutationOptions(),
+    val mutationOptions: MutationOptions = MutationOptions,
 
     /**
      * Extension receiver for referencing external instances needed when executing [mutate][MutationKey.mutate].

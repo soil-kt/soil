@@ -16,35 +16,101 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * [MutationOptions] providing settings related to the internal behavior of an [Mutation].
  */
-data class MutationOptions(
+interface MutationOptions : ActorOptions, LoggingOptions, RetryOptions {
 
     /**
      * Only allows mutate to execute once while active (until reset).
      */
-    val isOneShot: Boolean = false,
+    val isOneShot: Boolean
 
     /**
      * Requires revision match as a precondition for executing mutate.
      */
-    val isStrictMode: Boolean = false,
+    val isStrictMode: Boolean
 
     /**
      * This callback function will be called if some mutation encounters an error.
      */
-    val onError: ((Throwable, MutationModel<*>, UniqueId) -> Unit)? = null,
+    val onError: ((Throwable, MutationModel<*>, UniqueId) -> Unit)?
 
-    // ----- ActorOptions ----- //
-    override val keepAliveTime: Duration = 5.seconds,
+    companion object Default : MutationOptions {
+        override val isOneShot: Boolean = false
+        override val isStrictMode: Boolean = false
+        override val onError: ((Throwable, MutationModel<*>, UniqueId) -> Unit)? = null
 
-    // ----- LoggingOptions ----- //
-    override val logger: LoggerFn? = null,
+        // ----- ActorOptions ----- //
+        override val keepAliveTime: Duration = 5.seconds
 
-    // ----- RetryOptions ----- //
-    override val shouldRetry: (Throwable) -> Boolean = { false },
-    override val retryCount: Int = 3,
-    override val retryInitialInterval: Duration = 500.milliseconds,
-    override val retryMaxInterval: Duration = 30.seconds,
-    override val retryMultiplier: Double = 1.5,
-    override val retryRandomizationFactor: Double = 0.5,
-    override val retryRandomizer: Random = Random
-) : ActorOptions, LoggingOptions, RetryOptions
+        // ----- LoggingOptions ----- //
+        override val logger: LoggerFn? = null
+
+        // ----- RetryOptions ----- //
+        override val shouldRetry: (Throwable) -> Boolean = { false }
+        override val retryCount: Int = 3
+        override val retryInitialInterval: Duration = 500.milliseconds
+        override val retryMaxInterval: Duration = 30.seconds
+        override val retryMultiplier: Double = 1.5
+        override val retryRandomizationFactor: Double = 0.5
+        override val retryRandomizer: Random = Random
+    }
+}
+
+fun MutationOptions(
+    isOneShot: Boolean = MutationOptions.isOneShot,
+    isStrictMode: Boolean = MutationOptions.isStrictMode,
+    onError: ((Throwable, MutationModel<*>, UniqueId) -> Unit)? = MutationOptions.onError,
+    keepAliveTime: Duration = MutationOptions.keepAliveTime,
+    logger: LoggerFn? = MutationOptions.logger,
+    shouldRetry: (Throwable) -> Boolean = MutationOptions.shouldRetry,
+    retryCount: Int = MutationOptions.retryCount,
+    retryInitialInterval: Duration = MutationOptions.retryInitialInterval,
+    retryMaxInterval: Duration = MutationOptions.retryMaxInterval,
+    retryMultiplier: Double = MutationOptions.retryMultiplier,
+    retryRandomizationFactor: Double = MutationOptions.retryRandomizationFactor,
+    retryRandomizer: Random = MutationOptions.retryRandomizer
+): MutationOptions {
+    return object : MutationOptions {
+        override val isOneShot: Boolean = isOneShot
+        override val isStrictMode: Boolean = isStrictMode
+        override val onError: ((Throwable, MutationModel<*>, UniqueId) -> Unit)? = onError
+        override val keepAliveTime: Duration = keepAliveTime
+        override val logger: LoggerFn? = logger
+        override val shouldRetry: (Throwable) -> Boolean = shouldRetry
+        override val retryCount: Int = retryCount
+        override val retryInitialInterval: Duration = retryInitialInterval
+        override val retryMaxInterval: Duration = retryMaxInterval
+        override val retryMultiplier: Double = retryMultiplier
+        override val retryRandomizationFactor: Double = retryRandomizationFactor
+        override val retryRandomizer: Random = retryRandomizer
+    }
+}
+
+fun MutationOptions.copy(
+    isOneShot: Boolean = this.isOneShot,
+    isStrictMode: Boolean = this.isStrictMode,
+    onError: ((Throwable, MutationModel<*>, UniqueId) -> Unit)? = this.onError,
+    keepAliveTime: Duration = this.keepAliveTime,
+    logger: LoggerFn? = this.logger,
+    shouldRetry: (Throwable) -> Boolean = this.shouldRetry,
+    retryCount: Int = this.retryCount,
+    retryInitialInterval: Duration = this.retryInitialInterval,
+    retryMaxInterval: Duration = this.retryMaxInterval,
+    retryMultiplier: Double = this.retryMultiplier,
+    retryRandomizationFactor: Double = this.retryRandomizationFactor,
+    retryRandomizer: Random = this.retryRandomizer
+): MutationOptions {
+    return MutationOptions(
+        isOneShot = isOneShot,
+        isStrictMode = isStrictMode,
+        onError = onError,
+        keepAliveTime = keepAliveTime,
+        logger = logger,
+        shouldRetry = shouldRetry,
+        retryCount = retryCount,
+        retryInitialInterval = retryInitialInterval,
+        retryMaxInterval = retryMaxInterval,
+        retryMultiplier = retryMultiplier,
+        retryRandomizationFactor = retryRandomizationFactor,
+        retryRandomizer = retryRandomizer
+    )
+}

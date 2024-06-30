@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
  */
 class MutationRef<T, S>(
     val key: MutationKey<T, S>,
+    val options: MutationOptions,
     mutation: Mutation<T>
 ) : Mutation<T> by mutation {
 
