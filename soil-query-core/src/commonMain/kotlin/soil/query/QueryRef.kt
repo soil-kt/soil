@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
  */
 class QueryRef<T>(
     val key: QueryKey<T>,
+    val options: QueryOptions,
     query: Query<T>
 ) : Query<T> by query {
 

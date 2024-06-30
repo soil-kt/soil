@@ -41,11 +41,11 @@ interface InfiniteQueryKey<T, S> {
     val loadMoreParam: (chunks: QueryChunks<T, S>) -> S?
 
     /**
-     * Configure the Query [options].
+     * Function to configure the [QueryOptions].
      *
      * If unspecified, the default value of [SwrCachePolicy] is used.
      */
-    val options: QueryOptions?
+    fun onConfigureOptions(): QueryOptionsOverride? = null
 
     /**
      * Function to specify placeholder data.
@@ -117,14 +117,12 @@ fun <T, S> buildInfiniteQueryKey(
     id: InfiniteQueryId<T, S>,
     fetch: suspend QueryReceiver.(param: S) -> T,
     initialParam: () -> S,
-    loadMoreParam: (QueryChunks<T, S>) -> S?,
-    options: QueryOptions? = null
+    loadMoreParam: (QueryChunks<T, S>) -> S?
 ): InfiniteQueryKey<T, S> {
     return object : InfiniteQueryKey<T, S> {
         override val id: InfiniteQueryId<T, S> = id
         override val fetch: suspend QueryReceiver.(param: S) -> T = fetch
         override val initialParam: () -> S = initialParam
         override val loadMoreParam: (QueryChunks<T, S>) -> S? = loadMoreParam
-        override val options: QueryOptions? = options
     }
 }

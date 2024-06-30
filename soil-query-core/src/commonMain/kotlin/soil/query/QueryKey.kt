@@ -26,16 +26,30 @@ interface QueryKey<T> {
     val fetch: suspend QueryReceiver.() -> T
 
     /**
-     * Configure the Query [options].
+     * Function to configure the [QueryOptions].
      *
      * If unspecified, the default value of [SwrCachePolicy] is used.
+     *
+     * ```kotlin
+     * override fun onConfigureOptions(): QueryOptionsOverride = { options ->
+     *     options.copy(gcTime = Duration.ZERO)
+     * }
+     * ```
      */
-    val options: QueryOptions?
+    fun onConfigureOptions(): QueryOptionsOverride? = null
 
     /**
      * Function to specify placeholder data.
      *
      * You can specify placeholder data instead of the initial loading state.
+     *
+     * ```kotlin
+     * override fun onPlaceholderData(): QueryPlaceholderData<User> = {
+     *     getInfiniteQueryData(GetUsersKey.Id())?.let {
+     *         it.chunkedData.firstOrNull { user -> user.id == userId }
+     *     }
+     * }
+     * ```
      *
      * @see QueryPlaceholderData
      */
@@ -45,6 +59,16 @@ interface QueryKey<T> {
      * Function to convert specific exceptions as data.
      *
      * Depending on the type of exception that occurred during data retrieval, it is possible to recover it as normal data.
+     *
+     * ```kotlin
+     * override fun onRecoverData(): QueryRecoverData<QueryChunks<Albums, PageParam>> = { err ->
+     *     if (err is ClientRequestException && err.response.status.value == 404) {
+     *         emptyList()
+     *     } else {
+     *         throw err
+     *     }
+     * }
+     * ```
      *
      * @see QueryRecoverData
      */
@@ -94,12 +118,10 @@ open class QueryId<T>(
  */
 fun <T> buildQueryKey(
     id: QueryId<T>,
-    fetch: suspend QueryReceiver.() -> T,
-    options: QueryOptions? = null
+    fetch: suspend QueryReceiver.() -> T
 ): QueryKey<T> {
     return object : QueryKey<T> {
         override val id: QueryId<T> = id
         override val fetch: suspend QueryReceiver.() -> T = fetch
-        override val options: QueryOptions? = options
     }
 }

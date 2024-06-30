@@ -191,7 +191,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         key: MutationKey<T, S>
     ): MutationRef<T, S> {
         val id = key.id
-        val options = key.options ?: defaultMutationOptions
+        val options = key.onConfigureOptions()?.invoke(defaultMutationOptions) ?: defaultMutationOptions
         var mutation = mutationStore[id] as? ManagedMutation<T>
         if (mutation == null) {
             mutation = newMutation(
@@ -209,6 +209,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         }
         return MutationRef(
             key = key,
+            options = options,
             mutation = mutation
         )
     }
@@ -274,7 +275,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     @Suppress("UNCHECKED_CAST")
     override fun <T> getQuery(key: QueryKey<T>): QueryRef<T> {
         val id = key.id
-        val options = key.options ?: defaultQueryOptions
+        val options = key.onConfigureOptions()?.invoke(defaultQueryOptions) ?: defaultQueryOptions
         var query = queryStore[id] as? ManagedQuery<T>
         if (query == null) {
             query = newQuery(
@@ -292,7 +293,8 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         }
         return QueryRef(
             key = key,
-            query = query
+            query = query,
+            options = options
         )
     }
 
@@ -366,7 +368,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         key: InfiniteQueryKey<T, S>
     ): InfiniteQueryRef<T, S> {
         val id = key.id
-        val options = key.options ?: defaultQueryOptions
+        val options = key.onConfigureOptions()?.invoke(defaultQueryOptions) ?: defaultQueryOptions
         var query = queryStore[id] as? ManagedQuery<QueryChunks<T, S>>
         if (query == null) {
             query = newInfiniteQuery(
@@ -385,7 +387,8 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         }
         return InfiniteQueryRef(
             key = key,
-            query = query
+            query = query,
+            options = options
         )
     }
 
@@ -421,11 +424,10 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     override fun <T> prefetchQuery(key: QueryKey<T>) {
         coroutineScope.launch {
             val query = getQuery(key)
-            val options = key.options ?: defaultQueryOptions
             val revision = query.state.value.revision
             val job = launch { query.start(this) }
             try {
-                withTimeout(options.prefetchWindowTime) {
+                withTimeout(query.options.prefetchWindowTime) {
                     query.state.first { it.revision != revision || !it.isStaled() }
                 }
             } finally {
@@ -437,11 +439,10 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     override fun <T, S> prefetchInfiniteQuery(key: InfiniteQueryKey<T, S>) {
         coroutineScope.launch {
             val query = getInfiniteQuery(key)
-            val options = key.options ?: defaultQueryOptions
             val revision = query.state.value.revision
             val job = launch { query.start(this) }
             try {
-                withTimeout(options.prefetchWindowTime) {
+                withTimeout(query.options.prefetchWindowTime) {
                     query.state.first { it.revision != revision || !it.isStaled() }
                 }
             } finally {
@@ -707,7 +708,7 @@ data class SwrCachePolicy(
     /**
      * Default [MutationOptions] applied to [Mutation].
      */
-    val mutationOptions: MutationOptions = MutationOptions(),
+    val mutationOptions: MutationOptions = MutationOptions,
 
     /**
      * Extension receiver for referencing external instances needed when executing [mutate][MutationKey.mutate].
@@ -722,7 +723,7 @@ data class SwrCachePolicy(
     /**
      * Default [QueryOptions] applied to [Query].
      */
-    val queryOptions: QueryOptions = QueryOptions(),
+    val queryOptions: QueryOptions = QueryOptions,
 
     /**
      * Extension receiver for referencing external instances needed when executing [fetch][QueryKey.fetch].

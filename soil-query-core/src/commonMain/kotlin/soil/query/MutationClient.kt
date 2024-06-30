@@ -20,3 +20,5 @@ interface MutationClient {
         key: MutationKey<T, S>
     ): MutationRef<T, S>
 }
+
+typealias MutationOptionsOverride = (MutationOptions) -> MutationOptions
