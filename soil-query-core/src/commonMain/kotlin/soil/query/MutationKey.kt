@@ -30,16 +30,28 @@ interface MutationKey<T, S> {
     val mutate: suspend MutationReceiver.(variable: S) -> T
 
     /**
-     * Configure the Mutation [options].
+     * Function to configure the [MutationOptions].
      *
-     * If unspecified, the default value of [MutationOptions] is used.
+     * If unspecified, the default value of [SwrCachePolicy] is used.
+     *
+     * ```kotlin
+     * override fun onConfigureOptions(): MutationOptionsOverride? = { options ->
+     *      options.copy(isOneShot = true)
+     * }
+     * ```
      */
-    val options: MutationOptions?
+    fun onConfigureOptions(): MutationOptionsOverride? = null
 
     /**
      * Function to update the query cache after the mutation is executed.
      *
      * This is often referred to as ["Pessimistic Updates"](https://redux-toolkit.js.org/rtk-query/usage/manual-cache-updates#pessimistic-updates).
+     *
+     * ```kotlin
+     * override fun onQueryUpdate(variable: PostForm, data: Post): QueryEffect = {
+     *     invalidateQueriesBy(GetPostsKey.Id())
+     * }
+     * ```
      *
      * @param variable The variable to be mutated.
      * @param data The data returned by the mutation.
@@ -106,12 +118,10 @@ open class MutationId<T, S>(
  */
 fun <T, S> buildMutationKey(
     id: MutationId<T, S> = MutationId.auto(),
-    mutate: suspend MutationReceiver.(variable: S) -> T,
-    options: MutationOptions? = null
+    mutate: suspend MutationReceiver.(variable: S) -> T
 ): MutationKey<T, S> {
     return object : MutationKey<T, S> {
         override val id: MutationId<T, S> = id
         override val mutate: suspend MutationReceiver.(S) -> T = mutate
-        override val options: MutationOptions? = options
     }
 }

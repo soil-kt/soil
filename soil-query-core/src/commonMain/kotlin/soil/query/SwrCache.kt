@@ -191,7 +191,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         key: MutationKey<T, S>
     ): MutationRef<T, S> {
         val id = key.id
-        val options = key.options ?: defaultMutationOptions
+        val options = key.onConfigureOptions()?.invoke(defaultMutationOptions) ?: defaultMutationOptions
         var mutation = mutationStore[id] as? ManagedMutation<T>
         if (mutation == null) {
             mutation = newMutation(
