@@ -40,7 +40,7 @@ class QueryRef<T>(
     /**
      * Resumes the [Query].
      */
-    private suspend fun resume() {
+    internal suspend fun resume() {
         command.send(QueryCommands.Connect(key, state.value.revision))
     }
 
