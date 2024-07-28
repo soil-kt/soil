@@ -98,12 +98,16 @@ suspend fun <T> QueryCommand.Context<T>.fetch(
  *
  * @param key Instance of a class implementing [QueryKey].
  */
-suspend inline fun <T> QueryCommand.Context<T>.dispatchFetchResult(key: QueryKey<T>) {
+suspend inline fun <T> QueryCommand.Context<T>.dispatchFetchResult(
+    key: QueryKey<T>,
+    noinline callback: QueryCallback<T>? = null
+) {
     fetch(key)
         .run { key.onRecoverData()?.let(::recoverCatching) ?: this }
         .onSuccess(::dispatchFetchSuccess)
         .onFailure(::dispatchFetchFailure)
         .onFailure { options.onError?.invoke(it, state, key.id) }
+        .also { callback?.invoke(it) }
 }
 
 /**
