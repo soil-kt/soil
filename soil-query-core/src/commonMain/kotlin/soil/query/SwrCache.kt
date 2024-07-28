@@ -219,10 +219,6 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         initialValue: MutationState<T>
     ): ManagedMutation<T> {
         val scope = CoroutineScope(newCoroutineContext(coroutineScope))
-        val event = MutableSharedFlow<MutationEvent>(
-            extraBufferCapacity = 1,
-            onBufferOverflow = BufferOverflow.DROP_OLDEST
-        )
         val state = MutableStateFlow(initialValue)
         val reducer = createMutationReducer<T>()
         val dispatch: MutationDispatch<T> = { action ->
@@ -257,7 +253,6 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
             scope = scope,
             dispatch = dispatch,
             actor = actor,
-            event = event,
             state = state,
             command = command
         )
@@ -609,7 +604,6 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         val scope: CoroutineScope,
         val dispatch: MutationDispatch<T>,
         internal val actor: ActorBlockRunner,
-        override val event: MutableSharedFlow<MutationEvent>,
         override val state: StateFlow<MutationState<T>>,
         override val command: SendChannel<MutationCommand<T>>
     ) : Mutation<T> {
@@ -621,10 +615,6 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         fun close() {
             scope.cancel()
             command.close()
-        }
-
-        fun ping(): Boolean {
-            return event.tryEmit(MutationEvent.Ping)
         }
     }
 
@@ -663,10 +653,6 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
 
         fun resume() {
             event.tryEmit(QueryEvent.Resume)
-        }
-
-        fun ping(): Boolean {
-            return event.tryEmit(QueryEvent.Ping)
         }
 
         fun forceUpdate(data: T) {

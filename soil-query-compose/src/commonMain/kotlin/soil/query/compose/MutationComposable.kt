@@ -4,7 +4,6 @@
 package soil.query.compose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -32,9 +31,6 @@ fun <T, S> rememberMutation(
     val scope = rememberCoroutineScope()
     val mutation = remember(key) { client.getMutation(key).also { it.launchIn(scope) } }
     val state by mutation.state.collectAsState()
-    LaunchedEffect(mutation) {
-        mutation.start()
-    }
     return remember(mutation, state) {
         state.toObject(mutation = mutation)
     }

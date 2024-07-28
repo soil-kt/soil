@@ -22,15 +22,6 @@ class MutationRef<T, S>(
 ) : Mutation<T> by mutation {
 
     /**
-     * Starts the [Mutation].
-     *
-     * This function must be invoked when a new mount point (subscriber) is added.
-     */
-    suspend fun start() {
-        event.collect(::handleEvent)
-    }
-
-    /**
      * Mutates the variable.
      *
      * @param variable The variable to be mutated.
@@ -63,11 +54,5 @@ class MutationRef<T, S>(
      */
     suspend fun reset() {
         command.send(MutationCommands.Reset())
-    }
-
-    private fun handleEvent(e: MutationEvent) {
-        when (e) {
-            MutationEvent.Ping -> Unit
-        }
     }
 }

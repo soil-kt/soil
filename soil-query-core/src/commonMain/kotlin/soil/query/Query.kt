@@ -36,6 +36,5 @@ interface Query<T>: Actor {
  */
 enum class QueryEvent {
     Invalidate,
-    Resume,
-    Ping
+    Resume
 }

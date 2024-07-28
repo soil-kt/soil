@@ -3,10 +3,6 @@
 
 package soil.query
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.launch
-
 /**
  * A reference to an [Query] for [InfiniteQueryKey].
  *
@@ -60,7 +56,6 @@ class InfiniteQueryRef<T, S>(
         when (e) {
             QueryEvent.Invalidate -> invalidate()
             QueryEvent.Resume -> resume()
-            QueryEvent.Ping -> Unit
         }
     }
 }

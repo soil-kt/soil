@@ -48,7 +48,6 @@ class QueryRef<T>(
         when (e) {
             QueryEvent.Invalidate -> invalidate()
             QueryEvent.Resume -> resume()
-            QueryEvent.Ping -> Unit
         }
     }
 }
