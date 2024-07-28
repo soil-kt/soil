@@ -1,6 +1,4 @@
 import org.jetbrains.compose.ExperimentalComposeLibrary
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
@@ -24,16 +22,6 @@ kotlin {
             }
         }
         publishLibraryVariants("release")
-
-        // ref. https://www.jetbrains.com/help/kotlin-multiplatform-dev/compose-test.html
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
-        instrumentedTestVariant {
-            sourceSetTree.set(KotlinSourceSetTree.test)
-            dependencies {
-                implementation(libs.compose.ui.test.junit4.android)
-                debugImplementation(libs.compose.ui.test.manifest)
-            }
-        }
     }
 
     iosX64()
@@ -59,6 +47,13 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.material)
             implementation(projects.internal.testing)
+        }
+
+        val androidUnitTest by getting {
+            dependencies {
+                implementation(libs.compose.ui.test.junit4.android)
+                implementation(libs.compose.ui.test.manifest)
+            }
         }
 
         jvmTest.dependencies {
