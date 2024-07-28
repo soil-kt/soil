@@ -22,3 +22,4 @@ interface MutationClient {
 }
 
 typealias MutationOptionsOverride = (MutationOptions) -> MutationOptions
+typealias MutationCallback<T> = (Result<T>) -> Unit

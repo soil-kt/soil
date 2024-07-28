@@ -84,7 +84,8 @@ suspend fun <T, S> MutationCommand.Context<T>.mutate(
  */
 suspend inline fun <T, S> MutationCommand.Context<T>.dispatchMutateResult(
     key: MutationKey<T, S>,
-    variable: S
+    variable: S,
+    noinline callback: MutationCallback<T>?
 ) {
     mutate(key, variable)
         .onSuccess { data ->
@@ -98,6 +99,9 @@ suspend inline fun <T, S> MutationCommand.Context<T>.dispatchMutateResult(
         }
         .onFailure { dispatch(MutationAction.MutateFailure(it)) }
         .onFailure { options.onError?.invoke(it, state, key.id) }
+        .also {
+            callback?.invoke(it)
+        }
 }
 
 internal fun <T> MutationCommand.Context<T>.onRetryCallback(

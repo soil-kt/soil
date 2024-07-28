@@ -4,6 +4,7 @@
 package soil.query
 
 import soil.query.internal.vvv
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Mutation commands are used to update the [mutation state][MutationState].
@@ -24,16 +25,18 @@ sealed class MutationCommands<T> : MutationCommand<T> {
     data class Mutate<T, S>(
         val key: MutationKey<T, S>,
         val variable: S,
-        val revision: String
+        val revision: String,
+        val callback: MutationCallback<T>? = null
     ) : MutationCommands<T>() {
 
         override suspend fun handle(ctx: MutationCommand.Context<T>) {
             if (!ctx.shouldMutate(revision)) {
                 ctx.options.vvv(key.id) { "skip mutation(shouldMutate=false)" }
+                callback?.invoke(Result.failure(CancellationException("skip mutation")))
                 return
             }
             ctx.dispatch(MutationAction.Mutating)
-            ctx.dispatchMutateResult(key, variable)
+            ctx.dispatchMutateResult(key, variable, callback)
         }
     }
 

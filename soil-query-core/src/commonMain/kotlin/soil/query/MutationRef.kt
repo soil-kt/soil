@@ -3,8 +3,8 @@
 
 package soil.query
 
-import kotlinx.coroutines.flow.dropWhile
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.CompletableDeferred
+import soil.query.internal.toResultCallback
 
 /**
  * A reference to a [Mutation] for [MutationKey].
@@ -28,16 +28,9 @@ class MutationRef<T, S>(
      * @return The result of the mutation.
      */
     suspend fun mutate(variable: S): T {
-        mutateAsync(variable)
-        val submittedAt = state.value.submittedAt
-        val result = state.dropWhile { it.submittedAt <= submittedAt }.first()
-        if (result.isSuccess) {
-            return result.data!!
-        } else if (result.isFailure) {
-            throw result.error!!
-        } else {
-            error("Unexpected ${result.status}")
-        }
+        val deferred = CompletableDeferred<T>()
+        command.send(MutationCommands.Mutate(key, variable, state.value.revision, deferred.toResultCallback()))
+        return deferred.await()
     }
 
     /**
