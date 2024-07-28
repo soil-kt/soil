@@ -75,7 +75,7 @@ class IosMemoryPressure : MemoryPressure {
         @Suppress("unused", "UNUSED_PARAMETER")
         @ObjCAction
         fun appDidReceiveMemoryWarning(arg: NSNotification) {
-            observer.onReceive(MemoryPressureLevel.Critical)
+            observer.onReceive(MemoryPressureLevel.High)
         }
     }
 }

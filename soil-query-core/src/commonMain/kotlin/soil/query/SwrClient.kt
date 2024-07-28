@@ -3,6 +3,8 @@
 
 package soil.query
 
+import kotlinx.coroutines.Job
+
 /**
  * An all-in-one [SwrClient] integrating [MutationClient] and [QueryClient] for library users.
  *
@@ -13,7 +15,7 @@ interface SwrClient : MutationClient, QueryClient {
     /**
      * Executes side effects for queries.
      */
-    fun perform(sideEffects: QueryEffect)
+    fun perform(sideEffects: QueryEffect): Job
 
     /**
      * Executes initialization procedures based on events.

@@ -3,10 +3,6 @@
 
 package soil.query
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.launch
-
 /**
  * A reference to an [Query] for [InfiniteQueryKey].
  *
@@ -26,15 +22,10 @@ class InfiniteQueryRef<T, S>(
      * Starts the [Query].
      *
      * This function must be invoked when a new mount point (subscriber) is added.
-     *
-     * @param scope The [CoroutineScope] to launch the [Query] actor.
      */
-    fun start(scope: CoroutineScope) {
-        actor.launchIn(scope = scope)
-        scope.launch {
-            command.send(InfiniteQueryCommands.Connect(key))
-            event.collect(::handleEvent)
-        }
+    suspend fun start() {
+        command.send(InfiniteQueryCommands.Connect(key))
+        event.collect(::handleEvent)
     }
 
     /**
@@ -65,7 +56,6 @@ class InfiniteQueryRef<T, S>(
         when (e) {
             QueryEvent.Invalidate -> invalidate()
             QueryEvent.Resume -> resume()
-            QueryEvent.Ping -> Unit
         }
     }
 }

@@ -18,10 +18,10 @@ import soil.query.internal.MemoryPressureLevel
  *     | Android Trim Level             | MemoryPressureLevel   |
  *     |:-------------------------------|:----------------------|
  *     | TRIM_MEMORY_UI_HIDDEN          | Low                   |
+ *     | TRIM_MEMORY_BACKGROUND         | Low                   |
  *     | TRIM_MEMORY_MODERATE           | Low                   |
  *     | TRIM_MEMORY_RUNNING_MODERATE   | Low                   |
- *     | TRIM_MEMORY_BACKGROUND         | High                  |
- *     | TRIM_MEMORY_RUNNING_LOW        | High                  |
+ *     | TRIM_MEMORY_RUNNING_LOW        | Low                   |
  *     | TRIM_MEMORY_COMPLETE           | Critical              |
  *     | TRIM_MEMORY_RUNNING_CRITICAL   | Critical              |
  *
@@ -50,25 +50,22 @@ class AndroidMemoryPressure(
         override fun onConfigurationChanged(newConfig: Configuration) = Unit
 
         override fun onLowMemory() {
-            observer.onReceive(MemoryPressureLevel.Critical)
+            observer.onReceive(MemoryPressureLevel.High)
         }
 
         override fun onTrimMemory(level: Int) {
             when (level) {
                 ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN,
-                ComponentCallbacks2.TRIM_MEMORY_MODERATE,
-                ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE -> {
-                    observer.onReceive(MemoryPressureLevel.Low)
-                }
-
                 ComponentCallbacks2.TRIM_MEMORY_BACKGROUND,
+                ComponentCallbacks2.TRIM_MEMORY_MODERATE,
+                ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE,
                 ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW -> {
-                    observer.onReceive(MemoryPressureLevel.High)
+                    observer.onReceive(MemoryPressureLevel.Low)
                 }
 
                 ComponentCallbacks2.TRIM_MEMORY_COMPLETE,
                 ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL -> {
-                    observer.onReceive(MemoryPressureLevel.Critical)
+                    observer.onReceive(MemoryPressureLevel.High)
                 }
             }
         }

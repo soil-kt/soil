@@ -8,6 +8,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import soil.query.QueryClient
 import soil.query.QueryKey
 import soil.query.QueryRef
@@ -27,10 +28,11 @@ fun <T> rememberQuery(
     key: QueryKey<T>,
     client: QueryClient = LocalSwrClient.current
 ): QueryObject<T> {
-    val query = remember(key) { client.getQuery(key) }
+    val scope = rememberCoroutineScope()
+    val query = remember(key) { client.getQuery(key).also { it.launchIn(scope) } }
     val state by query.state.collectAsState()
     LaunchedEffect(query) {
-        query.start(this)
+        query.start()
     }
     return remember(query, state) {
         state.toObject(query = query, select = { it })
@@ -53,10 +55,11 @@ fun <T, U> rememberQuery(
     select: (T) -> U,
     client: QueryClient = LocalSwrClient.current
 ): QueryObject<U> {
-    val query = remember(key) { client.getQuery(key) }
+    val scope = rememberCoroutineScope()
+    val query = remember(key) { client.getQuery(key).also { it.launchIn(scope) } }
     val state by query.state.collectAsState()
     LaunchedEffect(query) {
-        query.start(this)
+        query.start()
     }
     return remember(query, state) {
         state.toObject(query = query, select = select)

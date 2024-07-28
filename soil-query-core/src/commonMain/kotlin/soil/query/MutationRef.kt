@@ -3,11 +3,8 @@
 
 package soil.query
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.launch
 
 /**
  * A reference to a [Mutation] for [MutationKey].
@@ -23,20 +20,6 @@ class MutationRef<T, S>(
     val options: MutationOptions,
     mutation: Mutation<T>
 ) : Mutation<T> by mutation {
-
-    /**
-     * Starts the [Mutation].
-     *
-     * This function must be invoked when a new mount point (subscriber) is added.
-     *
-     * @param scope The [CoroutineScope] to launch the [Mutation] actor.
-     */
-    fun start(scope: CoroutineScope) {
-        actor.launchIn(scope = scope)
-        scope.launch {
-            event.collect(::handleEvent)
-        }
-    }
 
     /**
      * Mutates the variable.
@@ -71,11 +54,5 @@ class MutationRef<T, S>(
      */
     suspend fun reset() {
         command.send(MutationCommands.Reset())
-    }
-
-    private fun handleEvent(e: MutationEvent) {
-        when (e) {
-            MutationEvent.Ping -> Unit
-        }
     }
 }

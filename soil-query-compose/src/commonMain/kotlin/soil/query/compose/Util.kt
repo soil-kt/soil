@@ -4,9 +4,8 @@
 package soil.query.compose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import kotlinx.coroutines.flow.launchIn
+import androidx.compose.runtime.rememberCoroutineScope
 import soil.query.InfiniteQueryKey
 import soil.query.MutationClient
 import soil.query.MutationKey
@@ -29,7 +28,7 @@ fun rememberQueriesErrorReset(
     filter: ResumeQueriesFilter = remember { ResumeQueriesFilter(predicate = { it.isFailure }) },
     client: SwrClient = LocalSwrClient.current
 ): QueriesErrorReset {
-    val reset = remember(client) {
+    val reset = remember<() -> Unit>(client) {
         { client.perform { resumeQueries(filter) } }
     }
     return reset
@@ -50,10 +49,8 @@ fun KeepAlive(
     key: QueryKey<*>,
     client: QueryClient = LocalSwrClient.current
 ) {
-    val query = remember(key) { client.getQuery(key) }
-    LaunchedEffect(Unit) {
-        query.actor.launchIn(this)
-    }
+    val scope = rememberCoroutineScope()
+    remember(key) { client.getQuery(key).also { it.launchIn(scope) } }
 }
 
 /**
@@ -69,10 +66,8 @@ fun KeepAlive(
     key: InfiniteQueryKey<*, *>,
     client: QueryClient = LocalSwrClient.current
 ) {
-    val query = remember(key) { client.getInfiniteQuery(key) }
-    LaunchedEffect(Unit) {
-        query.actor.launchIn(this)
-    }
+    val scope = rememberCoroutineScope()
+    remember(key) { client.getInfiniteQuery(key).also { it.launchIn(scope) } }
 }
 
 /**
@@ -88,8 +83,6 @@ fun KeepAlive(
     key: MutationKey<*, *>,
     client: MutationClient = LocalSwrClient.current
 ) {
-    val query = remember(key) { client.getMutation(key) }
-    LaunchedEffect(Unit) {
-        query.actor.launchIn(this)
-    }
+    val scope = rememberCoroutineScope()
+    remember(key) { client.getMutation(key).also { it.launchIn(scope) } }
 }

@@ -18,6 +18,7 @@ class MutationOptionsTest : UnitTest() {
         assertEquals(MutationOptions.Default.isOneShot, actual.isOneShot)
         assertEquals(MutationOptions.Default.isStrictMode, actual.isStrictMode)
         assertEquals(MutationOptions.Default.onError, actual.onError)
+        assertEquals(MutationOptions.Default.shouldExecuteEffectSynchronously, actual.shouldExecuteEffectSynchronously)
         assertEquals(MutationOptions.Default.keepAliveTime, actual.keepAliveTime)
         assertEquals(MutationOptions.Default.logger, actual.logger)
         assertEquals(MutationOptions.Default.shouldRetry, actual.shouldRetry)
@@ -35,6 +36,7 @@ class MutationOptionsTest : UnitTest() {
             isOneShot = true,
             isStrictMode = true,
             onError = { _, _, _ -> },
+            shouldExecuteEffectSynchronously = true,
             keepAliveTime = 4000.seconds,
             logger = { _ -> },
             shouldRetry = { _ -> true },
@@ -48,6 +50,7 @@ class MutationOptionsTest : UnitTest() {
         assertNotEquals(MutationOptions.Default.isOneShot, actual.isOneShot)
         assertNotEquals(MutationOptions.Default.isStrictMode, actual.isStrictMode)
         assertNotEquals(MutationOptions.Default.onError, actual.onError)
+        assertNotEquals(MutationOptions.Default.shouldExecuteEffectSynchronously, actual.shouldExecuteEffectSynchronously)
         assertNotEquals(MutationOptions.Default.keepAliveTime, actual.keepAliveTime)
         assertNotEquals(MutationOptions.Default.logger, actual.logger)
         assertNotEquals(MutationOptions.Default.shouldRetry, actual.shouldRetry)
@@ -65,6 +68,7 @@ class MutationOptionsTest : UnitTest() {
         assertEquals(MutationOptions.Default.isOneShot, actual.isOneShot)
         assertEquals(MutationOptions.Default.isStrictMode, actual.isStrictMode)
         assertEquals(MutationOptions.Default.onError, actual.onError)
+        assertEquals(MutationOptions.Default.shouldExecuteEffectSynchronously, actual.shouldExecuteEffectSynchronously)
         assertEquals(MutationOptions.Default.keepAliveTime, actual.keepAliveTime)
         assertEquals(MutationOptions.Default.logger, actual.logger)
         assertEquals(MutationOptions.Default.shouldRetry, actual.shouldRetry)
@@ -82,6 +86,7 @@ class MutationOptionsTest : UnitTest() {
             isOneShot = true,
             isStrictMode = true,
             onError = { _, _, _ -> },
+            shouldExecuteEffectSynchronously = true,
             keepAliveTime = 4000.seconds,
             logger = { _ -> },
             shouldRetry = { _ -> true },
@@ -95,6 +100,7 @@ class MutationOptionsTest : UnitTest() {
         assertNotEquals(MutationOptions.Default.isOneShot, actual.isOneShot)
         assertNotEquals(MutationOptions.Default.isStrictMode, actual.isStrictMode)
         assertNotEquals(MutationOptions.Default.onError, actual.onError)
+        assertNotEquals(MutationOptions.Default.shouldExecuteEffectSynchronously, actual.shouldExecuteEffectSynchronously)
         assertNotEquals(MutationOptions.Default.keepAliveTime, actual.keepAliveTime)
         assertNotEquals(MutationOptions.Default.logger, actual.logger)
         assertNotEquals(MutationOptions.Default.shouldRetry, actual.shouldRetry)
