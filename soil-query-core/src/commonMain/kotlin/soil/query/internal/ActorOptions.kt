@@ -9,7 +9,7 @@ import kotlin.time.Duration
  * Interface providing settings related to the internal behavior of an Actor.
  *
  * The actual Actor is managed as a Coroutine Flow for each [UniqueId].
- * Using [newSharingStarted], it remains active only when there are subscribers.
+ * Using [Actor], it remains active only when there are subscribers.
  */
 interface ActorOptions {
 
@@ -23,21 +23,4 @@ interface ActorOptions {
      * This value has the same meaning as [SharingStarted.WhileSubscribed(5_000)](https://github.com/search?q=repo%3Aandroid%2Fnowinandroid+WhileSubscribed) defined in ViewModel in [Now in Android App](https://github.com/android/nowinandroid).
      */
     val keepAliveTime: Duration
-}
-
-/**
- * Creates a new [ActorSharingStarted] specific for Actor.
- *
- * @param onActive Callback handler to notify when becoming active.
- * @param onInactive Callback handler to notify when becoming inactive.
- */
-fun ActorOptions.newSharingStarted(
-    onActive: ActorCallback? = null,
-    onInactive: ActorCallback? = null
-): ActorSharingStarted {
-    return ActorSharingStarted(
-        keepAliveTime = keepAliveTime,
-        onActive = onActive,
-        onInactive = onInactive
-    )
 }
