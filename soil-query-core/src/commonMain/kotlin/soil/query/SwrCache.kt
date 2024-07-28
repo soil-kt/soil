@@ -20,13 +20,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import soil.query.SwrCachePolicy.Companion.DEFAULT_GC_CHUNK_SIZE
 import soil.query.SwrCachePolicy.Companion.DEFAULT_GC_INTERVAL
 import soil.query.internal.ActorBlockRunner
@@ -401,34 +400,30 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         )
     }
 
-    override fun <T> prefetchQuery(key: QueryKey<T>) {
+    override fun <T> prefetchQuery(key: QueryKey<T>): Job {
         val scope = CoroutineScope(policy.mainDispatcher)
         val query = getQuery(key).also { it.launchIn(scope) }
-        coroutineScope.launch {
-            val revision = query.state.value.revision
-            val job = scope.launch { query.start() }
+        return coroutineScope.launch {
             try {
-                withTimeout(query.options.prefetchWindowTime) {
-                    query.state.first { it.revision != revision || !it.isStaled() }
+                withTimeoutOrNull(query.options.prefetchWindowTime) {
+                    query.prefetch()
                 }
             } finally {
-                job.cancel()
+                scope.cancel()
             }
         }
     }
 
-    override fun <T, S> prefetchInfiniteQuery(key: InfiniteQueryKey<T, S>) {
+    override fun <T, S> prefetchInfiniteQuery(key: InfiniteQueryKey<T, S>): Job {
         val scope = CoroutineScope(policy.mainDispatcher)
         val query = getInfiniteQuery(key).also { it.launchIn(scope) }
-        coroutineScope.launch {
-            val revision = query.state.value.revision
-            val job = scope.launch { query.start() }
+        return coroutineScope.launch {
             try {
-                withTimeout(query.options.prefetchWindowTime) {
-                    query.state.first { it.revision != revision || !it.isStaled() }
+                withTimeoutOrNull(query.options.prefetchWindowTime) {
+                    query.prefetch()
                 }
             } finally {
-                job.cancel()
+                scope.cancel()
             }
         }
     }

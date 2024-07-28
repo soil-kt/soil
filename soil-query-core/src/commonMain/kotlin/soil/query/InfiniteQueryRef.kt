@@ -3,6 +3,10 @@
 
 package soil.query
 
+import kotlinx.coroutines.CompletableDeferred
+import soil.query.internal.toResultCallback
+import kotlin.coroutines.cancellation.CancellationException
+
 /**
  * A reference to an [Query] for [InfiniteQueryKey].
  *
@@ -26,6 +30,22 @@ class InfiniteQueryRef<T, S>(
     suspend fun start() {
         command.send(InfiniteQueryCommands.Connect(key))
         event.collect(::handleEvent)
+    }
+
+    /**
+     * Prefetches the [Query].
+     */
+    suspend fun prefetch(): Boolean {
+        val deferred = CompletableDeferred<QueryChunks<T, S>>()
+        command.send(InfiniteQueryCommands.Connect(key, state.value.revision, deferred.toResultCallback()))
+        return try {
+            deferred.await()
+            true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            false
+        }
     }
 
     /**

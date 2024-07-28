@@ -4,6 +4,7 @@
 package soil.query
 
 import soil.query.internal.vvv
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Query command for [QueryKey].
@@ -22,16 +23,18 @@ sealed class QueryCommands<T> : QueryCommand<T> {
      */
     data class Connect<T>(
         val key: QueryKey<T>,
-        val revision: String? = null
+        val revision: String? = null,
+        val callback: QueryCallback<T>? = null
     ) : QueryCommands<T>() {
 
         override suspend fun handle(ctx: QueryCommand.Context<T>) {
             if (!ctx.shouldFetch(revision)) {
                 ctx.options.vvv(key.id) { "skip fetch(shouldFetch=false)" }
+                callback?.invoke(Result.failure(CancellationException("skip fetch")))
                 return
             }
             ctx.dispatch(QueryAction.Fetching())
-            ctx.dispatchFetchResult(key)
+            ctx.dispatchFetchResult(key, callback)
         }
     }
 
@@ -45,16 +48,18 @@ sealed class QueryCommands<T> : QueryCommand<T> {
      */
     data class Invalidate<T>(
         val key: QueryKey<T>,
-        val revision: String
+        val revision: String,
+        val callback: QueryCallback<T>? = null
     ) : QueryCommands<T>() {
 
         override suspend fun handle(ctx: QueryCommand.Context<T>) {
             if (ctx.state.revision != revision) {
                 ctx.options.vvv(key.id) { "skip fetch(revision is not matched)" }
+                callback?.invoke(Result.failure(CancellationException("skip fetch")))
                 return
             }
             ctx.dispatch(QueryAction.Fetching(isInvalidated = true))
-            ctx.dispatchFetchResult(key)
+            ctx.dispatchFetchResult(key, callback)
         }
     }
 }

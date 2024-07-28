@@ -77,7 +77,8 @@ suspend fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.revalidate(
  */
 suspend inline fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.dispatchFetchChunksResult(
     key: InfiniteQueryKey<T, S>,
-    variable: S
+    variable: S,
+    noinline callback: QueryCallback<QueryChunks<T, S>>? = null
 ) {
     fetch(key, variable)
         .map { QueryChunk(it, variable) }
@@ -86,6 +87,7 @@ suspend inline fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.dispatchFetchC
         .onSuccess(::dispatchFetchSuccess)
         .onFailure(::dispatchFetchFailure)
         .onFailure { options.onError?.invoke(it, state, key.id) }
+        .also { callback?.invoke(it) }
 }
 
 /**
@@ -99,11 +101,13 @@ suspend inline fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.dispatchFetchC
  */
 suspend inline fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.dispatchRevalidateChunksResult(
     key: InfiniteQueryKey<T, S>,
-    chunks: QueryChunks<T, S>
+    chunks: QueryChunks<T, S>,
+    noinline callback: QueryCallback<QueryChunks<T, S>>? = null
 ) {
     revalidate(key, chunks)
         .run { key.onRecoverData()?.let(::recoverCatching) ?: this }
         .onSuccess(::dispatchFetchSuccess)
         .onFailure(::dispatchFetchFailure)
         .onFailure { options.onError?.invoke(it, state, key.id) }
+        .also { callback?.invoke(it) }
 }

@@ -3,6 +3,7 @@
 
 package soil.query
 
+import kotlinx.coroutines.Job
 import soil.query.internal.UniqueId
 
 /**
@@ -32,7 +33,7 @@ interface QueryClient {
      * Prefetch is executed within a [kotlinx.coroutines.CoroutineScope] associated with the instance of [QueryClient].
      * After data retrieval, subscription is automatically unsubscribed, hence the caching period depends on [QueryOptions].
      */
-    fun <T> prefetchQuery(key: QueryKey<T>)
+    fun <T> prefetchQuery(key: QueryKey<T>): Job
 
     /**
      * Prefetches the infinite query by the specified [InfiniteQueryKey].
@@ -41,7 +42,7 @@ interface QueryClient {
      * Prefetch is executed within a [kotlinx.coroutines.CoroutineScope] associated with the instance of [QueryClient].
      * After data retrieval, subscription is automatically unsubscribed, hence the caching period depends on [QueryOptions].
      */
-    fun <T, S> prefetchInfiniteQuery(key: InfiniteQueryKey<T, S>)
+    fun <T, S> prefetchInfiniteQuery(key: InfiniteQueryKey<T, S>): Job
 }
 
 /**
@@ -127,3 +128,4 @@ typealias QueryEffect = QueryMutableClient.() -> Unit
 
 typealias QueryRecoverData<T> = (error: Throwable) -> T
 typealias QueryOptionsOverride = (QueryOptions) -> QueryOptions
+typealias QueryCallback<T> = (Result<T>) -> Unit
