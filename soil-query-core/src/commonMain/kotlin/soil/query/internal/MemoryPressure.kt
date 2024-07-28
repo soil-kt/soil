@@ -69,10 +69,5 @@ enum class MemoryPressureLevel {
     /**
      * Indicates moderate memory pressure.
      */
-    High,
-
-    /**
-     * Indicates severe memory pressure.
-     */
-    Critical
+    High
 }

@@ -56,7 +56,6 @@ import kotlin.time.Duration.Companion.seconds
  * - Inactive: When there are no references and past the [QueryOptions.keepAliveTime] period
  *
  * [Query] in the Active state does not disappear from memory unless one of the following conditions is met:
- * - [vacuum] is executed due to memory pressure
  * - [removeQueries] is explicitly called
  *
  * On the other hand, [Query] in the Inactive state gradually disappears from memory when one of the following conditions is met:
@@ -106,9 +105,8 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     @Suppress("MemberVisibilityCanBePrivate")
     fun gc(level: MemoryPressureLevel = MemoryPressureLevel.Low) {
         when (level) {
-            MemoryPressureLevel.Low -> coroutineScope.launch { evictCache() }
-            MemoryPressureLevel.High -> coroutineScope.launch { clearCache() }
-            MemoryPressureLevel.Critical -> coroutineScope.launch { vacuum() }
+            MemoryPressureLevel.Low -> evictCache()
+            MemoryPressureLevel.High -> clearCache()
         }
     }
 
@@ -118,19 +116,6 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
 
     private fun clearCache() {
         queryCache.clear()
-    }
-
-    private fun vacuum() {
-        clearCache()
-        // NOTE: Releases items that are active due to keepAliveTime but have no subscribers.
-        queryStore.keys.toSet()
-            .asSequence()
-            .filter { id -> queryStore[id]?.ping()?.not() ?: false }
-            .forEach { id -> queryStore.remove(id)?.close() }
-        mutationStore.keys.toSet()
-            .asSequence()
-            .filter { id -> mutationStore[id]?.ping()?.not() ?: false }
-            .forEach { id -> mutationStore.remove(id)?.close() }
     }
 
     // ----- SwrClient ----- //
@@ -165,7 +150,11 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     private suspend fun observeMemoryPressure() {
         if (policy.memoryPressure == MemoryPressure.Unsupported) return
         policy.memoryPressure.asFlow()
-            .collect(::gc)
+            .collect { level ->
+                withContext(policy.mainDispatcher) {
+                    gc(level)
+                }
+            }
     }
 
     private suspend fun observeNetworkConnectivity() {
