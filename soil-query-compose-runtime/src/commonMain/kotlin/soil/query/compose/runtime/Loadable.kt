@@ -26,7 +26,7 @@ sealed class Loadable<out T> : QueryModel<T> {
      */
     @Immutable
     data object Pending : Loadable<Nothing>() {
-        override val data: Nothing = throw IllegalStateException("Pending")
+        override val data: Nothing get() = error("Pending")
         override val dataUpdatedAt: Long = 0
         override val dataStaleAt: Long = 0
         override val error: Throwable? = null
@@ -61,7 +61,7 @@ sealed class Loadable<out T> : QueryModel<T> {
     data class Rejected(
         override val error: Throwable
     ) : Loadable<Nothing>() {
-        override val data: Nothing = throw IllegalStateException("Rejected")
+        override val data: Nothing get() = error("Rejected")
         override val dataUpdatedAt: Long = 0
         override val dataStaleAt: Long = 0
         override val errorUpdatedAt: Long = epoch()
