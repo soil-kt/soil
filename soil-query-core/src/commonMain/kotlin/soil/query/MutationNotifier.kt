@@ -3,6 +3,8 @@
 
 package soil.query
 
+import kotlinx.coroutines.Job
+
 /**
  * MutationNotifier is used to notify the mutation result.
  */
@@ -17,5 +19,5 @@ fun interface MutationNotifier {
      *
      * @param sideEffects The side effects of the mutation for related queries.
      */
-    fun onMutateSuccess(sideEffects: QueryEffect)
+    fun onMutate(sideEffects: QueryEffect): Job
 }

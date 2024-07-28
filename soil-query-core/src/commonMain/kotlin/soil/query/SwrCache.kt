@@ -122,8 +122,8 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     override val defaultMutationOptions: MutationOptions = policy.mutationOptions
     override val defaultQueryOptions: QueryOptions = policy.queryOptions
 
-    override fun perform(sideEffects: QueryEffect) {
-        coroutineScope.launch {
+    override fun perform(sideEffects: QueryEffect): Job {
+        return coroutineScope.launch {
             with(this@SwrCache) { sideEffects() }
         }
     }

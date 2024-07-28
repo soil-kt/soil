@@ -33,10 +33,16 @@ interface MutationOptions : ActorOptions, LoggingOptions, RetryOptions {
      */
     val onError: ((Throwable, MutationModel<*>, UniqueId) -> Unit)?
 
+    /**
+     * Whether the query side effect should be synchronous. If true, side effect will be executed synchronously.
+     */
+    val shouldExecuteEffectSynchronously: Boolean
+
     companion object Default : MutationOptions {
         override val isOneShot: Boolean = false
         override val isStrictMode: Boolean = false
         override val onError: ((Throwable, MutationModel<*>, UniqueId) -> Unit)? = null
+        override val shouldExecuteEffectSynchronously: Boolean = false
 
         // ----- ActorOptions ----- //
         override val keepAliveTime: Duration = 5.seconds
@@ -59,6 +65,7 @@ fun MutationOptions(
     isOneShot: Boolean = MutationOptions.isOneShot,
     isStrictMode: Boolean = MutationOptions.isStrictMode,
     onError: ((Throwable, MutationModel<*>, UniqueId) -> Unit)? = MutationOptions.onError,
+    shouldExecuteEffectSynchronously: Boolean = MutationOptions.shouldExecuteEffectSynchronously,
     keepAliveTime: Duration = MutationOptions.keepAliveTime,
     logger: LoggerFn? = MutationOptions.logger,
     shouldRetry: (Throwable) -> Boolean = MutationOptions.shouldRetry,
@@ -73,6 +80,7 @@ fun MutationOptions(
         override val isOneShot: Boolean = isOneShot
         override val isStrictMode: Boolean = isStrictMode
         override val onError: ((Throwable, MutationModel<*>, UniqueId) -> Unit)? = onError
+        override val shouldExecuteEffectSynchronously: Boolean = shouldExecuteEffectSynchronously
         override val keepAliveTime: Duration = keepAliveTime
         override val logger: LoggerFn? = logger
         override val shouldRetry: (Throwable) -> Boolean = shouldRetry
@@ -89,6 +97,7 @@ fun MutationOptions.copy(
     isOneShot: Boolean = this.isOneShot,
     isStrictMode: Boolean = this.isStrictMode,
     onError: ((Throwable, MutationModel<*>, UniqueId) -> Unit)? = this.onError,
+    shouldExecuteEffectSynchronously: Boolean = this.shouldExecuteEffectSynchronously,
     keepAliveTime: Duration = this.keepAliveTime,
     logger: LoggerFn? = this.logger,
     shouldRetry: (Throwable) -> Boolean = this.shouldRetry,
@@ -103,6 +112,7 @@ fun MutationOptions.copy(
         isOneShot = isOneShot,
         isStrictMode = isStrictMode,
         onError = onError,
+        shouldExecuteEffectSynchronously = shouldExecuteEffectSynchronously,
         keepAliveTime = keepAliveTime,
         logger = logger,
         shouldRetry = shouldRetry,

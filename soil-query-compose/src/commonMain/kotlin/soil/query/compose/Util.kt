@@ -28,7 +28,7 @@ fun rememberQueriesErrorReset(
     filter: ResumeQueriesFilter = remember { ResumeQueriesFilter(predicate = { it.isFailure }) },
     client: SwrClient = LocalSwrClient.current
 ): QueriesErrorReset {
-    val reset = remember(client) {
+    val reset = remember<() -> Unit>(client) {
         { client.perform { resumeQueries(filter) } }
     }
     return reset

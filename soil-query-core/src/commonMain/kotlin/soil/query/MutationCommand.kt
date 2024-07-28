@@ -3,6 +3,8 @@
 
 package soil.query
 
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import soil.query.internal.RetryCallback
 import soil.query.internal.RetryFn
 import soil.query.internal.UniqueId
@@ -86,8 +88,13 @@ suspend inline fun <T, S> MutationCommand.Context<T>.dispatchMutateResult(
 ) {
     mutate(key, variable)
         .onSuccess { data ->
-            dispatch(MutationAction.MutateSuccess(data))
-            key.onQueryUpdate(variable, data)?.let(notifier::onMutateSuccess)
+            val job = key.onQueryUpdate(variable, data)?.let(notifier::onMutate)
+            withContext(NonCancellable) {
+                if (job != null && options.shouldExecuteEffectSynchronously) {
+                    job.join()
+                }
+                dispatch(MutationAction.MutateSuccess(data))
+            }
         }
         .onFailure { dispatch(MutationAction.MutateFailure(it)) }
         .onFailure { options.onError?.invoke(it, state, key.id) }
