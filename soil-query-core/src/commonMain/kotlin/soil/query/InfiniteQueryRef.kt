@@ -26,15 +26,10 @@ class InfiniteQueryRef<T, S>(
      * Starts the [Query].
      *
      * This function must be invoked when a new mount point (subscriber) is added.
-     *
-     * @param scope The [CoroutineScope] to launch the [Query] actor.
      */
-    fun start(scope: CoroutineScope) {
-        actor.launchIn(scope = scope)
-        scope.launch {
-            command.send(InfiniteQueryCommands.Connect(key))
-            event.collect(::handleEvent)
-        }
+    suspend fun start() {
+        command.send(InfiniteQueryCommands.Connect(key))
+        event.collect(::handleEvent)
     }
 
     /**

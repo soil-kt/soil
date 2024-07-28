@@ -4,21 +4,16 @@
 package soil.query
 
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import soil.query.internal.Actor
 
 /**
  * Mutation as the base interface for an [MutationClient] implementations.
  *
  * @param T Type of the return value from the mutation.
  */
-interface Mutation<T> {
-
-    /**
-     * Coroutine [Flow] to launch the actor.
-     */
-    val actor: Flow<*>
+interface Mutation<T> : Actor {
 
     /**
      * [Shared Flow][SharedFlow] to receive mutation [events][MutationEvent].

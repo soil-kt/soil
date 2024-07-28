@@ -3,6 +3,7 @@
 
 package soil.query
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,19 +15,22 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import soil.query.SwrCachePolicy.Companion.DEFAULT_GC_CHUNK_SIZE
+import soil.query.SwrCachePolicy.Companion.DEFAULT_GC_INTERVAL
+import soil.query.internal.ActorBlockRunner
+import soil.query.internal.ActorSequenceNumber
 import soil.query.internal.MemoryPressure
 import soil.query.internal.MemoryPressureLevel
 import soil.query.internal.NetworkConnectivity
@@ -36,11 +40,12 @@ import soil.query.internal.TimeBasedCache
 import soil.query.internal.UniqueId
 import soil.query.internal.WindowVisibility
 import soil.query.internal.WindowVisibilityEvent
+import soil.query.internal.chunkedWithTimeout
 import soil.query.internal.epoch
-import soil.query.internal.newSharingStarted
 import soil.query.internal.vvv
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -75,13 +80,25 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     private val queryStore: MutableMap<UniqueId, ManagedQuery<*>> = policy.queryStore
     private val queryCache: TimeBasedCache<UniqueId, QueryState<*>> = policy.queryCache
 
-
     private val coroutineScope: CoroutineScope = CoroutineScope(
         context = newCoroutineContext(policy.coroutineScope)
     )
 
+    private val gcFlow: MutableSharedFlow<() -> Unit> = MutableSharedFlow()
+
     private var mountedIds: Set<String> = emptySet()
     private var mountedScope: CoroutineScope? = null
+
+    init {
+        gcFlow
+            .chunkedWithTimeout(size = policy.gcChunkSize, duration = policy.gcInterval)
+            .onEach { actions ->
+                withContext(policy.mainDispatcher) {
+                    actions.forEach { it() }
+                }
+            }
+            .launchIn(coroutineScope)
+    }
 
     /**
      * Releases data in memory based on the specified [level].
@@ -197,14 +214,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
             mutation = newMutation(
                 id = id,
                 options = options,
-                initialValue = MutationState<T>(),
-                onActive = {
-                    options.vvv(id) { "inactive -> active" }
-                },
-                onInactive = {
-                    options.vvv(id) { "inactive <- active" }
-                    closeMutation<T>(id)
-                }
+                initialValue = MutationState<T>()
             ).also { mutationStore[id] = it }
         }
         return MutationRef(
@@ -217,9 +227,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     private fun <T> newMutation(
         id: UniqueId,
         options: MutationOptions,
-        initialValue: MutationState<T>,
-        onActive: () -> Unit = {},
-        onInactive: () -> Unit = {}
+        initialValue: MutationState<T>
     ): ManagedMutation<T> {
         val scope = CoroutineScope(newCoroutineContext(coroutineScope))
         val event = MutableSharedFlow<MutationEvent>(
@@ -234,7 +242,13 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         }
         val notifier = MutationNotifier { effect -> perform(effect) }
         val command = Channel<MutationCommand<T>>()
-        val actor = flow<Unit> {
+        val actor = ActorBlockRunner(
+            scope = scope,
+            options = options,
+            onTimeout = { seq ->
+                scope.launch { gcFlow.emit { closeMutation<T>(id, seq) } }
+            }
+        ) {
             for (c in command) {
                 options.vvv(id) { "next command $c" }
                 c.handle(
@@ -247,13 +261,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
                     )
                 )
             }
-        }.shareIn(
-            scope = scope,
-            started = options.newSharingStarted(
-                onActive = onActive,
-                onInactive = onInactive
-            )
-        )
+        }
         return ManagedMutation(
             id = id,
             options = options,
@@ -267,9 +275,12 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T> closeMutation(id: UniqueId) {
-        val mutation = mutationStore.remove(id) as? ManagedMutation<T> ?: return
-        mutation.close()
+    private fun <T> closeMutation(id: UniqueId, seq: ActorSequenceNumber) {
+        val mutation = mutationStore[id] as? ManagedMutation<T> ?: return
+        if (mutation.actor.seq == seq) {
+            mutationStore.remove(id)
+            mutation.close()
+        }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -281,14 +292,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
             query = newQuery(
                 id = id,
                 options = options,
-                initialValue = queryCache[key.id] as? QueryState<T> ?: newQueryState(key),
-                onActive = {
-                    options.vvv(id) { "inactive -> active" }
-                },
-                onInactive = {
-                    options.vvv(id) { "inactive <- active" }
-                    closeQuery<T>(id)
-                }
+                initialValue = queryCache[key.id] as? QueryState<T> ?: newQueryState(key)
             ).also { queryStore[id] = it }
         }
         return QueryRef(
@@ -301,9 +305,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     private fun <T> newQuery(
         id: UniqueId,
         options: QueryOptions,
-        initialValue: QueryState<T>,
-        onActive: () -> Unit = {},
-        onInactive: () -> Unit = {}
+        initialValue: QueryState<T>
     ): ManagedQuery<T> {
         val scope = CoroutineScope(newCoroutineContext(coroutineScope))
         val event = MutableSharedFlow<QueryEvent>(
@@ -317,18 +319,18 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
             state.value = reducer(state.value, action)
         }
         val command = Channel<QueryCommand<T>>()
-        val actor = flow<Unit> {
+        val actor = ActorBlockRunner(
+            scope = scope,
+            options = options,
+            onTimeout = { seq ->
+                scope.launch { gcFlow.emit { closeQuery<T>(id, seq) } }
+            },
+        ) {
             for (c in command) {
                 options.vvv(id) { "next command $c" }
                 c.handle(ctx = ManagedQueryContext(queryReceiver, options, state.value, dispatch))
             }
-        }.shareIn(
-            scope = scope,
-            started = options.newSharingStarted(
-                onActive = onActive,
-                onInactive = onInactive
-            )
-        )
+        }
         return ManagedQuery(
             id = id,
             options = options,
@@ -352,14 +354,21 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T> closeQuery(id: UniqueId) {
-        val query = queryStore.remove(id) as? ManagedQuery<T> ?: return
-        query.close()
+    private fun <T> closeQuery(id: UniqueId, seq: ActorSequenceNumber) {
+        val query = queryStore[id] as? ManagedQuery<T> ?: return
+        if (query.actor.seq == seq) {
+            queryStore.remove(id)
+            query.close()
+            saveToCache(query)
+        }
+    }
+
+    private fun <T> saveToCache(query: ManagedQuery<T>) {
         val lastValue = query.state.value
         val ttl = query.options.gcTime
         if (lastValue.isSuccess && !lastValue.isPlaceholderData && ttl.isPositive()) {
-            queryCache.set(id, lastValue, ttl)
-            query.options.vvv(id) { "cached(ttl=$ttl)" }
+            queryCache.set(query.id, lastValue, ttl)
+            query.options.vvv(query.id) { "cached(ttl=$ttl)" }
         }
     }
 
@@ -374,15 +383,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
             query = newInfiniteQuery(
                 id = id,
                 options = options,
-                initialValue = queryCache[id] as? QueryState<QueryChunks<T, S>>
-                    ?: newInfiniteQueryState(key),
-                onActive = {
-                    options.vvv(id) { "inactive -> active" }
-                },
-                onInactive = {
-                    options.vvv(id) { "inactive <- active" }
-                    closeQuery<QueryChunks<T, S>>(id)
-                }
+                initialValue = queryCache[id] as? QueryState<QueryChunks<T, S>> ?: newInfiniteQueryState(key)
             ).also { queryStore[id] = it }
         }
         return InfiniteQueryRef(
@@ -395,16 +396,12 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     private fun <T, S> newInfiniteQuery(
         id: UniqueId,
         options: QueryOptions,
-        initialValue: QueryState<QueryChunks<T, S>>,
-        onActive: () -> Unit = {},
-        onInactive: () -> Unit = {}
+        initialValue: QueryState<QueryChunks<T, S>>
     ): ManagedQuery<QueryChunks<T, S>> {
         return newQuery(
             id = id,
             options = options,
-            initialValue = initialValue,
-            onActive = onActive,
-            onInactive = onInactive
+            initialValue = initialValue
         )
     }
 
@@ -420,12 +417,12 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         )
     }
 
-
     override fun <T> prefetchQuery(key: QueryKey<T>) {
+        val scope = CoroutineScope(policy.mainDispatcher)
+        val query = getQuery(key).also { it.launchIn(scope) }
         coroutineScope.launch {
-            val query = getQuery(key)
             val revision = query.state.value.revision
-            val job = launch { query.start(this) }
+            val job = scope.launch { query.start() }
             try {
                 withTimeout(query.options.prefetchWindowTime) {
                     query.state.first { it.revision != revision || !it.isStaled() }
@@ -437,10 +434,11 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     }
 
     override fun <T, S> prefetchInfiniteQuery(key: InfiniteQueryKey<T, S>) {
+        val scope = CoroutineScope(policy.mainDispatcher)
+        val query = getInfiniteQuery(key).also { it.launchIn(scope) }
         coroutineScope.launch {
-            val query = getInfiniteQuery(key)
             val revision = query.state.value.revision
-            val job = launch { query.start(this) }
+            val job = scope.launch { query.start() }
             try {
                 withTimeout(query.options.prefetchWindowTime) {
                     query.state.first { it.revision != revision || !it.isStaled() }
@@ -616,16 +614,21 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         return model?.let(predicate) ?: false
     }
 
-    data class ManagedMutation<T>(
+    data class ManagedMutation<T> internal constructor(
         val id: UniqueId,
         val options: MutationOptions,
         val scope: CoroutineScope,
         val dispatch: MutationDispatch<T>,
-        override val actor: Flow<*>,
+        internal val actor: ActorBlockRunner,
         override val event: MutableSharedFlow<MutationEvent>,
         override val state: StateFlow<MutationState<T>>,
         override val command: SendChannel<MutationCommand<T>>
     ) : Mutation<T> {
+
+        override fun launchIn(scope: CoroutineScope) {
+            actor.launchIn(scope)
+        }
+
         fun close() {
             scope.cancel()
             command.close()
@@ -644,16 +647,21 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         override val notifier: MutationNotifier
     ) : MutationCommand.Context<T>
 
-    data class ManagedQuery<T>(
+    data class ManagedQuery<T> internal constructor(
         val id: UniqueId,
         val options: QueryOptions,
         val scope: CoroutineScope,
         val dispatch: QueryDispatch<T>,
-        override val actor: Flow<*>,
+        internal val actor: ActorBlockRunner,
         override val event: MutableSharedFlow<QueryEvent>,
         override val state: StateFlow<QueryState<T>>,
         override val command: SendChannel<QueryCommand<T>>
     ) : Query<T> {
+
+        override fun launchIn(scope: CoroutineScope) {
+            actor.launchIn(scope)
+        }
+
         fun close() {
             scope.cancel()
             command.close()
@@ -704,6 +712,14 @@ data class SwrCachePolicy(
      * Always use a scoped implementation such as [SwrCacheScope] or [kotlinx.coroutines.MainScope] with limited concurrency.
      */
     val coroutineScope: CoroutineScope,
+
+    /**
+     * [CoroutineDispatcher] for the main thread.
+     *
+     * **Note:**
+     * Some garbage collection processes are safely synchronized with the caller using the main thread.
+     */
+    val mainDispatcher: CoroutineDispatcher = Dispatchers.Main,
 
     /**
      * Default [MutationOptions] applied to [Mutation].
@@ -781,10 +797,22 @@ data class SwrCachePolicy(
      */
     val windowResumeQueriesFilter: ResumeQueriesFilter = ResumeQueriesFilter(
         predicate = { it.isStaled() }
-    )
+    ),
+
+    /**
+     * The chunk size for garbage collection. Default is [DEFAULT_GC_CHUNK_SIZE].
+     */
+    val gcChunkSize: Int = DEFAULT_GC_CHUNK_SIZE,
+
+    /**
+     * The interval for garbage collection. Default is [DEFAULT_GC_INTERVAL].
+     */
+    val gcInterval: Duration = DEFAULT_GC_INTERVAL
 ) {
     companion object {
         const val DEFAULT_CAPACITY = 50
+        const val DEFAULT_GC_CHUNK_SIZE = 10
+        val DEFAULT_GC_INTERVAL: Duration = 500.milliseconds
     }
 }
 

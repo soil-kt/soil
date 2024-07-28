@@ -8,6 +8,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import soil.query.MutationClient
 import soil.query.MutationKey
 import soil.query.MutationRef
@@ -28,10 +29,11 @@ fun <T, S> rememberMutation(
     key: MutationKey<T, S>,
     client: MutationClient = LocalSwrClient.current
 ): MutationObject<T, S> {
-    val mutation = remember(key) { client.getMutation(key) }
+    val scope = rememberCoroutineScope()
+    val mutation = remember(key) { client.getMutation(key).also { it.launchIn(scope) } }
     val state by mutation.state.collectAsState()
     LaunchedEffect(mutation) {
-        mutation.start(this)
+        mutation.start()
     }
     return remember(mutation, state) {
         state.toObject(mutation = mutation)

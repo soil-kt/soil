@@ -8,6 +8,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import soil.query.InfiniteQueryKey
 import soil.query.InfiniteQueryRef
 import soil.query.QueryChunks
@@ -29,10 +30,11 @@ fun <T, S> rememberInfiniteQuery(
     key: InfiniteQueryKey<T, S>,
     client: QueryClient = LocalSwrClient.current
 ): InfiniteQueryObject<QueryChunks<T, S>, S> {
-    val query = remember(key) { client.getInfiniteQuery(key) }
+    val scope = rememberCoroutineScope()
+    val query = remember(key) { client.getInfiniteQuery(key).also { it.launchIn(scope) } }
     val state by query.state.collectAsState()
     LaunchedEffect(query) {
-        query.start(this)
+        query.start()
     }
     return remember(query, state) {
         state.toInfiniteObject(query = query, select = { it })
@@ -55,10 +57,11 @@ fun <T, S, U> rememberInfiniteQuery(
     select: (chunks: QueryChunks<T, S>) -> U,
     client: QueryClient = LocalSwrClient.current
 ): InfiniteQueryObject<U, S> {
-    val query = remember(key) { client.getInfiniteQuery(key) }
+    val scope = rememberCoroutineScope()
+    val query = remember(key) { client.getInfiniteQuery(key).also { it.launchIn(scope) } }
     val state by query.state.collectAsState()
     LaunchedEffect(query) {
-        query.start(this)
+        query.start()
     }
     return remember(query, state) {
         state.toInfiniteObject(query = query, select = select)

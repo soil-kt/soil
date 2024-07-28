@@ -3,10 +3,6 @@
 
 package soil.query
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.launch
-
 /**
  * A reference to an [Query] for [QueryKey].
  *
@@ -25,15 +21,10 @@ class QueryRef<T>(
      * Starts the [Query].
      *
      * This function must be invoked when a new mount point (subscriber) is added.
-     *
-     * @param scope The [CoroutineScope] to launch the [Query] actor.
      */
-    fun start(scope: CoroutineScope) {
-        actor.launchIn(scope = scope)
-        scope.launch {
-            command.send(QueryCommands.Connect(key))
-            event.collect(::handleEvent)
-        }
+    suspend fun start() {
+        command.send(QueryCommands.Connect(key))
+        event.collect(::handleEvent)
     }
 
     /**
