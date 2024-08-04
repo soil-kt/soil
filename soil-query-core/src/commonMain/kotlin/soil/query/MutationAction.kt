@@ -3,8 +3,6 @@
 
 package soil.query
 
-import soil.query.core.epoch
-
 /**
  * Mutation actions are used to update the [mutation state][MutationState].
  *
@@ -30,7 +28,7 @@ sealed interface MutationAction<out T> {
      */
     data class MutateSuccess<T>(
         val data: T,
-        val dataUpdatedAt: Long? = null
+        val dataUpdatedAt: Long
     ) : MutationAction<T>
 
     /**
@@ -41,7 +39,7 @@ sealed interface MutationAction<out T> {
      */
     data class MutateFailure(
         val error: Throwable,
-        val errorUpdatedAt: Long? = null
+        val errorUpdatedAt: Long
     ) : MutationAction<Nothing>
 }
 
@@ -71,13 +69,12 @@ fun <T> createMutationReducer(): MutationReducer<T> = { state, action ->
         }
 
         is MutationAction.MutateSuccess -> {
-            val updatedAt = action.dataUpdatedAt ?: epoch()
             state.copy(
                 status = MutationStatus.Success,
                 data = action.data,
-                dataUpdatedAt = updatedAt,
+                dataUpdatedAt = action.dataUpdatedAt,
                 error = null,
-                errorUpdatedAt = updatedAt,
+                errorUpdatedAt = action.dataUpdatedAt,
                 mutatedCount = state.mutatedCount + 1
             )
         }
@@ -86,7 +83,7 @@ fun <T> createMutationReducer(): MutationReducer<T> = { state, action ->
             state.copy(
                 status = MutationStatus.Failure,
                 error = action.error,
-                errorUpdatedAt = action.errorUpdatedAt ?: epoch()
+                errorUpdatedAt = action.errorUpdatedAt
             )
         }
     }
