@@ -15,6 +15,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +31,8 @@ import soil.query.SwrCachePolicy.Companion.DEFAULT_GC_CHUNK_SIZE
 import soil.query.SwrCachePolicy.Companion.DEFAULT_GC_INTERVAL
 import soil.query.core.ActorBlockRunner
 import soil.query.core.ActorSequenceNumber
+import soil.query.core.ErrorRecord
+import soil.query.core.ErrorRelay
 import soil.query.core.MemoryPressure
 import soil.query.core.MemoryPressureLevel
 import soil.query.core.NetworkConnectivity
@@ -118,8 +121,12 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     }
 
     // ----- SwrClient ----- //
+
     override val defaultMutationOptions: MutationOptions = policy.mutationOptions
     override val defaultQueryOptions: QueryOptions = policy.queryOptions
+
+    override val errorRelay: Flow<ErrorRecord>
+        get() = policy.errorRelay?.receiveAsFlow() ?: error("policy.errorRelay is not configured :(")
 
     override fun perform(sideEffects: QueryEffect): Job {
         return coroutineScope.launch {
@@ -225,6 +232,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
             state.value = reducer(state.value, action)
         }
         val notifier = MutationNotifier { effect -> perform(effect) }
+        val relay: MutationErrorRelay? = policy.errorRelay?.let { it::send }
         val command = Channel<MutationCommand<T>>()
         val actor = ActorBlockRunner(
             scope = scope,
@@ -241,7 +249,8 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
                         options = options,
                         state = state.value,
                         dispatch = dispatch,
-                        notifier = notifier
+                        notifier = notifier,
+                        relay = relay
                     )
                 )
             }
@@ -301,6 +310,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
             options.vvv(id) { "dispatching $action" }
             state.value = reducer(state.value, action)
         }
+        val relay: QueryErrorRelay? = policy.errorRelay?.let { it::send }
         val command = Channel<QueryCommand<T>>()
         val actor = ActorBlockRunner(
             scope = scope,
@@ -311,7 +321,15 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         ) {
             for (c in command) {
                 options.vvv(id) { "next command $c" }
-                c.handle(ctx = ManagedQueryContext(queryReceiver, options, state.value, dispatch))
+                c.handle(
+                    ctx = ManagedQueryContext(
+                        receiver = queryReceiver,
+                        options = options,
+                        state = state.value,
+                        dispatch = dispatch,
+                        relay = relay
+                    )
+                )
             }
         }
         return ManagedQuery(
@@ -618,7 +636,8 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         override val options: MutationOptions,
         override val state: MutationState<T>,
         override val dispatch: MutationDispatch<T>,
-        override val notifier: MutationNotifier
+        override val notifier: MutationNotifier,
+        override val relay: MutationErrorRelay?
     ) : MutationCommand.Context<T>
 
     data class ManagedQuery<T> internal constructor(
@@ -659,7 +678,8 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         override val receiver: QueryReceiver,
         override val options: QueryOptions,
         override val state: QueryState<T>,
-        override val dispatch: QueryDispatch<T>
+        override val dispatch: QueryDispatch<T>,
+        override val relay: QueryErrorRelay?
     ) : QueryCommand.Context<T>
 
     companion object {
@@ -725,6 +745,11 @@ data class SwrCachePolicy(
      * Management of cached data for inactive [Query] instances.
      */
     val queryCache: TimeBasedCache<UniqueId, QueryState<*>> = TimeBasedCache(DEFAULT_CAPACITY),
+
+    /**
+     * Specify the mechanism of [ErrorRelay] when using [SwrClient.errorRelay].
+     */
+    val errorRelay: ErrorRelay? = null,
 
     /**
      * Receiving events of memory pressure.

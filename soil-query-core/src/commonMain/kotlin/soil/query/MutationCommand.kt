@@ -35,6 +35,7 @@ interface MutationCommand<T> {
         val state: MutationModel<T>
         val dispatch: MutationDispatch<T>
         val notifier: MutationNotifier
+        val relay: MutationErrorRelay?
     }
 }
 
@@ -98,10 +99,19 @@ suspend inline fun <T, S> MutationCommand.Context<T>.dispatchMutateResult(
             }
         }
         .onFailure { dispatch(MutationAction.MutateFailure(it)) }
-        .onFailure { options.onError?.invoke(it, state, key.id) }
+        .onFailure { reportMutationError(it, key.id) }
         .also {
             callback?.invoke(it)
         }
+}
+
+fun <T> MutationCommand.Context<T>.reportMutationError(error: Throwable, id: UniqueId) {
+    if (options.onError == null && relay == null) {
+        return
+    }
+    val record = MutationError(error, id, state)
+    options.onError?.invoke(record)
+    relay?.invoke(record)
 }
 
 internal fun <T> MutationCommand.Context<T>.onRetryCallback(
