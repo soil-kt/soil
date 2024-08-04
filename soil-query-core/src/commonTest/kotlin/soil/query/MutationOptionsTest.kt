@@ -35,7 +35,7 @@ class MutationOptionsTest : UnitTest() {
         val actual = MutationOptions(
             isOneShot = true,
             isStrictMode = true,
-            onError = { _, _, _ -> },
+            onError = { },
             shouldExecuteEffectSynchronously = true,
             keepAliveTime = 4000.seconds,
             logger = { _ -> },
@@ -85,7 +85,7 @@ class MutationOptionsTest : UnitTest() {
         val actual = MutationOptions.Default.copy(
             isOneShot = true,
             isStrictMode = true,
-            onError = { _, _, _ -> },
+            onError = { },
             shouldExecuteEffectSynchronously = true,
             keepAliveTime = 4000.seconds,
             logger = { _ -> },
