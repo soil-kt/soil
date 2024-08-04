@@ -8,7 +8,7 @@ import androidx.compose.runtime.Stable
 import soil.query.QueryFetchStatus
 import soil.query.QueryModel
 import soil.query.QueryStatus
-import soil.query.internal.epoch
+import soil.query.core.epoch
 
 /**
  * Promise-like data structure that represents the state of a value that is being loaded.

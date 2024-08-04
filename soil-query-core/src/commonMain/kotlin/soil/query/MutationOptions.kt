@@ -3,11 +3,11 @@
 
 package soil.query
 
-import soil.query.internal.ActorOptions
-import soil.query.internal.LoggerFn
-import soil.query.internal.LoggingOptions
-import soil.query.internal.RetryOptions
-import soil.query.internal.UniqueId
+import soil.query.core.ActorOptions
+import soil.query.core.LoggerFn
+import soil.query.core.LoggingOptions
+import soil.query.core.RetryOptions
+import soil.query.core.UniqueId
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds

@@ -1,7 +1,7 @@
 // Copyright 2024 Soil Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-package soil.query.internal
+package soil.query.core
 
 // TODO: Significantly slower than java.util.PriorityQueue.
 //  Consider rewriting the implementation later.

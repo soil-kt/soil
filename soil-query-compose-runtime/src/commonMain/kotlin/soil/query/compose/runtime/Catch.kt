@@ -8,7 +8,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import soil.query.QueryModel
-import soil.query.internal.uuid
+import soil.query.core.uuid
 
 /**
  * Catch for a [QueryModel] to be rejected.

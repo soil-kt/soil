@@ -6,7 +6,7 @@ package soil.query
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import soil.query.internal.Actor
+import soil.query.core.Actor
 
 /**
  * Query as the base interface for an [QueryClient] implementations.

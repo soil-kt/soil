@@ -4,7 +4,7 @@
 package soil.query
 
 import kotlinx.coroutines.Job
-import soil.query.internal.UniqueId
+import soil.query.core.UniqueId
 
 /**
  * A Query client, which allows you to make queries actor and handle [QueryKey] and [InfiniteQueryKey].

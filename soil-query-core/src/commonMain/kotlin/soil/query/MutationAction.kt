@@ -3,7 +3,7 @@
 
 package soil.query
 
-import soil.query.internal.epoch
+import soil.query.core.epoch
 
 /**
  * Mutation actions are used to update the [mutation state][MutationState].

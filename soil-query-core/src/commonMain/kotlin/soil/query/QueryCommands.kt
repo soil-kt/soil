@@ -3,7 +3,7 @@
 
 package soil.query
 
-import soil.query.internal.vvv
+import soil.query.core.vvv
 import kotlin.coroutines.cancellation.CancellationException
 
 /**

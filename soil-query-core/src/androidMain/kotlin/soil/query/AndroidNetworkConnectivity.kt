@@ -9,8 +9,8 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import androidx.annotation.RequiresPermission
-import soil.query.internal.NetworkConnectivity
-import soil.query.internal.NetworkConnectivityEvent
+import soil.query.core.NetworkConnectivity
+import soil.query.core.NetworkConnectivityEvent
 
 /**
  * Implementation of [NetworkConnectivity] for Android.

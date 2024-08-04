@@ -4,7 +4,7 @@
 package soil.query
 
 import kotlinx.coroutines.CompletableDeferred
-import soil.query.internal.toResultCallback
+import soil.query.core.toResultCallback
 import kotlin.coroutines.cancellation.CancellationException
 
 /**

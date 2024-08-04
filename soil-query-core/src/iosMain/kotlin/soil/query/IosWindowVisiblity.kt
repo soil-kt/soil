@@ -12,8 +12,8 @@ import platform.Foundation.NSSelectorFromString
 import platform.UIKit.UIApplicationDidBecomeActiveNotification
 import platform.UIKit.UIApplicationWillResignActiveNotification
 import platform.darwin.NSObject
-import soil.query.internal.WindowVisibility
-import soil.query.internal.WindowVisibilityEvent
+import soil.query.core.WindowVisibility
+import soil.query.core.WindowVisibilityEvent
 
 /**
  * Implementation of [WindowVisibility] for iOS.

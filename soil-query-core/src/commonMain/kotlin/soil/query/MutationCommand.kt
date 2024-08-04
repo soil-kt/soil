@@ -5,11 +5,11 @@ package soil.query
 
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
-import soil.query.internal.RetryCallback
-import soil.query.internal.RetryFn
-import soil.query.internal.UniqueId
-import soil.query.internal.exponentialBackOff
-import soil.query.internal.vvv
+import soil.query.core.RetryCallback
+import soil.query.core.RetryFn
+import soil.query.core.UniqueId
+import soil.query.core.exponentialBackOff
+import soil.query.core.vvv
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
