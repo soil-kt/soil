@@ -4,6 +4,8 @@
 package soil.query
 
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
+import soil.query.core.ErrorRecord
 
 /**
  * An all-in-one [SwrClient] integrating [MutationClient] and [QueryClient] for library users.
@@ -11,6 +13,14 @@ import kotlinx.coroutines.Job
  * Swr stands for "stall-while-revalidate".
  */
 interface SwrClient : MutationClient, QueryClient {
+
+    /**
+     * Provides a unified feedback mechanism for all Query/Mutation errors that occur within the client.
+     *
+     * For example, by collecting errors on the foreground screen,
+     * you can display an error message on the screen using a Toast or similar when an error occurs.
+     */
+    val errorRelay: Flow<ErrorRecord>
 
     /**
      * Executes side effects for queries.

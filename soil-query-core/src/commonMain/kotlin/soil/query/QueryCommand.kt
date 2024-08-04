@@ -34,6 +34,7 @@ interface QueryCommand<T> {
         val options: QueryOptions
         val state: QueryModel<T>
         val dispatch: QueryDispatch<T>
+        val relay: QueryErrorRelay?
     }
 }
 
@@ -106,7 +107,7 @@ suspend inline fun <T> QueryCommand.Context<T>.dispatchFetchResult(
         .run { key.onRecoverData()?.let(::recoverCatching) ?: this }
         .onSuccess(::dispatchFetchSuccess)
         .onFailure(::dispatchFetchFailure)
-        .onFailure { options.onError?.invoke(it, state, key.id) }
+        .onFailure { reportQueryError(it, key.id) }
         .also { callback?.invoke(it) }
 }
 
@@ -138,6 +139,15 @@ fun <T> QueryCommand.Context<T>.dispatchFetchFailure(error: Throwable) {
         paused = shouldPause(error)
     )
     dispatch(action)
+}
+
+fun <T> QueryCommand.Context<T>.reportQueryError(error: Throwable, id: UniqueId) {
+    if (options.onError == null && relay == null) {
+        return
+    }
+    val record = QueryError(error, id, state)
+    options.onError?.invoke(record)
+    relay?.invoke(record)
 }
 
 internal fun <T> QueryCommand.Context<T>.onRetryCallback(

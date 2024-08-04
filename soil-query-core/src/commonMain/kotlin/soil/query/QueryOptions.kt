@@ -8,7 +8,6 @@ import soil.query.core.LoggerFn
 import soil.query.core.LoggingOptions
 import soil.query.core.RetryOptions
 import soil.query.core.Retryable
-import soil.query.core.UniqueId
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -64,7 +63,7 @@ interface QueryOptions : ActorOptions, LoggingOptions, RetryOptions {
     /**
      * This callback function will be called if some query encounters an error.
      */
-    val onError: ((Throwable, QueryModel<*>, UniqueId) -> Unit)?
+    val onError: ((QueryError) -> Unit)?
 
     companion object Default : QueryOptions {
         override val staleTime: Duration = Duration.ZERO
@@ -73,7 +72,7 @@ interface QueryOptions : ActorOptions, LoggingOptions, RetryOptions {
         override val pauseDurationAfter: ((Throwable) -> Duration?)? = null
         override val revalidateOnReconnect: Boolean = true
         override val revalidateOnFocus: Boolean = true
-        override val onError: ((Throwable, QueryModel<*>, UniqueId) -> Unit)? = null
+        override val onError: ((QueryError) -> Unit)? = null
 
         // ----- ActorOptions ----- //
         override val keepAliveTime: Duration = 5.seconds
@@ -101,7 +100,7 @@ fun QueryOptions(
     pauseDurationAfter: ((Throwable) -> Duration?)? = QueryOptions.pauseDurationAfter,
     revalidateOnReconnect: Boolean = QueryOptions.revalidateOnReconnect,
     revalidateOnFocus: Boolean = QueryOptions.revalidateOnFocus,
-    onError: ((Throwable, QueryModel<*>, UniqueId) -> Unit)? = QueryOptions.onError,
+    onError: ((QueryError) -> Unit)? = QueryOptions.onError,
     keepAliveTime: Duration = QueryOptions.keepAliveTime,
     logger: LoggerFn? = QueryOptions.logger,
     shouldRetry: (Throwable) -> Boolean = QueryOptions.shouldRetry,
@@ -119,7 +118,7 @@ fun QueryOptions(
         override val pauseDurationAfter: ((Throwable) -> Duration?)? = pauseDurationAfter
         override val revalidateOnReconnect: Boolean = revalidateOnReconnect
         override val revalidateOnFocus: Boolean = revalidateOnFocus
-        override val onError: ((Throwable, QueryModel<*>, UniqueId) -> Unit)? = onError
+        override val onError: ((QueryError) -> Unit)? = onError
         override val keepAliveTime: Duration = keepAliveTime
         override val logger: LoggerFn? = logger
         override val shouldRetry: (Throwable) -> Boolean = shouldRetry
@@ -139,7 +138,7 @@ fun QueryOptions.copy(
     pauseDurationAfter: ((Throwable) -> Duration?)? = this.pauseDurationAfter,
     revalidateOnReconnect: Boolean = this.revalidateOnReconnect,
     revalidateOnFocus: Boolean = this.revalidateOnFocus,
-    onError: ((Throwable, QueryModel<*>, UniqueId) -> Unit)? = this.onError,
+    onError: ((QueryError) -> Unit)? = this.onError,
     keepAliveTime: Duration = this.keepAliveTime,
     logger: LoggerFn? = this.logger,
     shouldRetry: (Throwable) -> Boolean = this.shouldRetry,
