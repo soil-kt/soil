@@ -8,6 +8,7 @@ import kotlinx.coroutines.withContext
 import soil.query.core.RetryCallback
 import soil.query.core.RetryFn
 import soil.query.core.UniqueId
+import soil.query.core.epoch
 import soil.query.core.exponentialBackOff
 import soil.query.core.vvv
 import kotlin.coroutines.cancellation.CancellationException
@@ -95,15 +96,44 @@ suspend inline fun <T, S> MutationCommand.Context<T>.dispatchMutateResult(
                 if (job != null && options.shouldExecuteEffectSynchronously) {
                     job.join()
                 }
-                dispatch(MutationAction.MutateSuccess(data))
+                dispatchMutateSuccess(data)
             }
         }
-        .onFailure { dispatch(MutationAction.MutateFailure(it)) }
+        .onFailure(::dispatchMutateFailure)
         .onFailure { reportMutationError(it, key.id) }
         .also {
             callback?.invoke(it)
         }
 }
+
+/**
+ * Dispatches the mutate success.
+ *
+ * @param data The mutation returned data.
+ */
+fun <T> MutationCommand.Context<T>.dispatchMutateSuccess(data: T) {
+    val currentAt = epoch()
+    val action = MutationAction.MutateSuccess(
+        data = data,
+        dataUpdatedAt = currentAt
+    )
+    dispatch(action)
+}
+
+/**
+ * Dispatches the mutate failure.
+ *
+ * @param error The mutation error.
+ */
+fun <T> MutationCommand.Context<T>.dispatchMutateFailure(error: Throwable) {
+    val currentAt = epoch()
+    val action = MutationAction.MutateFailure(
+        error = error,
+        errorUpdatedAt = currentAt
+    )
+    dispatch(action)
+}
+
 
 fun <T> MutationCommand.Context<T>.reportMutationError(error: Throwable, id: UniqueId) {
     if (options.onError == null && relay == null) {
