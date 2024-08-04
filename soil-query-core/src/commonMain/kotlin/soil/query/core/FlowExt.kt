@@ -3,11 +3,8 @@
 
 package soil.query.core
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
-import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -15,7 +12,6 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.produceIn
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlin.time.Duration
 
@@ -33,7 +29,7 @@ internal fun <T> Flow<T>.chunkedWithTimeout(
             val ticker = MutableSharedFlow<Unit>(extraBufferCapacity = size)
             val tickerTimeout = ticker
                 .debounce(duration)
-                .toReceiveChannel(this)
+                .produceIn(this)
             try {
                 while (isActive) {
                     var isTimeout = false
@@ -62,16 +58,4 @@ internal fun <T> Flow<T>.chunkedWithTimeout(
             }
         }
     }
-}
-
-private fun <T> Flow<T>.toReceiveChannel(scope: CoroutineScope): ReceiveChannel<T> {
-    val channel = Channel<T>(Channel.BUFFERED)
-    scope.launch {
-        try {
-            collect { value -> channel.send(value) }
-        } finally {
-            channel.close()
-        }
-    }
-    return channel
 }
