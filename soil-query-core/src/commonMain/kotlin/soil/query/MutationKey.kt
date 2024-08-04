@@ -3,9 +3,9 @@
 
 package soil.query
 
-import soil.query.internal.SurrogateKey
-import soil.query.internal.UniqueId
-import soil.query.internal.uuid
+import soil.query.core.SurrogateKey
+import soil.query.core.UniqueId
+import soil.query.core.uuid
 
 /**
  * Interface for mutations key.

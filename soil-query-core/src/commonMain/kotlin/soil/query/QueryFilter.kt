@@ -3,7 +3,7 @@
 
 package soil.query
 
-import soil.query.internal.SurrogateKey
+import soil.query.core.SurrogateKey
 
 /**
  * Interface for filtering side effect queries by [QueryMutableClient].

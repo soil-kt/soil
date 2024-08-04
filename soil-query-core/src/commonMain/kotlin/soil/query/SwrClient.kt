@@ -22,9 +22,9 @@ interface SwrClient : MutationClient, QueryClient {
      *
      * Features dependent on the platform are lazily initialized.
      * The following features work correctly by notifying the start of [SwrClient] usage for each mount:
-     * - [soil.query.internal.NetworkConnectivity]
-     * - [soil.query.internal.MemoryPressure]
-     * - [soil.query.internal.WindowVisibility]
+     * - [soil.query.core.NetworkConnectivity]
+     * - [soil.query.core.MemoryPressure]
+     * - [soil.query.core.WindowVisibility]
      *
      * @param id Unique string for each mount point.
      */

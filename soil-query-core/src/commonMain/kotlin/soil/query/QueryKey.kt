@@ -3,8 +3,8 @@
 
 package soil.query
 
-import soil.query.internal.SurrogateKey
-import soil.query.internal.UniqueId
+import soil.query.core.SurrogateKey
+import soil.query.core.UniqueId
 
 /**
  * [QueryKey] for managing [Query] associated with [id].

@@ -5,8 +5,8 @@ package soil.query
 
 import kotlinx.browser.window
 import org.w3c.dom.events.Event
-import soil.query.internal.NetworkConnectivity
-import soil.query.internal.NetworkConnectivityEvent
+import soil.query.core.NetworkConnectivity
+import soil.query.core.NetworkConnectivityEvent
 
 /**
  * Implementation of [NetworkConnectivity] for WasmJs.

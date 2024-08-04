@@ -1,16 +1,16 @@
 // Copyright 2024 Soil Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-package soil.query.internal
+package soil.query.core
 
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
 /**
- * Interface for receiving events of memory pressure.
+ * Interface for receiving events of network connectivity.
  */
-interface MemoryPressure {
+interface NetworkConnectivity {
 
     /**
      * Adds an [observer] to receive events.
@@ -23,12 +23,12 @@ interface MemoryPressure {
     fun removeObserver(observer: Observer)
 
     /**
-     * Provides a Flow to receive events of memory pressure.
+     * Provides a Flow to receive events of network connectivity.
      */
-    fun asFlow(): Flow<MemoryPressureLevel> = callbackFlow {
+    fun asFlow(): Flow<NetworkConnectivityEvent> = callbackFlow {
         val observer = object : Observer {
-            override fun onReceive(level: MemoryPressureLevel) {
-                trySend(level)
+            override fun onReceive(event: NetworkConnectivityEvent) {
+                trySend(event)
             }
         }
         addObserver(observer)
@@ -36,20 +36,20 @@ interface MemoryPressure {
     }
 
     /**
-     * Observer interface for receiving events of memory pressure.
+     * Observer interface for receiving events of network connectivity.
      */
     interface Observer {
 
         /**
-         * Receives a [level] of memory pressure.
+         * Receives a [event] of network connectivity.
          */
-        fun onReceive(level: MemoryPressureLevel)
+        fun onReceive(event: NetworkConnectivityEvent)
     }
 
     /**
-     * An object indicating unsupported for the capability of memory pressure.
+     * An object indicating unsupported for the capability of network connectivity.
      */
-    companion object Unsupported : MemoryPressure {
+    companion object Unsupported : NetworkConnectivity {
         override fun addObserver(observer: Observer) = Unit
 
         override fun removeObserver(observer: Observer) = Unit
@@ -57,17 +57,17 @@ interface MemoryPressure {
 }
 
 /**
- * Levels of memory pressure.
+ * Events of network connectivity.
  */
-enum class MemoryPressureLevel {
+enum class NetworkConnectivityEvent {
 
     /**
-     * Indicates low memory pressure.
+     * The network is available.
      */
-    Low,
+    Available,
 
     /**
-     * Indicates moderate memory pressure.
+     * The network is lost.
      */
-    High
+    Lost
 }

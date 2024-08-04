@@ -3,7 +3,7 @@
 
 package soil.query
 
-import soil.query.internal.epoch
+import soil.query.core.epoch
 
 /**
  * Data model for the state handled by [QueryKey] or [InfiniteQueryKey].

@@ -5,9 +5,9 @@ package soil.query
 
 import kotlinx.browser.document
 import org.w3c.dom.events.Event
-import soil.query.internal.WindowVisibility
-import soil.query.internal.WindowVisibilityEvent
-import soil.query.internal.document as documentAlt
+import soil.query.core.WindowVisibility
+import soil.query.core.WindowVisibilityEvent
+import soil.query.core.document as documentAlt
 
 /**
  * Implementation of [WindowVisibility] for WasmJs.

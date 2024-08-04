@@ -17,7 +17,7 @@ import soil.query.compose.QueryLoadingErrorObject
 import soil.query.compose.QueryLoadingObject
 import soil.query.compose.QueryRefreshErrorObject
 import soil.query.compose.QuerySuccessObject
-import soil.query.internal.uuid
+import soil.query.core.uuid
 
 /**
  * Await for a [QueryModel] to be fulfilled.

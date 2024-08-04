@@ -3,8 +3,8 @@
 
 package soil.query
 
-import soil.query.internal.RetryFn
-import soil.query.internal.exponentialBackOff
+import soil.query.core.RetryFn
+import soil.query.core.exponentialBackOff
 import kotlin.coroutines.cancellation.CancellationException
 
 /**

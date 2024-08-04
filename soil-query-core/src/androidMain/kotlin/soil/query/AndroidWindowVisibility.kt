@@ -8,8 +8,8 @@ import android.os.Looper
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
-import soil.query.internal.WindowVisibility
-import soil.query.internal.WindowVisibilityEvent
+import soil.query.core.WindowVisibility
+import soil.query.core.WindowVisibilityEvent
 
 /**
  * Implementation of [WindowVisibility] for Android.

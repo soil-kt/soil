@@ -5,7 +5,7 @@ package soil.query
 
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.StateFlow
-import soil.query.internal.Actor
+import soil.query.core.Actor
 
 /**
  * Mutation as the base interface for an [MutationClient] implementations.

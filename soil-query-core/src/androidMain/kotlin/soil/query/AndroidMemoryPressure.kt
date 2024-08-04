@@ -6,8 +6,8 @@ package soil.query
 import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.res.Configuration
-import soil.query.internal.MemoryPressure
-import soil.query.internal.MemoryPressureLevel
+import soil.query.core.MemoryPressure
+import soil.query.core.MemoryPressureLevel
 
 /**
  * Implementation of [MemoryPressure] for Android.

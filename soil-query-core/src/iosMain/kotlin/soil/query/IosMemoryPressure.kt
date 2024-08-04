@@ -12,8 +12,8 @@ import platform.Foundation.NSSelectorFromString
 import platform.UIKit.UIApplicationDidEnterBackgroundNotification
 import platform.UIKit.UIApplicationDidReceiveMemoryWarningNotification
 import platform.darwin.NSObject
-import soil.query.internal.MemoryPressure
-import soil.query.internal.MemoryPressureLevel
+import soil.query.core.MemoryPressure
+import soil.query.core.MemoryPressureLevel
 
 /**
  * Implementation of [MemoryPressure] for iOS.

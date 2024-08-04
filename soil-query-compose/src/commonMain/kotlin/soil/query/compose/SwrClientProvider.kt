@@ -8,7 +8,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.staticCompositionLocalOf
 import soil.query.SwrClient
-import soil.query.internal.uuid
+import soil.query.core.uuid
 
 /**
  * Provides a [SwrClient] to the [content] over [LocalSwrClient]
