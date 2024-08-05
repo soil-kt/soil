@@ -39,6 +39,7 @@ fun <T, S> rememberMutation(
     }
 }
 
+@Suppress("UNCHECKED_CAST")
 private fun <T, S> MutationState<T>.toObject(
     mutation: MutationRef<T, S>,
 ): MutationObject<T, S> {
@@ -66,7 +67,7 @@ private fun <T, S> MutationState<T>.toObject(
         )
 
         MutationStatus.Success -> MutationSuccessObject(
-            data = data!!,
+            data = data as T,
             dataUpdatedAt = dataUpdatedAt,
             error = error,
             errorUpdatedAt = errorUpdatedAt,
@@ -79,7 +80,7 @@ private fun <T, S> MutationState<T>.toObject(
         MutationStatus.Failure -> MutationErrorObject(
             data = data,
             dataUpdatedAt = dataUpdatedAt,
-            error!!,
+            error = error as Throwable,
             errorUpdatedAt = errorUpdatedAt,
             mutatedCount = mutatedCount,
             mutate = mutation::mutate,

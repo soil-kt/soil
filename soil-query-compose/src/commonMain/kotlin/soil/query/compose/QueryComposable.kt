@@ -68,6 +68,7 @@ fun <T, U> rememberQuery(
     }
 }
 
+@Suppress("UNCHECKED_CAST")
 private fun <T, U> QueryState<T>.toObject(
     query: QueryRef<T>,
     select: (T) -> U
@@ -86,7 +87,7 @@ private fun <T, U> QueryState<T>.toObject(
         )
 
         QueryStatus.Success -> QuerySuccessObject(
-            data = select(data!!),
+            data = select(data as T),
             dataUpdatedAt = dataUpdatedAt,
             dataStaleAt = dataStaleAt,
             error = error,
@@ -99,10 +100,10 @@ private fun <T, U> QueryState<T>.toObject(
 
         QueryStatus.Failure -> if (dataUpdatedAt > 0) {
             QueryRefreshErrorObject(
-                data = select(data!!),
+                data = select(data as T),
                 dataUpdatedAt = dataUpdatedAt,
                 dataStaleAt = dataStaleAt,
-                error = error!!,
+                error = error as Throwable,
                 errorUpdatedAt = errorUpdatedAt,
                 fetchStatus = fetchStatus,
                 isInvalidated = isInvalidated,
@@ -114,7 +115,7 @@ private fun <T, U> QueryState<T>.toObject(
                 data = data?.let(select),
                 dataUpdatedAt = dataUpdatedAt,
                 dataStaleAt = dataStaleAt,
-                error = error!!,
+                error = error as Throwable,
                 errorUpdatedAt = errorUpdatedAt,
                 fetchStatus = fetchStatus,
                 isInvalidated = isInvalidated,

@@ -91,7 +91,7 @@ private fun <T, S, U> QueryState<QueryChunks<T, S>>.toInfiniteObject(
         )
 
         QueryStatus.Success -> InfiniteQuerySuccessObject(
-            data = select(data!!),
+            data = select(data as QueryChunks<T, S>),
             dataUpdatedAt = dataUpdatedAt,
             dataStaleAt = dataStaleAt,
             error = error,
@@ -106,10 +106,10 @@ private fun <T, S, U> QueryState<QueryChunks<T, S>>.toInfiniteObject(
 
         QueryStatus.Failure -> if (dataUpdatedAt > 0) {
             InfiniteQueryRefreshErrorObject(
-                data = select(data!!),
+                data = select(data as QueryChunks<T, S>),
                 dataUpdatedAt = dataUpdatedAt,
                 dataStaleAt = dataStaleAt,
-                error = error!!,
+                error = error as Throwable,
                 errorUpdatedAt = errorUpdatedAt,
                 fetchStatus = fetchStatus,
                 isInvalidated = isInvalidated,
@@ -123,7 +123,7 @@ private fun <T, S, U> QueryState<QueryChunks<T, S>>.toInfiniteObject(
                 data = data?.let(select),
                 dataUpdatedAt = dataUpdatedAt,
                 dataStaleAt = dataStaleAt,
-                error = error!!,
+                error = error as Throwable,
                 errorUpdatedAt = errorUpdatedAt,
                 fetchStatus = fetchStatus,
                 isInvalidated = isInvalidated,
