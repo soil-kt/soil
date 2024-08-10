@@ -4,48 +4,52 @@
 package soil.query
 
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.StateFlow
+import soil.query.core.Actor
 import soil.query.core.toResultCallback
 
 /**
- * A reference to a [Mutation] for [MutationKey].
+ * A reference to a Mutation for [MutationKey].
  *
  * @param T Type of the return value from the mutation.
  * @param S Type of the variable to be mutated.
- * @property key Instance of a class implementing [MutationKey].
- * @param mutation The mutation to perform.
- * @constructor Creates a [MutationRef].
  */
-class MutationRef<T, S>(
-    val key: MutationKey<T, S>,
-    val options: MutationOptions,
-    mutation: Mutation<T>
-) : Mutation<T> by mutation {
+interface MutationRef<T, S> : Actor {
+
+    val key: MutationKey<T, S>
+    val options: MutationOptions
+    val state: StateFlow<MutationState<T>>
 
     /**
-     * Mutates the variable.
-     *
-     * @param variable The variable to be mutated.
-     * @return The result of the mutation.
+     * Sends a [MutationCommand] to the Actor.
      */
-    suspend fun mutate(variable: S): T {
-        val deferred = CompletableDeferred<T>()
-        command.send(MutationCommands.Mutate(key, variable, state.value.revision, deferred.toResultCallback()))
-        return deferred.await()
-    }
+    suspend fun send(command: MutationCommand<T>)
+}
 
-    /**
-     * Mutates the variable asynchronously.
-     *
-     * @param variable The variable to be mutated.
-     */
-    suspend fun mutateAsync(variable: S) {
-        command.send(MutationCommands.Mutate(key, variable, state.value.revision))
-    }
+/**
+ * Mutates the variable.
+ *
+ * @param variable The variable to be mutated.
+ * @return The result of the mutation.
+ */
+suspend fun <T, S> MutationRef<T, S>.mutate(variable: S): T {
+    val deferred = CompletableDeferred<T>()
+    send(MutationCommands.Mutate(key, variable, state.value.revision, deferred.toResultCallback()))
+    return deferred.await()
+}
 
-    /**
-     * Resets the mutation state.
-     */
-    suspend fun reset() {
-        command.send(MutationCommands.Reset())
-    }
+/**
+ * Mutates the variable asynchronously.
+ *
+ * @param variable The variable to be mutated.
+ */
+suspend fun <T, S> MutationRef<T, S>.mutateAsync(variable: S) {
+    send(MutationCommands.Mutate(key, variable, state.value.revision))
+}
+
+/**
+ * Resets the mutation state.
+ */
+suspend fun <T, S> MutationRef<T, S>.reset() {
+    send(MutationCommands.Reset())
 }

@@ -13,6 +13,9 @@ import soil.query.MutationKey
 import soil.query.MutationRef
 import soil.query.MutationState
 import soil.query.MutationStatus
+import soil.query.mutate
+import soil.query.mutateAsync
+import soil.query.reset
 
 /**
  * Remember a [MutationObject] and subscribes to the mutation state of [key].

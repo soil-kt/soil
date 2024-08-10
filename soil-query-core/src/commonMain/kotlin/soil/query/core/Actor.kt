@@ -28,7 +28,7 @@ interface Actor {
      *
      * @param scope The scope in which the actor will run
      */
-    fun launchIn(scope: CoroutineScope)
+    fun launchIn(scope: CoroutineScope): Job
 }
 
 internal typealias ActorSequenceNumber = Int
@@ -48,9 +48,9 @@ internal class ActorBlockRunner(
     private var runningJob: Job? = null
     private var cancellationJob: Job? = null
 
-    override fun launchIn(scope: CoroutineScope) {
+    override fun launchIn(scope: CoroutineScope): Job {
         seq++
-        scope.launch(start = CoroutineStart.UNDISPATCHED) {
+        return scope.launch(start = CoroutineStart.UNDISPATCHED) {
             cancellationJob?.cancelAndJoin()
             cancellationJob = null
             suspendCancellableCoroutine { continuation ->

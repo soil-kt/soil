@@ -212,7 +212,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
                 initialValue = MutationState<T>()
             ).also { mutationStore[id] = it }
         }
-        return MutationRef(
+        return SwrMutation(
             key = key,
             options = options,
             mutation = mutation
@@ -287,10 +287,10 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
                 initialValue = queryCache[key.id] as? QueryState<T> ?: newQueryState(key)
             ).also { queryStore[id] = it }
         }
-        return QueryRef(
+        return SwrQuery(
             key = key,
-            query = query,
-            options = options
+            options = options,
+            query = query
         )
     }
 
@@ -387,10 +387,10 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
                 initialValue = queryCache[id] as? QueryState<QueryChunks<T, S>> ?: newInfiniteQueryState(key)
             ).also { queryStore[id] = it }
         }
-        return InfiniteQueryRef(
+        return SwrInfiniteQuery(
             key = key,
-            query = query,
-            options = options
+            options = options,
+            query = query
         )
     }
 
@@ -621,8 +621,8 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         override val command: SendChannel<MutationCommand<T>>
     ) : Mutation<T> {
 
-        override fun launchIn(scope: CoroutineScope) {
-            actor.launchIn(scope)
+        override fun launchIn(scope: CoroutineScope): Job {
+            return actor.launchIn(scope)
         }
 
         fun close() {
@@ -651,8 +651,8 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         override val command: SendChannel<QueryCommand<T>>
     ) : Query<T> {
 
-        override fun launchIn(scope: CoroutineScope) {
-            actor.launchIn(scope)
+        override fun launchIn(scope: CoroutineScope): Job {
+            return actor.launchIn(scope)
         }
 
         fun close() {
