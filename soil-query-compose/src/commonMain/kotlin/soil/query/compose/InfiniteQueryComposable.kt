@@ -15,6 +15,9 @@ import soil.query.QueryChunks
 import soil.query.QueryClient
 import soil.query.QueryState
 import soil.query.QueryStatus
+import soil.query.invalidate
+import soil.query.loadMore
+import soil.query.resume
 
 /**
  * Remember a [InfiniteQueryObject] and subscribes to the query state of [key].
@@ -34,7 +37,7 @@ fun <T, S> rememberInfiniteQuery(
     val query = remember(key) { client.getInfiniteQuery(key).also { it.launchIn(scope) } }
     val state by query.state.collectAsState()
     LaunchedEffect(query) {
-        query.start()
+        query.resume()
     }
     return remember(query, state) {
         state.toInfiniteObject(query = query, select = { it })
@@ -61,7 +64,7 @@ fun <T, S, U> rememberInfiniteQuery(
     val query = remember(key) { client.getInfiniteQuery(key).also { it.launchIn(scope) } }
     val state by query.state.collectAsState()
     LaunchedEffect(query) {
-        query.start()
+        query.resume()
     }
     return remember(query, state) {
         state.toInfiniteObject(query = query, select = select)

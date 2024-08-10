@@ -14,6 +14,8 @@ import soil.query.QueryKey
 import soil.query.QueryRef
 import soil.query.QueryState
 import soil.query.QueryStatus
+import soil.query.invalidate
+import soil.query.resume
 
 /**
  * Remember a [QueryObject] and subscribes to the query state of [key].
@@ -32,7 +34,7 @@ fun <T> rememberQuery(
     val query = remember(key) { client.getQuery(key).also { it.launchIn(scope) } }
     val state by query.state.collectAsState()
     LaunchedEffect(query) {
-        query.start()
+        query.resume()
     }
     return remember(query, state) {
         state.toObject(query = query, select = { it })
@@ -59,7 +61,7 @@ fun <T, U> rememberQuery(
     val query = remember(key) { client.getQuery(key).also { it.launchIn(scope) } }
     val state by query.state.collectAsState()
     LaunchedEffect(query) {
-        query.start()
+        query.resume()
     }
     return remember(query, state) {
         state.toObject(query = query, select = select)
