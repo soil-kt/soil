@@ -14,7 +14,7 @@ typealias QueryCache = TimeBasedCache<UniqueId, QueryState<*>>
  * Creates a new query cache.
  */
 fun QueryCache(capacity: Int = 50): QueryCache {
-    return QueryCache(capacity)
+    return TimeBasedCache(capacity)
 }
 
 /**
