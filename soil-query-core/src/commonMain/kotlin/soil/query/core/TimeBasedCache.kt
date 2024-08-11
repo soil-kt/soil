@@ -14,7 +14,7 @@ import kotlin.time.Duration
  * @property time A function that returns the current time in seconds since the epoch.
  * @constructor Creates a new time-based cache with the specified capacity and time function.
  */
-class TimeBasedCache<K : Any, V : Any>(
+class TimeBasedCache<K : Any, V : Any> internal constructor(
     private val capacity: Int,
     private val time: () -> Long = { epoch() }
 ) {

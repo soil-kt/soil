@@ -80,7 +80,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     private val mutationStore: MutableMap<UniqueId, ManagedMutation<*>> = mutableMapOf()
     private val queryReceiver = policy.queryReceiver
     private val queryStore: MutableMap<UniqueId, ManagedQuery<*>> = mutableMapOf()
-    private val queryCache: TimeBasedCache<UniqueId, QueryState<*>> = policy.queryCache
+    private val queryCache: QueryCache = policy.queryCache
 
     private val coroutineScope: CoroutineScope = CoroutineScope(
         context = newCoroutineContext(policy.coroutineScope)
@@ -733,7 +733,7 @@ data class SwrCachePolicy(
     /**
      * Management of cached data for inactive [Query] instances.
      */
-    val queryCache: TimeBasedCache<UniqueId, QueryState<*>> = TimeBasedCache(DEFAULT_CAPACITY),
+    val queryCache: QueryCache = QueryCache(),
 
     /**
      * Specify the mechanism of [ErrorRelay] when using [SwrClient.errorRelay].
@@ -794,7 +794,6 @@ data class SwrCachePolicy(
     val gcInterval: Duration = DEFAULT_GC_INTERVAL
 ) {
     companion object {
-        const val DEFAULT_CAPACITY = 50
         const val DEFAULT_GC_CHUNK_SIZE = 10
         val DEFAULT_GC_INTERVAL: Duration = 500.milliseconds
     }
