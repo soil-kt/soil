@@ -6,9 +6,9 @@ package soil.query
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import soil.query.core.toResultCallback
 import kotlin.coroutines.cancellation.CancellationException
 
 internal class SwrQuery<T>(
@@ -44,7 +44,7 @@ internal class SwrQuery<T>(
  */
 internal suspend fun <T> QueryRef<T>.prefetch(): Boolean {
     val deferred = CompletableDeferred<T>()
-    send(QueryCommands.Connect(key, state.value.revision, deferred.toResultCallback()))
+    send(QueryCommands.Connect(key, state.value.revision, deferred::completeWith))
     return try {
         deferred.await()
         true
