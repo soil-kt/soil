@@ -73,12 +73,13 @@ import kotlin.time.Duration.Companion.seconds
  */
 class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClient {
 
+    @Suppress("unused")
     constructor(coroutineScope: CoroutineScope) : this(SwrCachePolicy(coroutineScope))
 
     private val mutationReceiver = policy.mutationReceiver
-    private val mutationStore: MutableMap<UniqueId, ManagedMutation<*>> = policy.mutationStore
+    private val mutationStore: MutableMap<UniqueId, ManagedMutation<*>> = mutableMapOf()
     private val queryReceiver = policy.queryReceiver
-    private val queryStore: MutableMap<UniqueId, ManagedQuery<*>> = policy.queryStore
+    private val queryStore: MutableMap<UniqueId, ManagedQuery<*>> = mutableMapOf()
     private val queryCache: TimeBasedCache<UniqueId, QueryState<*>> = policy.queryCache
 
     private val coroutineScope: CoroutineScope = CoroutineScope(
@@ -259,7 +260,6 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
             id = id,
             options = options,
             scope = scope,
-            dispatch = dispatch,
             actor = actor,
             state = state,
             command = command
@@ -611,11 +611,10 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         return model?.let(predicate) ?: false
     }
 
-    data class ManagedMutation<T> internal constructor(
+    internal class ManagedMutation<T>(
         val id: UniqueId,
         val options: MutationOptions,
         val scope: CoroutineScope,
-        val dispatch: MutationDispatch<T>,
         internal val actor: ActorBlockRunner,
         override val state: StateFlow<MutationState<T>>,
         override val command: SendChannel<MutationCommand<T>>
@@ -631,7 +630,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         }
     }
 
-    data class ManagedMutationContext<T>(
+    internal class ManagedMutationContext<T>(
         override val receiver: MutationReceiver,
         override val options: MutationOptions,
         override val state: MutationState<T>,
@@ -640,7 +639,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         override val relay: MutationErrorRelay?
     ) : MutationCommand.Context<T>
 
-    data class ManagedQuery<T> internal constructor(
+    internal class ManagedQuery<T>(
         val id: UniqueId,
         val options: QueryOptions,
         val scope: CoroutineScope,
@@ -674,7 +673,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         }
     }
 
-    data class ManagedQueryContext<T>(
+    internal class ManagedQueryContext<T>(
         override val receiver: QueryReceiver,
         override val options: QueryOptions,
         override val state: QueryState<T>,
@@ -722,11 +721,6 @@ data class SwrCachePolicy(
     val mutationReceiver: MutationReceiver = MutationReceiver,
 
     /**
-     * Management of active [Mutation] instances.
-     */
-    val mutationStore: MutableMap<UniqueId, SwrCache.ManagedMutation<*>> = mutableMapOf(),
-
-    /**
      * Default [QueryOptions] applied to [Query].
      */
     val queryOptions: QueryOptions = QueryOptions,
@@ -735,11 +729,6 @@ data class SwrCachePolicy(
      * Extension receiver for referencing external instances needed when executing [fetch][QueryKey.fetch].
      */
     val queryReceiver: QueryReceiver = QueryReceiver,
-
-    /**
-     * Management of active [Query] instances.
-     */
-    val queryStore: MutableMap<UniqueId, SwrCache.ManagedQuery<*>> = mutableMapOf(),
 
     /**
      * Management of cached data for inactive [Query] instances.

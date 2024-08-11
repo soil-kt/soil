@@ -12,7 +12,7 @@ import soil.query.core.Actor
  *
  * @param T Type of the return value from the mutation.
  */
-interface Mutation<T> : Actor {
+internal interface Mutation<T> : Actor {
 
     /**
      * [State Flow][StateFlow] to receive the current state of the mutation.
