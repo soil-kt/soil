@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -14,9 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.ktor.client.plugins.ResponseException
 import soil.playground.Alert
-import soil.playground.query.compose.ContentLoadMore
 import soil.playground.query.compose.ContentLoading
 import soil.playground.query.compose.ContentUnavailable
+import soil.playground.query.compose.LoadMoreEffect
 import soil.playground.query.compose.PostListItem
 import soil.playground.query.compose.rememberGetPostsQuery
 import soil.playground.query.data.PageParam
@@ -65,8 +66,10 @@ private fun HelloQueryContent(
     modifier: Modifier = Modifier
 ) = withAppTheme {
     ListSectionContainer { state ->
+        val lazyListState = rememberLazyListState()
         LazyColumn(
             modifier = modifier,
+            state = lazyListState,
             contentPadding = PaddingValues(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -80,15 +83,20 @@ private fun HelloQueryContent(
                 }
             }
             val pageParam = state.loadMoreParam
-            if (pageParam != null) {
+            if (state.posts.isNotEmpty() && pageParam != null) {
                 item(pageParam, contentType = "loading") {
-                    ContentLoadMore(
-                        onLoadMore = state.loadMore,
-                        pageParam = pageParam
+                    ContentLoading(
+                        modifier = Modifier.fillMaxWidth(),
+                        size = 20.dp
                     )
                 }
             }
         }
+        LoadMoreEffect(
+            state = lazyListState,
+            loadMore = state.loadMore,
+            loadMoreParam = state.loadMoreParam
+        )
     }
 }
 
