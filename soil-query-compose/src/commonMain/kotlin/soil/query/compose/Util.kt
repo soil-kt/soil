@@ -42,12 +42,12 @@ fun rememberQueriesErrorReset(
  * For example, it can prevent data for a related query from becoming inactive, moving out of cache over time, such as when transitioning to a previous screen.
  *
  * @param key The [QueryKey] to keep alive.
- * @param client The [QueryClient] to resolve [key]. By default, it uses the [LocalSwrClient].
+ * @param client The [QueryClient] to resolve [key]. By default, it uses the [LocalQueryClient].
  */
 @Composable
 fun KeepAlive(
     key: QueryKey<*>,
-    client: QueryClient = LocalSwrClient.current
+    client: QueryClient = LocalQueryClient.current
 ) {
     val scope = rememberCoroutineScope()
     remember(key) { client.getQuery(key).also { it.launchIn(scope) } }
@@ -57,14 +57,14 @@ fun KeepAlive(
  * Keep the infinite query alive.
  *
  * @param key The [InfiniteQueryKey] to keep alive.
- * @param client The [QueryClient] to resolve [key]. By default, it uses the [LocalSwrClient].
+ * @param client The [QueryClient] to resolve [key]. By default, it uses the [LocalQueryClient].
  *
  * @see KeepAlive
  */
 @Composable
 fun KeepAlive(
     key: InfiniteQueryKey<*, *>,
-    client: QueryClient = LocalSwrClient.current
+    client: QueryClient = LocalQueryClient.current
 ) {
     val scope = rememberCoroutineScope()
     remember(key) { client.getInfiniteQuery(key).also { it.launchIn(scope) } }
@@ -74,14 +74,14 @@ fun KeepAlive(
  * Keep the mutation alive.
  *
  * @param key The [MutationKey] to keep alive.
- * @param client The [MutationClient] to resolve [key]. By default, it uses the [LocalSwrClient].
+ * @param client The [MutationClient] to resolve [key]. By default, it uses the [LocalMutationClient].
  *
  * @see KeepAlive
  */
 @Composable
 fun KeepAlive(
     key: MutationKey<*, *>,
-    client: MutationClient = LocalSwrClient.current
+    client: MutationClient = LocalMutationClient.current
 ) {
     val scope = rememberCoroutineScope()
     remember(key) { client.getMutation(key).also { it.launchIn(scope) } }
