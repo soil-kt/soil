@@ -244,6 +244,7 @@ inline fun <T1, T2, T3, T4, T5> Await(
  * @param state The [QueryModel] to await.
  * @param content The content to display when the query is fulfilled.
  */
+@Suppress("UNCHECKED_CAST")
 @Composable
 fun <T> AwaitHandler(
     state: QueryModel<T>,
@@ -262,7 +263,7 @@ fun <T> AwaitHandler(
 
         else -> {
             if (state.isSuccess || (state.isFailure && state.dataUpdatedAt > 0)) {
-                content(state.data!!)
+                content(state.data as T)
             }
         }
     }
