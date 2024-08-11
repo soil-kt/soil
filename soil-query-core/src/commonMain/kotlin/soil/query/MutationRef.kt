@@ -4,9 +4,9 @@
 package soil.query
 
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.flow.StateFlow
 import soil.query.core.Actor
-import soil.query.core.toResultCallback
 
 /**
  * A reference to a Mutation for [MutationKey].
@@ -34,7 +34,7 @@ interface MutationRef<T, S> : Actor {
  */
 suspend fun <T, S> MutationRef<T, S>.mutate(variable: S): T {
     val deferred = CompletableDeferred<T>()
-    send(MutationCommands.Mutate(key, variable, state.value.revision, deferred.toResultCallback()))
+    send(MutationCommands.Mutate(key, variable, state.value.revision, deferred::completeWith))
     return deferred.await()
 }
 

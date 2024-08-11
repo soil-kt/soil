@@ -7,9 +7,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import soil.query.core.toResultCallback
 
 internal class SwrInfiniteQuery<T, S>(
     override val key: InfiniteQueryKey<T, S>,
@@ -44,7 +44,7 @@ internal class SwrInfiniteQuery<T, S>(
  */
 internal suspend fun <T, S> InfiniteQueryRef<T, S>.prefetch(): Boolean {
     val deferred = CompletableDeferred<QueryChunks<T, S>>()
-    send(InfiniteQueryCommands.Connect(key, state.value.revision, deferred.toResultCallback()))
+    send(InfiniteQueryCommands.Connect(key, state.value.revision, deferred::completeWith))
     return try {
         deferred.await()
         true
