@@ -22,13 +22,13 @@ import soil.query.resume
  *
  * @param T Type of data to retrieve.
  * @param key The [QueryKey] for managing [query][soil.query.Query].
- * @param client The [QueryClient] to resolve [key]. By default, it uses the [LocalSwrClient].
+ * @param client The [QueryClient] to resolve [key]. By default, it uses the [LocalQueryClient].
  * @return A [QueryObject] each the query state changed.
  */
 @Composable
 fun <T> rememberQuery(
     key: QueryKey<T>,
-    client: QueryClient = LocalSwrClient.current
+    client: QueryClient = LocalQueryClient.current
 ): QueryObject<T> {
     val scope = rememberCoroutineScope()
     val query = remember(key) { client.getQuery(key).also { it.launchIn(scope) } }
@@ -48,14 +48,14 @@ fun <T> rememberQuery(
  * @param U Type of selected data.
  * @param key The [QueryKey] for managing [query][soil.query.Query].
  * @param select A function to select data from [T].
- * @param client The [QueryClient] to resolve [key]. By default, it uses the [LocalSwrClient].
+ * @param client The [QueryClient] to resolve [key]. By default, it uses the [LocalQueryClient].
  * @return A [QueryObject] with selected data each the query state changed.
  */
 @Composable
 fun <T, U> rememberQuery(
     key: QueryKey<T>,
     select: (T) -> U,
-    client: QueryClient = LocalSwrClient.current
+    client: QueryClient = LocalQueryClient.current
 ): QueryObject<U> {
     val scope = rememberCoroutineScope()
     val query = remember(key) { client.getQuery(key).also { it.launchIn(scope) } }

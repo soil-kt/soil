@@ -25,13 +25,13 @@ import soil.query.resume
  * @param T Type of data to retrieve.
  * @param S Type of parameter.
  * @param key The [InfiniteQueryKey] for managing [query][soil.query.Query] associated with [id][soil.query.InfiniteQueryId].
- * @param client The [QueryClient] to resolve [key]. By default, it uses the [LocalSwrClient].
+ * @param client The [QueryClient] to resolve [key]. By default, it uses the [LocalQueryClient].
  * @return A [InfiniteQueryObject] each the query state changed.
  */
 @Composable
 fun <T, S> rememberInfiniteQuery(
     key: InfiniteQueryKey<T, S>,
-    client: QueryClient = LocalSwrClient.current
+    client: QueryClient = LocalQueryClient.current
 ): InfiniteQueryObject<QueryChunks<T, S>, S> {
     val scope = rememberCoroutineScope()
     val query = remember(key) { client.getInfiniteQuery(key).also { it.launchIn(scope) } }
@@ -51,14 +51,14 @@ fun <T, S> rememberInfiniteQuery(
  * @param S Type of parameter.
  * @param key The [InfiniteQueryKey] for managing [query][soil.query.Query] associated with [id][soil.query.InfiniteQueryId].
  * @param select A function to select data from [QueryChunks].
- * @param client The [QueryClient] to resolve [key]. By default, it uses the [LocalSwrClient].
+ * @param client The [QueryClient] to resolve [key]. By default, it uses the [LocalQueryClient].
  * @return A [InfiniteQueryObject] with selected data each the query state changed.
  */
 @Composable
 fun <T, S, U> rememberInfiniteQuery(
     key: InfiniteQueryKey<T, S>,
     select: (chunks: QueryChunks<T, S>) -> U,
-    client: QueryClient = LocalSwrClient.current
+    client: QueryClient = LocalQueryClient.current
 ): InfiniteQueryObject<U, S> {
     val scope = rememberCoroutineScope()
     val query = remember(key) { client.getInfiniteQuery(key).also { it.launchIn(scope) } }
