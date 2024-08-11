@@ -13,7 +13,7 @@ import soil.query.core.Actor
  *
  * @param T Type of the return value from the query.
  */
-interface Query<T>: Actor {
+internal interface Query<T>: Actor {
 
     /**
      * [Shared Flow][SharedFlow] to receive query [events][QueryEvent].
@@ -34,7 +34,7 @@ interface Query<T>: Actor {
 /**
  * Events occurring in the query.
  */
-enum class QueryEvent {
+internal enum class QueryEvent {
     Invalidate,
     Resume
 }
