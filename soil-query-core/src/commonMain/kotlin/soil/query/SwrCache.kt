@@ -3,7 +3,6 @@
 
 package soil.query
 
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,18 +20,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import soil.query.SwrCachePolicy.Companion.DEFAULT_GC_CHUNK_SIZE
-import soil.query.SwrCachePolicy.Companion.DEFAULT_GC_INTERVAL
 import soil.query.core.ActorBlockRunner
 import soil.query.core.ActorSequenceNumber
+import soil.query.core.BatchScheduler
 import soil.query.core.ErrorRecord
-import soil.query.core.ErrorRelay
 import soil.query.core.MemoryPressure
 import soil.query.core.MemoryPressureLevel
 import soil.query.core.NetworkConnectivity
@@ -42,13 +38,9 @@ import soil.query.core.TimeBasedCache
 import soil.query.core.UniqueId
 import soil.query.core.WindowVisibility
 import soil.query.core.WindowVisibilityEvent
-import soil.query.core.chunkedWithTimeout
 import soil.query.core.epoch
 import soil.query.core.vvv
 import kotlin.coroutines.CoroutineContext
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * Implementation of the [SwrClient] interface.
@@ -81,25 +73,16 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     private val queryReceiver = policy.queryReceiver
     private val queryStore: MutableMap<UniqueId, ManagedQuery<*>> = mutableMapOf()
     private val queryCache: QueryCache = policy.queryCache
-
+    private val batchScheduler: BatchScheduler = policy.batchScheduler
     private val coroutineScope: CoroutineScope = CoroutineScope(
         context = newCoroutineContext(policy.coroutineScope)
     )
-
-    private val gcFlow: MutableSharedFlow<() -> Unit> = MutableSharedFlow()
 
     private var mountedIds: Set<String> = emptySet()
     private var mountedScope: CoroutineScope? = null
 
     init {
-        gcFlow
-            .chunkedWithTimeout(size = policy.gcChunkSize, duration = policy.gcInterval)
-            .onEach { actions ->
-                withContext(policy.mainDispatcher) {
-                    actions.forEach { it() }
-                }
-            }
-            .launchIn(coroutineScope)
+        batchScheduler.start(coroutineScope)
     }
 
     /**
@@ -239,7 +222,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
             scope = scope,
             options = options,
             onTimeout = { seq ->
-                scope.launch { gcFlow.emit { closeMutation<T>(id, seq) } }
+                scope.launch { batchScheduler.post { closeMutation<T>(id, seq) } }
             }
         ) {
             for (c in command) {
@@ -316,7 +299,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
             scope = scope,
             options = options,
             onTimeout = { seq ->
-                scope.launch { gcFlow.emit { closeQuery<T>(id, seq) } }
+                scope.launch { batchScheduler.post { closeQuery<T>(id, seq) } }
             },
         ) {
             for (c in command) {
@@ -685,117 +668,6 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         private fun newCoroutineContext(parent: CoroutineScope): CoroutineContext {
             return parent.coroutineContext + Job(parent.coroutineContext[Job])
         }
-    }
-}
-
-/**
- * Policy for the [SwrCache].
- */
-data class SwrCachePolicy(
-
-    /**
-     * [CoroutineScope] for coroutines executed on the [SwrCache].
-     *
-     * **Note:**
-     * The [SwrCache] internals are not thread-safe.
-     * Always use a scoped implementation such as [SwrCacheScope] or [kotlinx.coroutines.MainScope] with limited concurrency.
-     */
-    val coroutineScope: CoroutineScope,
-
-    /**
-     * [CoroutineDispatcher] for the main thread.
-     *
-     * **Note:**
-     * Some garbage collection processes are safely synchronized with the caller using the main thread.
-     */
-    val mainDispatcher: CoroutineDispatcher = Dispatchers.Main,
-
-    /**
-     * Default [MutationOptions] applied to [Mutation].
-     */
-    val mutationOptions: MutationOptions = MutationOptions,
-
-    /**
-     * Extension receiver for referencing external instances needed when executing [mutate][MutationKey.mutate].
-     */
-    val mutationReceiver: MutationReceiver = MutationReceiver,
-
-    /**
-     * Default [QueryOptions] applied to [Query].
-     */
-    val queryOptions: QueryOptions = QueryOptions,
-
-    /**
-     * Extension receiver for referencing external instances needed when executing [fetch][QueryKey.fetch].
-     */
-    val queryReceiver: QueryReceiver = QueryReceiver,
-
-    /**
-     * Management of cached data for inactive [Query] instances.
-     */
-    val queryCache: QueryCache = QueryCache(),
-
-    /**
-     * Specify the mechanism of [ErrorRelay] when using [SwrClient.errorRelay].
-     */
-    val errorRelay: ErrorRelay? = null,
-
-    /**
-     * Receiving events of memory pressure.
-     */
-    val memoryPressure: MemoryPressure = MemoryPressure.Unsupported,
-
-    /**
-     * Receiving events of network connectivity.
-     */
-    val networkConnectivity: NetworkConnectivity = NetworkConnectivity.Unsupported,
-
-    /**
-     * The delay time to resume queries after network connectivity is reconnected.
-     *
-     * **Note:**
-     * This setting is only effective when [networkConnectivity] is available.
-     */
-    val networkResumeAfterDelay: Duration = 2.seconds,
-
-    /**
-     * The specified filter to resume queries after network connectivity is reconnected.
-     *
-     * **Note:**
-     * This setting is only effective when [networkConnectivity] is available.
-     */
-    val networkResumeQueriesFilter: ResumeQueriesFilter = ResumeQueriesFilter(
-        predicate = { it.isFailure }
-    ),
-
-    /**
-     * Receiving events of window visibility.
-     */
-    val windowVisibility: WindowVisibility = WindowVisibility.Unsupported,
-
-    /**
-     * The specified filter to resume queries after window visibility is refocused.
-     *
-     * **Note:**
-     * This setting is only effective when [windowVisibility] is available.
-     */
-    val windowResumeQueriesFilter: ResumeQueriesFilter = ResumeQueriesFilter(
-        predicate = { it.isStaled() }
-    ),
-
-    /**
-     * The chunk size for garbage collection. Default is [DEFAULT_GC_CHUNK_SIZE].
-     */
-    val gcChunkSize: Int = DEFAULT_GC_CHUNK_SIZE,
-
-    /**
-     * The interval for garbage collection. Default is [DEFAULT_GC_INTERVAL].
-     */
-    val gcInterval: Duration = DEFAULT_GC_INTERVAL
-) {
-    companion object {
-        const val DEFAULT_GC_CHUNK_SIZE = 10
-        val DEFAULT_GC_INTERVAL: Duration = 500.milliseconds
     }
 }
 
