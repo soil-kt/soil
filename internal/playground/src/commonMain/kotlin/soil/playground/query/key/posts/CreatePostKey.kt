@@ -3,22 +3,20 @@ package soil.playground.query.key.posts
 import io.ktor.client.call.body
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import soil.playground.query.KtorReceiver
 import soil.playground.query.data.Post
 import soil.query.MutationKey
 import soil.query.QueryEffect
-import soil.query.buildMutationKey
+import soil.query.receivers.ktor.buildKtorMutationKey
 
-class CreatePostKey : MutationKey<Post, PostForm> by buildMutationKey(
+class CreatePostKey : MutationKey<Post, PostForm> by buildKtorMutationKey(
     /* id = MutationId.auto(), */
     mutate = { body ->
-        this as KtorReceiver
-        client.post("https://jsonplaceholder.typicode.com/posts") {
+        post("https://jsonplaceholder.typicode.com/posts") {
             setBody(body)
         }.body()
     }
 ) {
-    override fun onQueryUpdate(variable: PostForm, data: Post): QueryEffect= {
+    override fun onQueryUpdate(variable: PostForm, data: Post): QueryEffect = {
         invalidateQueriesBy(GetPostsKey.Id())
     }
 }

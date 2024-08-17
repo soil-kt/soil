@@ -2,19 +2,17 @@ package soil.playground.query.key.posts
 
 import io.ktor.client.call.body
 import io.ktor.client.request.get
-import soil.playground.query.KtorReceiver
 import soil.playground.query.data.Post
 import soil.query.QueryId
 import soil.query.QueryKey
 import soil.query.QueryPlaceholderData
-import soil.query.buildQueryKey
 import soil.query.chunkedData
+import soil.query.receivers.ktor.buildKtorQueryKey
 
-class GetPostKey(private val postId: Int) : QueryKey<Post> by buildQueryKey(
+class GetPostKey(private val postId: Int) : QueryKey<Post> by buildKtorQueryKey(
     id = Id(postId),
     fetch = {
-        this as KtorReceiver
-        client.get("https://jsonplaceholder.typicode.com/posts/$postId").body()
+        get("https://jsonplaceholder.typicode.com/posts/$postId").body()
     }
 ) {
 

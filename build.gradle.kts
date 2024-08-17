@@ -34,7 +34,7 @@ allprojects {
             endWithNewline()
         }
 
-        if (project.name in publicModules) {
+        if (project.path in publicModules) {
             kotlin {
                 // ref. https://github.com/diffplug/spotless/tree/main/plugin-gradle#how-can-i-enforce-formatting-gradually-aka-ratchet
                 // ratchetFrom = "origin/main"

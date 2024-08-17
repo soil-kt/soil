@@ -3,18 +3,16 @@ package soil.playground.query.key.albums
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import soil.playground.query.KtorReceiver
 import soil.playground.query.data.PageParam
 import soil.playground.query.data.Photos
 import soil.query.InfiniteQueryId
 import soil.query.InfiniteQueryKey
-import soil.query.buildInfiniteQueryKey
+import soil.query.receivers.ktor.buildKtorInfiniteQueryKey
 
-class GetAlbumPhotosKey(albumId: Int) : InfiniteQueryKey<Photos, PageParam> by buildInfiniteQueryKey(
+class GetAlbumPhotosKey(albumId: Int) : InfiniteQueryKey<Photos, PageParam> by buildKtorInfiniteQueryKey(
     id = Id(albumId),
     fetch = { param ->
-        this as KtorReceiver
-        client.get("https://jsonplaceholder.typicode.com/albums/$albumId/photos") {
+        get("https://jsonplaceholder.typicode.com/albums/$albumId/photos") {
             parameter("_start", param.offset)
             parameter("_limit", param.limit)
         }.body()
