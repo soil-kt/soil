@@ -2,19 +2,17 @@ package soil.playground.query.key.users
 
 import io.ktor.client.call.body
 import io.ktor.client.request.get
-import soil.playground.query.KtorReceiver
 import soil.playground.query.data.User
 import soil.query.QueryId
 import soil.query.QueryKey
 import soil.query.QueryPlaceholderData
-import soil.query.buildQueryKey
 import soil.query.chunkedData
+import soil.query.receivers.ktor.buildKtorQueryKey
 
-class GetUserKey(private val userId: Int) : QueryKey<User> by buildQueryKey(
+class GetUserKey(private val userId: Int) : QueryKey<User> by buildKtorQueryKey(
     id = Id(userId),
     fetch = {
-        this as KtorReceiver
-        client.get("https://jsonplaceholder.typicode.com/users/$userId").body()
+        get("https://jsonplaceholder.typicode.com/users/$userId").body()
     }
 ) {
 

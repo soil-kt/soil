@@ -3,21 +3,19 @@ package soil.playground.query.key.posts
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import soil.playground.query.KtorReceiver
 import soil.playground.query.data.PageParam
 import soil.playground.query.data.Posts
 import soil.query.InfiniteQueryId
 import soil.query.InfiniteQueryKey
-import soil.query.buildInfiniteQueryKey
+import soil.query.receivers.ktor.buildKtorInfiniteQueryKey
 
 // NOTE: userId
 // Filtering resources
 // ref. https://jsonplaceholder.typicode.com/guide/
-class GetPostsKey(userId: Int? = null) : InfiniteQueryKey<Posts, PageParam> by buildInfiniteQueryKey(
+class GetPostsKey(userId: Int? = null) : InfiniteQueryKey<Posts, PageParam> by buildKtorInfiniteQueryKey(
     id = Id(userId),
     fetch = { param ->
-        this as KtorReceiver
-        client.get("https://jsonplaceholder.typicode.com/posts") {
+        get("https://jsonplaceholder.typicode.com/posts") {
             parameter("_start", param.offset)
             parameter("_limit", param.limit)
             if (userId != null) {

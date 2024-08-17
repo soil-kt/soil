@@ -3,18 +3,16 @@ package soil.playground.query.key.users
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import soil.playground.query.KtorReceiver
 import soil.playground.query.data.PageParam
 import soil.playground.query.data.Users
 import soil.query.InfiniteQueryId
 import soil.query.InfiniteQueryKey
-import soil.query.buildInfiniteQueryKey
+import soil.query.receivers.ktor.buildKtorInfiniteQueryKey
 
-class GetUsersKey : InfiniteQueryKey<Users, PageParam> by buildInfiniteQueryKey(
+class GetUsersKey : InfiniteQueryKey<Users, PageParam> by buildKtorInfiniteQueryKey(
     id = Id(),
     fetch = { param ->
-        this as KtorReceiver
-        client.get("https://jsonplaceholder.typicode.com/users") {
+        get("https://jsonplaceholder.typicode.com/users") {
             parameter("_start", param.offset)
             parameter("_limit", param.limit)
         }.body()
