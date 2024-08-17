@@ -39,14 +39,13 @@ fun <T, S> rememberMutation(
     }
 }
 
-@Suppress("UNCHECKED_CAST")
 private fun <T, S> MutationState<T>.toObject(
     mutation: MutationRef<T, S>,
 ): MutationObject<T, S> {
     return when (status) {
         MutationStatus.Idle -> MutationIdleObject(
-            data = data,
-            dataUpdatedAt = dataUpdatedAt,
+            reply = reply,
+            replyUpdatedAt = replyUpdatedAt,
             error = error,
             errorUpdatedAt = errorUpdatedAt,
             mutatedCount = mutatedCount,
@@ -56,8 +55,8 @@ private fun <T, S> MutationState<T>.toObject(
         )
 
         MutationStatus.Pending -> MutationLoadingObject(
-            data = data,
-            dataUpdatedAt = dataUpdatedAt,
+            reply = reply,
+            replyUpdatedAt = replyUpdatedAt,
             error = error,
             errorUpdatedAt = errorUpdatedAt,
             mutatedCount = mutatedCount,
@@ -67,8 +66,8 @@ private fun <T, S> MutationState<T>.toObject(
         )
 
         MutationStatus.Success -> MutationSuccessObject(
-            data = data as T,
-            dataUpdatedAt = dataUpdatedAt,
+            reply = reply,
+            replyUpdatedAt = replyUpdatedAt,
             error = error,
             errorUpdatedAt = errorUpdatedAt,
             mutatedCount = mutatedCount,
@@ -78,9 +77,9 @@ private fun <T, S> MutationState<T>.toObject(
         )
 
         MutationStatus.Failure -> MutationErrorObject(
-            data = data,
-            dataUpdatedAt = dataUpdatedAt,
-            error = error as Throwable,
+            reply = reply,
+            replyUpdatedAt = replyUpdatedAt,
+            error = checkNotNull(error),
             errorUpdatedAt = errorUpdatedAt,
             mutatedCount = mutatedCount,
             mutate = mutation::mutate,

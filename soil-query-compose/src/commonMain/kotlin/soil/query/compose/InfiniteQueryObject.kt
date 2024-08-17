@@ -8,6 +8,9 @@ import androidx.compose.runtime.Stable
 import soil.query.QueryFetchStatus
 import soil.query.QueryModel
 import soil.query.QueryStatus
+import soil.query.core.Reply
+import soil.query.core.getOrNull
+import soil.query.core.getOrThrow
 
 /**
  * A InfiniteQueryObject represents [QueryModel]s interface for infinite fetching data using a retrieval method known as "infinite scroll."
@@ -17,6 +20,11 @@ import soil.query.QueryStatus
  */
 @Stable
 sealed interface InfiniteQueryObject<out T, S> : QueryModel<T> {
+
+    /**
+     * The return value from the data source. (Backward compatibility with QueryModel)
+     */
+    val data: T?
 
     /**
      * Refreshes the data.
@@ -42,12 +50,12 @@ sealed interface InfiniteQueryObject<out T, S> : QueryModel<T> {
  * @constructor Creates a [InfiniteQueryLoadingObject].
  */
 @Immutable
-data class InfiniteQueryLoadingObject<T, S>(
-    override val data: T?,
-    override val dataUpdatedAt: Long,
-    override val dataStaleAt: Long,
+data class InfiniteQueryLoadingObject<T, S> internal constructor(
+    override val reply: Reply<T>,
+    override val replyUpdatedAt: Long,
     override val error: Throwable?,
     override val errorUpdatedAt: Long,
+    override val staleAt: Long,
     override val fetchStatus: QueryFetchStatus,
     override val isInvalidated: Boolean,
     override val isPlaceholderData: Boolean,
@@ -56,6 +64,7 @@ data class InfiniteQueryLoadingObject<T, S>(
     override val loadMoreParam: S?
 ) : InfiniteQueryObject<T, S> {
     override val status: QueryStatus = QueryStatus.Pending
+    override val data: T? get() = reply.getOrNull()
 }
 
 /**
@@ -66,12 +75,12 @@ data class InfiniteQueryLoadingObject<T, S>(
  * @constructor Creates a [InfiniteQueryLoadingErrorObject].
  */
 @Immutable
-data class InfiniteQueryLoadingErrorObject<T, S>(
-    override val data: T?,
-    override val dataUpdatedAt: Long,
-    override val dataStaleAt: Long,
+data class InfiniteQueryLoadingErrorObject<T, S> internal constructor(
+    override val reply: Reply<T>,
+    override val replyUpdatedAt: Long,
     override val error: Throwable,
     override val errorUpdatedAt: Long,
+    override val staleAt: Long,
     override val fetchStatus: QueryFetchStatus,
     override val isInvalidated: Boolean,
     override val isPlaceholderData: Boolean,
@@ -80,6 +89,7 @@ data class InfiniteQueryLoadingErrorObject<T, S>(
     override val loadMoreParam: S?
 ) : InfiniteQueryObject<T, S> {
     override val status: QueryStatus = QueryStatus.Failure
+    override val data: T? get() = reply.getOrNull()
 }
 
 /**
@@ -90,12 +100,12 @@ data class InfiniteQueryLoadingErrorObject<T, S>(
  * @constructor Creates a [InfiniteQuerySuccessObject].
  */
 @Immutable
-data class InfiniteQuerySuccessObject<T, S>(
-    override val data: T,
-    override val dataUpdatedAt: Long,
-    override val dataStaleAt: Long,
+data class InfiniteQuerySuccessObject<T, S> internal constructor(
+    override val reply: Reply<T>,
+    override val replyUpdatedAt: Long,
     override val error: Throwable?,
     override val errorUpdatedAt: Long,
+    override val staleAt: Long,
     override val fetchStatus: QueryFetchStatus,
     override val isInvalidated: Boolean,
     override val isPlaceholderData: Boolean,
@@ -104,6 +114,7 @@ data class InfiniteQuerySuccessObject<T, S>(
     override val loadMoreParam: S?
 ) : InfiniteQueryObject<T, S> {
     override val status: QueryStatus = QueryStatus.Success
+    override val data: T get() = reply.getOrThrow()
 }
 
 /**
@@ -116,12 +127,12 @@ data class InfiniteQuerySuccessObject<T, S>(
  * @constructor Creates a [InfiniteQueryRefreshErrorObject].
  */
 @Immutable
-data class InfiniteQueryRefreshErrorObject<T, S>(
-    override val data: T,
-    override val dataUpdatedAt: Long,
-    override val dataStaleAt: Long,
+data class InfiniteQueryRefreshErrorObject<T, S> internal constructor(
+    override val reply: Reply<T>,
+    override val replyUpdatedAt: Long,
     override val error: Throwable,
     override val errorUpdatedAt: Long,
+    override val staleAt: Long,
     override val fetchStatus: QueryFetchStatus,
     override val isInvalidated: Boolean,
     override val isPlaceholderData: Boolean,
@@ -130,4 +141,5 @@ data class InfiniteQueryRefreshErrorObject<T, S>(
     override val loadMoreParam: S?
 ) : InfiniteQueryObject<T, S> {
     override val status: QueryStatus = QueryStatus.Failure
+    override val data: T get() = reply.getOrThrow()
 }

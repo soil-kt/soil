@@ -7,19 +7,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import soil.query.QueryModel
+import soil.query.core.DataModel
 import soil.query.core.uuid
 
 /**
- * Catch for a [QueryModel] to be rejected.
+ * Catch for a [DataModel] to be rejected.
  *
- * @param state The [QueryModel] to catch.
+ * @param state The [DataModel] to catch.
  * @param isEnabled Whether to catch the error.
  * @param content The content to display when the query is rejected. By default, it [throws][CatchScope.Throw] the error.
  */
 @Composable
 fun Catch(
-    state: QueryModel<*>,
+    state: DataModel<*>,
     isEnabled: Boolean = true,
     content: @Composable CatchScope.(err: Throwable) -> Unit = { Throw(error = it) }
 ) {
@@ -32,17 +32,17 @@ fun Catch(
 }
 
 /**
- * Catch for any [QueryModel]s to be rejected.
+ * Catch for any [DataModel]s to be rejected.
  *
- * @param state1 The first [QueryModel] to catch.
- * @param state2 The second [QueryModel] to catch.
+ * @param state1 The first [DataModel] to catch.
+ * @param state2 The second [DataModel] to catch.
  * @param isEnabled Whether to catch the error.
  * @param content The content to display when the query is rejected. By default, it [throws][CatchScope.Throw] the error.
  */
 @Composable
 fun Catch(
-    state1: QueryModel<*>,
-    state2: QueryModel<*>,
+    state1: DataModel<*>,
+    state2: DataModel<*>,
     isEnabled: Boolean = true,
     content: @Composable CatchScope.(err: Throwable) -> Unit = { Throw(error = it) }
 ) {
@@ -56,19 +56,19 @@ fun Catch(
 }
 
 /**
- * Catch for any [QueryModel]s to be rejected.
+ * Catch for any [DataModel]s to be rejected.
  *
- * @param state1 The first [QueryModel] to catch.
- * @param state2 The second [QueryModel] to catch.
- * @param state3 The third [QueryModel] to catch.
+ * @param state1 The first [DataModel] to catch.
+ * @param state2 The second [DataModel] to catch.
+ * @param state3 The third [DataModel] to catch.
  * @param isEnabled Whether to catch the error.
  * @param content The content to display when the query is rejected. By default, it [throws][CatchScope.Throw] the error.
  */
 @Composable
 fun Catch(
-    state1: QueryModel<*>,
-    state2: QueryModel<*>,
-    state3: QueryModel<*>,
+    state1: DataModel<*>,
+    state2: DataModel<*>,
+    state3: DataModel<*>,
     isEnabled: Boolean = true,
     content: @Composable CatchScope.(err: Throwable) -> Unit = { Throw(error = it) }
 ) {
@@ -83,15 +83,15 @@ fun Catch(
 }
 
 /**
- * Catch for any [QueryModel]s to be rejected.
+ * Catch for any [DataModel]s to be rejected.
  *
- * @param states The [QueryModel]s to catch.
+ * @param states The [DataModel]s to catch.
  * @param isEnabled Whether to catch the error.
  * @param content The content to display when the query is rejected. By default, it [throws][CatchScope.Throw] the error.
  */
 @Composable
 fun Catch(
-    vararg states: QueryModel<*>,
+    vararg states: DataModel<*>,
     isEnabled: Boolean = true,
     content: @Composable CatchScope.(err: Throwable) -> Unit = { Throw(error = it) }
 ) {
@@ -104,16 +104,16 @@ fun Catch(
 }
 
 /**
- * Catch for a [QueryModel] to be rejected.
+ * Catch for a [DataModel] to be rejected.
  *
- * @param state The [QueryModel] to catch.
+ * @param state The [DataModel] to catch.
  * @param filterIsInstance A function to filter the error.
  * @param isEnabled Whether to catch the error.
  * @param content The content to display when the query is rejected. By default, it [throws][CatchScope.Throw] the error.
  */
 @Composable
 fun <T : Throwable> Catch(
-    state: QueryModel<*>,
+    state: DataModel<*>,
     filterIsInstance: (err: Throwable) -> T?,
     isEnabled: Boolean = true,
     content: @Composable CatchScope.(err: T) -> Unit = { Throw(error = it) }
@@ -125,18 +125,18 @@ fun <T : Throwable> Catch(
 }
 
 /**
- * Catch for any [QueryModel]s to be rejected.
+ * Catch for any [DataModel]s to be rejected.
  *
- * @param state1 The first [QueryModel] to catch.
- * @param state2 The second [QueryModel] to catch.
+ * @param state1 The first [DataModel] to catch.
+ * @param state2 The second [DataModel] to catch.
  * @param filterIsInstance A function to filter the error.
  * @param isEnabled Whether to catch the error.
  * @param content The content to display when the query is rejected. By default, it [throws][CatchScope.Throw] the error.
  */
 @Composable
 fun <T : Throwable> Catch(
-    state1: QueryModel<*>,
-    state2: QueryModel<*>,
+    state1: DataModel<*>,
+    state2: DataModel<*>,
     filterIsInstance: (err: Throwable) -> T?,
     isEnabled: Boolean = true,
     content: @Composable CatchScope.(err: T) -> Unit = { Throw(error = it) }
@@ -151,20 +151,20 @@ fun <T : Throwable> Catch(
 }
 
 /**
- * Catch for any [QueryModel]s to be rejected.
+ * Catch for any [DataModel]s to be rejected.
  *
- * @param state1 The first [QueryModel] to catch.
- * @param state2 The second [QueryModel] to catch.
- * @param state3 The third [QueryModel] to catch.
+ * @param state1 The first [DataModel] to catch.
+ * @param state2 The second [DataModel] to catch.
+ * @param state3 The third [DataModel] to catch.
  * @param filterIsInstance A function to filter the error.
  * @param isEnabled Whether to catch the error.
  * @param content The content to display when the query is rejected. By default, it [throws][CatchScope.Throw] the error.
  */
 @Composable
 fun <T : Throwable> Catch(
-    state1: QueryModel<*>,
-    state2: QueryModel<*>,
-    state3: QueryModel<*>,
+    state1: DataModel<*>,
+    state2: DataModel<*>,
+    state3: DataModel<*>,
     filterIsInstance: (err: Throwable) -> T?,
     isEnabled: Boolean = true,
     content: @Composable CatchScope.(err: T) -> Unit = { Throw(error = it) }
@@ -179,16 +179,16 @@ fun <T : Throwable> Catch(
 }
 
 /**
- * Catch for any [QueryModel]s to be rejected.
+ * Catch for any [DataModel]s to be rejected.
  *
- * @param states The [QueryModel]s to catch.
+ * @param states The [DataModel]s to catch.
  * @param filterIsInstance A function to filter the error.
  * @param isEnabled Whether to catch the error.
  * @param content The content to display when the query is rejected. By default, it [throws][CatchScope.Throw] the error.
  */
 @Composable
 fun <T : Throwable> Catch(
-    vararg states: QueryModel<*>,
+    vararg states: DataModel<*>,
     filterIsInstance: (err: Throwable) -> T?,
     isEnabled: Boolean = true,
     content: @Composable CatchScope.(err: T) -> Unit = { Throw(error = it) }

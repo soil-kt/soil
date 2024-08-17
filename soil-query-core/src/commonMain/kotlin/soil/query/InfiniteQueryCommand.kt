@@ -5,6 +5,7 @@ package soil.query
 
 import soil.query.core.RetryFn
 import soil.query.core.exponentialBackOff
+import soil.query.core.getOrElse
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
@@ -82,7 +83,7 @@ suspend inline fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.dispatchFetchC
 ) {
     fetch(key, variable)
         .map { QueryChunk(it, variable) }
-        .map { chunk -> state.data.orEmpty() + chunk }
+        .map { chunk -> state.reply.getOrElse { emptyList() } + chunk }
         .run { key.onRecoverData()?.let(::recoverCatching) ?: this }
         .onSuccess(::dispatchFetchSuccess)
         .onFailure(::dispatchFetchFailure)

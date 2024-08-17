@@ -3,6 +3,8 @@
 
 package soil.query
 
+import soil.query.core.Reply
+
 /**
  * Query actions are used to update the [query state][QueryState].
  *
@@ -79,11 +81,11 @@ fun <T> createQueryReducer(): QueryReducer<T> = { state, action ->
 
         is QueryAction.FetchSuccess -> {
             state.copy(
-                data = action.data,
-                dataUpdatedAt = action.dataUpdatedAt,
-                dataStaleAt = action.dataStaleAt,
+                reply = Reply(action.data),
+                replyUpdatedAt = action.dataUpdatedAt,
                 error = null,
                 errorUpdatedAt = action.dataUpdatedAt,
+                staleAt = action.dataStaleAt,
                 status = QueryStatus.Success,
                 fetchStatus = QueryFetchStatus.Idle,
                 isInvalidated = false,
@@ -108,8 +110,8 @@ fun <T> createQueryReducer(): QueryReducer<T> = { state, action ->
 
         is QueryAction.ForceUpdate -> {
             state.copy(
-                data = action.data,
-                dataUpdatedAt = action.dataUpdatedAt
+                reply = Reply(action.data),
+                replyUpdatedAt = action.dataUpdatedAt
             )
         }
     }

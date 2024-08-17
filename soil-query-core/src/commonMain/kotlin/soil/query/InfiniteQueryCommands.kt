@@ -3,6 +3,8 @@
 
 package soil.query
 
+import soil.query.core.getOrElse
+import soil.query.core.getOrNull
 import soil.query.core.vvv
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -34,7 +36,7 @@ sealed class InfiniteQueryCommands<T, S> : QueryCommand<QueryChunks<T, S>> {
                 return
             }
             ctx.dispatch(QueryAction.Fetching())
-            val chunks = ctx.state.data
+            val chunks = ctx.state.reply.getOrNull()
             if (chunks.isNullOrEmpty() || ctx.state.isPlaceholderData) {
                 ctx.dispatchFetchChunksResult(key, key.initialParam(), callback)
             } else {
@@ -63,7 +65,7 @@ sealed class InfiniteQueryCommands<T, S> : QueryCommand<QueryChunks<T, S>> {
                 return
             }
             ctx.dispatch(QueryAction.Fetching(isInvalidated = true))
-            val chunks = ctx.state.data
+            val chunks = ctx.state.reply.getOrNull()
             if (chunks.isNullOrEmpty() || ctx.state.isPlaceholderData) {
                 ctx.dispatchFetchChunksResult(key, key.initialParam(), callback)
             } else {
@@ -84,8 +86,8 @@ sealed class InfiniteQueryCommands<T, S> : QueryCommand<QueryChunks<T, S>> {
         val callback: QueryCallback<QueryChunks<T, S>>? = null
     ) : InfiniteQueryCommands<T, S>() {
         override suspend fun handle(ctx: QueryCommand.Context<QueryChunks<T, S>>) {
-            val chunks = ctx.state.data
-            if (param != key.loadMoreParam(chunks.orEmpty())) {
+            val chunks = ctx.state.reply.getOrElse { emptyList() }
+            if (param != key.loadMoreParam(chunks)) {
                 ctx.options.vvv(key.id) { "skip fetch(param is changed)" }
                 callback?.invoke(Result.failure(CancellationException("skip fetch")))
                 return

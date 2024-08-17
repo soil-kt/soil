@@ -25,7 +25,7 @@ class MutationError @PublishedApi internal constructor(
                 message=${exception.message},
                 key=$key,
                 model={
-                    dataUpdatedAt=${model.dataUpdatedAt},
+                    replyUpdatedAt=${model.replyUpdatedAt},
                     errorUpdatedAt=${model.errorUpdatedAt},
                     status=${model.status},
                     mutatedCount=${model.mutatedCount},

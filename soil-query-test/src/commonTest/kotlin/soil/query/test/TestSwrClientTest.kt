@@ -24,6 +24,7 @@ import soil.query.SwrCachePolicy
 import soil.query.buildInfiniteQueryKey
 import soil.query.buildMutationKey
 import soil.query.buildQueryKey
+import soil.query.core.getOrThrow
 import soil.query.mutate
 import soil.testing.UnitTest
 import kotlin.test.Test
@@ -48,7 +49,7 @@ class TestSwrClientTest : UnitTest() {
         val key = ExampleMutationKey()
         val mutation = testClient.getMutation(key).also { it.launchIn(backgroundScope) }
         mutation.mutate(0)
-        assertEquals("Hello, World!", mutation.state.value.data)
+        assertEquals("Hello, World!", mutation.state.value.reply.getOrThrow())
     }
 
     @Test
@@ -67,7 +68,7 @@ class TestSwrClientTest : UnitTest() {
         val key = ExampleQueryKey()
         val query = testClient.getQuery(key).also { it.launchIn(backgroundScope) }
         query.test()
-        assertEquals("Hello, World!", query.state.value.data)
+        assertEquals("Hello, World!", query.state.value.reply.getOrThrow())
     }
 
     @Test
@@ -86,7 +87,7 @@ class TestSwrClientTest : UnitTest() {
         val key = ExampleInfiniteQueryKey()
         val query = testClient.getInfiniteQuery(key).also { it.launchIn(backgroundScope) }
         query.test()
-        assertEquals("Hello, World!", query.state.value.data?.first()?.data)
+        assertEquals("Hello, World!", query.state.value.reply.getOrThrow().first().data)
     }
 }
 

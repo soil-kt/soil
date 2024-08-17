@@ -3,14 +3,15 @@
 
 package soil.query
 
+import soil.query.core.Reply
 import soil.query.core.epoch
 
 /**
  * State for managing the execution result of [Mutation].
  */
-data class MutationState<out T> internal constructor(
-    override val data: T? = null,
-    override val dataUpdatedAt: Long = 0,
+data class MutationState<T> internal constructor(
+    override val reply: Reply<T> = Reply.None,
+    override val replyUpdatedAt: Long = 0,
     override val error: Throwable? = null,
     override val errorUpdatedAt: Long = 0,
     override val status: MutationStatus = MutationStatus.Idle,
@@ -31,8 +32,8 @@ data class MutationState<out T> internal constructor(
             mutatedCount: Int = 1
         ): MutationState<T> {
             return MutationState(
-                data = data,
-                dataUpdatedAt = dataUpdatedAt,
+                reply = Reply(data),
+                replyUpdatedAt = dataUpdatedAt,
                 status = MutationStatus.Success,
                 mutatedCount = mutatedCount
             )
