@@ -3,7 +3,9 @@
 
 package soil.query
 
+import soil.query.core.DataModel
 import soil.query.core.epoch
+import soil.query.core.isNone
 
 /**
  * Data model for the state handled by [QueryKey] or [InfiniteQueryKey].
@@ -12,32 +14,12 @@ import soil.query.core.epoch
  *
  * @param T Type of data to retrieve.
  */
-interface QueryModel<out T> {
-
-    /**
-     * The return value from the query.
-     */
-    val data: T?
-
-    /**
-     * The timestamp when the data was updated.
-     */
-    val dataUpdatedAt: Long
+interface QueryModel<out T> : DataModel<T> {
 
     /**
      * The timestamp when the data is considered stale.
      */
-    val dataStaleAt: Long
-
-    /**
-     * The error that occurred.
-     */
-    val error: Throwable?
-
-    /**
-     * The timestamp when the error occurred.
-     */
-    val errorUpdatedAt: Long
+    val staleAt: Long
 
     /**
      * The status of the query.
@@ -62,7 +44,7 @@ interface QueryModel<out T> {
     /**
      * The revision of the currently snapshot.
      */
-    val revision: String get() = "d-$dataUpdatedAt/e-$errorUpdatedAt"
+    val revision: String get() = "d-$replyUpdatedAt/e-$errorUpdatedAt"
 
     /**
      * Returns `true` if the query is pending, `false` otherwise.
@@ -80,10 +62,15 @@ interface QueryModel<out T> {
     val isFailure: Boolean get() = status == QueryStatus.Failure
 
     /**
+     * Returns `true` if the query is fetching, `false` otherwise.
+     */
+    val isFetching: Boolean get() = fetchStatus == QueryFetchStatus.Fetching
+
+    /**
      * Returns `true` if the query is staled, `false` otherwise.
      */
     fun isStaled(currentAt: Long = epoch()): Boolean {
-        return dataStaleAt < currentAt
+        return staleAt < currentAt
     }
 
     /**
@@ -95,6 +82,17 @@ interface QueryModel<out T> {
             is QueryFetchStatus.Idle,
             is QueryFetchStatus.Fetching -> false
         }
+    }
+
+    /**
+     * Returns true if the [QueryModel] is awaited.
+     *
+     * @see DataModel.isAwaited
+     */
+    override fun isAwaited(): Boolean {
+        return isPending
+            || (isFailure && isFetching && reply.isNone)
+            || (isInvalidated && isFetching)
     }
 }
 

@@ -3,22 +3,38 @@
 
 package soil.query
 
+import soil.query.core.Reply
 import soil.query.core.epoch
 
 /**
  * State for managing the execution result of [Query].
  */
-data class QueryState<out T> internal constructor(
-    override val data: T? = null,
-    override val dataUpdatedAt: Long = 0,
-    override val dataStaleAt: Long = 0,
+data class QueryState<T> internal constructor(
+    override val reply: Reply<T> = Reply.None,
+    override val replyUpdatedAt: Long = 0,
     override val error: Throwable? = null,
     override val errorUpdatedAt: Long = 0,
+    override val staleAt: Long = 0,
     override val status: QueryStatus = QueryStatus.Pending,
     override val fetchStatus: QueryFetchStatus = QueryFetchStatus.Idle,
     override val isInvalidated: Boolean = false,
     override val isPlaceholderData: Boolean = false
 ) : QueryModel<T> {
+
+    /**
+     * Workaround:
+     * The following warning appeared when updating the [reply] property within [SwrCache.setQueryData],
+     * so I replaced the update process with a method that includes type information.
+     * ref. https://youtrack.jetbrains.com/issue/KT-49404
+     */
+    internal fun patch(
+        data: T,
+        dataUpdatedAt: Long = epoch()
+    ): QueryState<T> = copy(
+        reply = Reply(data),
+        replyUpdatedAt = dataUpdatedAt
+    )
+
     companion object {
 
         /**
@@ -34,9 +50,9 @@ data class QueryState<out T> internal constructor(
             dataStaleAt: Long = dataUpdatedAt
         ): QueryState<T> {
             return QueryState(
-                data = data,
-                dataUpdatedAt = dataUpdatedAt,
-                dataStaleAt = dataStaleAt,
+                reply = Reply(data),
+                replyUpdatedAt = dataUpdatedAt,
+                staleAt = dataStaleAt,
                 status = QueryStatus.Success
             )
         }

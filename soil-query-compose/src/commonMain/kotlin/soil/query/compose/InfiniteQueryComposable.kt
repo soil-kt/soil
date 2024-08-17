@@ -15,6 +15,9 @@ import soil.query.QueryChunks
 import soil.query.QueryClient
 import soil.query.QueryState
 import soil.query.QueryStatus
+import soil.query.core.getOrThrow
+import soil.query.core.isNone
+import soil.query.core.map
 import soil.query.invalidate
 import soil.query.loadMore
 import soil.query.resume
@@ -77,11 +80,11 @@ private fun <T, S, U> QueryState<QueryChunks<T, S>>.toInfiniteObject(
 ): InfiniteQueryObject<U, S> {
     return when (status) {
         QueryStatus.Pending -> InfiniteQueryLoadingObject(
-            data = data?.let(select),
-            dataUpdatedAt = dataUpdatedAt,
-            dataStaleAt = dataStaleAt,
+            reply = reply.map(select),
+            replyUpdatedAt = replyUpdatedAt,
             error = error,
             errorUpdatedAt = errorUpdatedAt,
+            staleAt = staleAt,
             fetchStatus = fetchStatus,
             isInvalidated = isInvalidated,
             isPlaceholderData = isPlaceholderData,
@@ -91,46 +94,46 @@ private fun <T, S, U> QueryState<QueryChunks<T, S>>.toInfiniteObject(
         )
 
         QueryStatus.Success -> InfiniteQuerySuccessObject(
-            data = select(data as QueryChunks<T, S>),
-            dataUpdatedAt = dataUpdatedAt,
-            dataStaleAt = dataStaleAt,
+            reply = reply.map(select),
+            replyUpdatedAt = replyUpdatedAt,
             error = error,
             errorUpdatedAt = errorUpdatedAt,
+            staleAt = staleAt,
             fetchStatus = fetchStatus,
             isInvalidated = isInvalidated,
             isPlaceholderData = isPlaceholderData,
             refresh = query::invalidate,
             loadMore = query::loadMore,
-            loadMoreParam = query.key.loadMoreParam(data!!)
+            loadMoreParam = query.key.loadMoreParam(reply.getOrThrow())
         )
 
-        QueryStatus.Failure -> if (dataUpdatedAt > 0) {
-            InfiniteQueryRefreshErrorObject(
-                data = select(data as QueryChunks<T, S>),
-                dataUpdatedAt = dataUpdatedAt,
-                dataStaleAt = dataStaleAt,
-                error = error as Throwable,
-                errorUpdatedAt = errorUpdatedAt,
-                fetchStatus = fetchStatus,
-                isInvalidated = isInvalidated,
-                isPlaceholderData = isPlaceholderData,
-                refresh = query::invalidate,
-                loadMore = query::loadMore,
-                loadMoreParam = query.key.loadMoreParam(data!!)
-            )
-        } else {
+        QueryStatus.Failure -> if (reply.isNone) {
             InfiniteQueryLoadingErrorObject(
-                data = data?.let(select),
-                dataUpdatedAt = dataUpdatedAt,
-                dataStaleAt = dataStaleAt,
-                error = error as Throwable,
+                reply = reply.map(select),
+                replyUpdatedAt = replyUpdatedAt,
+                error = checkNotNull(error),
                 errorUpdatedAt = errorUpdatedAt,
+                staleAt = staleAt,
                 fetchStatus = fetchStatus,
                 isInvalidated = isInvalidated,
                 isPlaceholderData = isPlaceholderData,
                 refresh = query::invalidate,
                 loadMore = query::loadMore,
                 loadMoreParam = null
+            )
+        } else {
+            InfiniteQueryRefreshErrorObject(
+                reply = reply.map(select),
+                replyUpdatedAt = replyUpdatedAt,
+                error = checkNotNull(error),
+                errorUpdatedAt = errorUpdatedAt,
+                staleAt = staleAt,
+                fetchStatus = fetchStatus,
+                isInvalidated = isInvalidated,
+                isPlaceholderData = isPlaceholderData,
+                refresh = query::invalidate,
+                loadMore = query::loadMore,
+                loadMoreParam = query.key.loadMoreParam(reply.getOrThrow())
             )
         }
     }

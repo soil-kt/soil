@@ -14,6 +14,8 @@ import soil.query.QueryKey
 import soil.query.QueryRef
 import soil.query.QueryState
 import soil.query.QueryStatus
+import soil.query.core.isNone
+import soil.query.core.map
 import soil.query.invalidate
 import soil.query.resume
 
@@ -68,18 +70,17 @@ fun <T, U> rememberQuery(
     }
 }
 
-@Suppress("UNCHECKED_CAST")
 private fun <T, U> QueryState<T>.toObject(
     query: QueryRef<T>,
     select: (T) -> U
 ): QueryObject<U> {
     return when (status) {
         QueryStatus.Pending -> QueryLoadingObject(
-            data = data?.let(select),
-            dataUpdatedAt = dataUpdatedAt,
-            dataStaleAt = dataStaleAt,
+            reply = reply.map(select),
+            replyUpdatedAt = replyUpdatedAt,
             error = error,
             errorUpdatedAt = errorUpdatedAt,
+            staleAt = staleAt,
             fetchStatus = fetchStatus,
             isInvalidated = isInvalidated,
             isPlaceholderData = isPlaceholderData,
@@ -87,35 +88,35 @@ private fun <T, U> QueryState<T>.toObject(
         )
 
         QueryStatus.Success -> QuerySuccessObject(
-            data = select(data as T),
-            dataUpdatedAt = dataUpdatedAt,
-            dataStaleAt = dataStaleAt,
+            reply = reply.map(select),
+            replyUpdatedAt = replyUpdatedAt,
             error = error,
             errorUpdatedAt = errorUpdatedAt,
+            staleAt = staleAt,
             fetchStatus = fetchStatus,
             isInvalidated = isInvalidated,
             isPlaceholderData = isPlaceholderData,
             refresh = query::invalidate
         )
 
-        QueryStatus.Failure -> if (dataUpdatedAt > 0) {
-            QueryRefreshErrorObject(
-                data = select(data as T),
-                dataUpdatedAt = dataUpdatedAt,
-                dataStaleAt = dataStaleAt,
-                error = error as Throwable,
+        QueryStatus.Failure -> if (reply.isNone) {
+            QueryLoadingErrorObject(
+                reply = reply.map(select),
+                replyUpdatedAt = replyUpdatedAt,
+                error = checkNotNull(error),
                 errorUpdatedAt = errorUpdatedAt,
+                staleAt = staleAt,
                 fetchStatus = fetchStatus,
                 isInvalidated = isInvalidated,
                 isPlaceholderData = isPlaceholderData,
                 refresh = query::invalidate
             )
         } else {
-            QueryLoadingErrorObject(
-                data = data?.let(select),
-                dataUpdatedAt = dataUpdatedAt,
-                dataStaleAt = dataStaleAt,
-                error = error as Throwable,
+            QueryRefreshErrorObject(
+                reply = reply.map(select),
+                replyUpdatedAt = replyUpdatedAt,
+                error = checkNotNull(error),
+                staleAt = staleAt,
                 errorUpdatedAt = errorUpdatedAt,
                 fetchStatus = fetchStatus,
                 isInvalidated = isInvalidated,

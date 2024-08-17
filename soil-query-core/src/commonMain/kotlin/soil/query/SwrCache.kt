@@ -33,12 +33,14 @@ import soil.query.core.MemoryPressure
 import soil.query.core.MemoryPressureLevel
 import soil.query.core.NetworkConnectivity
 import soil.query.core.NetworkConnectivityEvent
+import soil.query.core.Reply
 import soil.query.core.SurrogateKey
 import soil.query.core.TimeBasedCache
 import soil.query.core.UniqueId
 import soil.query.core.WindowVisibility
 import soil.query.core.WindowVisibilityEvent
 import soil.query.core.epoch
+import soil.query.core.getOrNull
 import soil.query.core.vvv
 import kotlin.coroutines.CoroutineContext
 
@@ -331,7 +333,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         val onPlaceholderData = key.onPlaceholderData() ?: return QueryState()
         val placeholderData = with(this) { onPlaceholderData() } ?: return QueryState()
         return QueryState(
-            data = placeholderData,
+            reply = Reply(placeholderData),
             status = QueryStatus.Success,
             isPlaceholderData = true
         )
@@ -395,7 +397,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         val onPlaceholderData = key.onPlaceholderData() ?: return QueryState()
         val placeholderData = with(this) { onPlaceholderData() } ?: return QueryState()
         return QueryState(
-            data = placeholderData,
+            reply = Reply(placeholderData),
             status = QueryStatus.Success,
             isPlaceholderData = true
         )
@@ -435,11 +437,11 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     override fun <T> getQueryData(id: QueryId<T>): T? {
         val query = queryStore[id] as? ManagedQuery<T>
         if (query != null) {
-            return query.state.value.data
+            return query.state.value.reply.getOrNull()
         }
         val state = queryCache[id] as? QueryState<T>
         if (state != null) {
-            return state.data
+            return state.reply.getOrNull()
         }
         return null
     }
@@ -448,11 +450,11 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     override fun <T, S> getInfiniteQueryData(id: InfiniteQueryId<T, S>): QueryChunks<T, S>? {
         val query = queryStore[id] as? ManagedQuery<QueryChunks<T, S>>
         if (query != null) {
-            return query.state.value.data
+            return query.state.value.reply.getOrNull()
         }
         val state = queryCache[id] as? QueryState<QueryChunks<T, S>>
         if (state != null) {
-            return state.data
+            return state.reply.getOrNull()
         }
         return null
     }
@@ -471,7 +473,10 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     private fun <T> setQueryData(id: QueryId<T>, data: T) {
         val query = queryStore[id] as? ManagedQuery<T>
         query?.forceUpdate(data)
-        queryCache.swap(id) { copy(data = data) }
+        queryCache.swap(id) {
+            this as QueryState<T>
+            patch(data)
+        }
     }
 
     override fun <T, S> updateInfiniteQueryData(
@@ -488,7 +493,10 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     private fun <T, S> setInfiniteQueryData(id: InfiniteQueryId<T, S>, data: QueryChunks<T, S>) {
         val query = queryStore[id] as? ManagedQuery<QueryChunks<T, S>>
         query?.forceUpdate(data)
-        queryCache.swap(id) { copy(data = data) }
+        queryCache.swap(id) {
+            this as QueryState<QueryChunks<T, S>>
+            patch(data)
+        }
     }
 
     override fun invalidateQueries(filter: InvalidateQueriesFilter) {

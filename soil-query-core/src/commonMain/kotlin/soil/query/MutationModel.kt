@@ -3,6 +3,7 @@
 
 package soil.query
 
+import soil.query.core.DataModel
 import kotlin.math.max
 
 /**
@@ -12,27 +13,7 @@ import kotlin.math.max
  *
  * @param T Type of the return value from the mutation.
  */
-interface MutationModel<out T> {
-
-    /**
-     * The return value from the mutation.
-     */
-    val data: T?
-
-    /**
-     * The timestamp when the data was updated.
-     */
-    val dataUpdatedAt: Long
-
-    /**
-     * The error that occurred.
-     */
-    val error: Throwable?
-
-    /**
-     * The timestamp when the error occurred.
-     */
-    val errorUpdatedAt: Long
+interface MutationModel<out T> : DataModel<T> {
 
     /**
      * The status of the mutation.
@@ -47,12 +28,12 @@ interface MutationModel<out T> {
     /**
      * The revision of the currently snapshot.
      */
-    val revision: String get() = "d-$dataUpdatedAt/e-$errorUpdatedAt"
+    val revision: String get() = "d-$replyUpdatedAt/e-$errorUpdatedAt"
 
     /**
      * The timestamp when the mutation was submitted.
      */
-    val submittedAt: Long get() = max(dataUpdatedAt, errorUpdatedAt)
+    val submittedAt: Long get() = max(replyUpdatedAt, errorUpdatedAt)
 
     /**
      * Returns `true` if the mutation is idle, `false` otherwise.
@@ -78,6 +59,15 @@ interface MutationModel<out T> {
      * Returns `true` if the mutation has been mutated, `false` otherwise.
      */
     val isMutated: Boolean get() = mutatedCount > 0
+
+    /**
+     * Returns true if the [MutationModel] is awaited.
+     *
+     * @see DataModel.isAwaited
+     */
+    override fun isAwaited(): Boolean {
+        return isPending
+    }
 }
 
 /**

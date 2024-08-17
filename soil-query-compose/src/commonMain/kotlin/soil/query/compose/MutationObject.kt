@@ -7,6 +7,9 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import soil.query.MutationModel
 import soil.query.MutationStatus
+import soil.query.core.Reply
+import soil.query.core.getOrNull
+import soil.query.core.getOrThrow
 
 /**
  * A MutationObject represents [MutationModel]s interface for mutating data.
@@ -16,6 +19,11 @@ import soil.query.MutationStatus
  */
 @Stable
 sealed interface MutationObject<out T, S> : MutationModel<T> {
+
+    /**
+     * The return value from the data source. (Backward compatibility with MutationModel)
+     */
+    val data: T?
 
     /**
      * Mutates the variable.
@@ -40,9 +48,9 @@ sealed interface MutationObject<out T, S> : MutationModel<T> {
  * @param S Type of the variable to be mutated.
  */
 @Immutable
-data class MutationIdleObject<T, S>(
-    override val data: T?,
-    override val dataUpdatedAt: Long,
+data class MutationIdleObject<T, S> internal constructor(
+    override val reply: Reply<T>,
+    override val replyUpdatedAt: Long,
     override val error: Throwable?,
     override val errorUpdatedAt: Long,
     override val mutatedCount: Int,
@@ -51,6 +59,7 @@ data class MutationIdleObject<T, S>(
     override val reset: suspend () -> Unit
 ) : MutationObject<T, S> {
     override val status: MutationStatus = MutationStatus.Idle
+    override val data: T? get() = reply.getOrNull()
 }
 
 /**
@@ -60,9 +69,9 @@ data class MutationIdleObject<T, S>(
  * @param S Type of the variable to be mutated.
  */
 @Immutable
-data class MutationLoadingObject<T, S>(
-    override val data: T?,
-    override val dataUpdatedAt: Long,
+data class MutationLoadingObject<T, S> internal constructor(
+    override val reply: Reply<T>,
+    override val replyUpdatedAt: Long,
     override val error: Throwable?,
     override val errorUpdatedAt: Long,
     override val mutatedCount: Int,
@@ -71,6 +80,7 @@ data class MutationLoadingObject<T, S>(
     override val reset: suspend () -> Unit
 ) : MutationObject<T, S> {
     override val status: MutationStatus = MutationStatus.Pending
+    override val data: T? get() = reply.getOrNull()
 }
 
 /**
@@ -80,9 +90,9 @@ data class MutationLoadingObject<T, S>(
  * @param S Type of the variable to be mutated.
  */
 @Immutable
-data class MutationErrorObject<T, S>(
-    override val data: T?,
-    override val dataUpdatedAt: Long,
+data class MutationErrorObject<T, S> internal constructor(
+    override val reply: Reply<T>,
+    override val replyUpdatedAt: Long,
     override val error: Throwable,
     override val errorUpdatedAt: Long,
     override val mutatedCount: Int,
@@ -91,6 +101,7 @@ data class MutationErrorObject<T, S>(
     override val reset: suspend () -> Unit
 ) : MutationObject<T, S> {
     override val status: MutationStatus = MutationStatus.Failure
+    override val data: T? get() = reply.getOrNull()
 }
 
 /**
@@ -100,9 +111,9 @@ data class MutationErrorObject<T, S>(
  * @param S Type of the variable to be mutated.
  */
 @Immutable
-data class MutationSuccessObject<T, S>(
-    override val data: T,
-    override val dataUpdatedAt: Long,
+data class MutationSuccessObject<T, S> internal constructor(
+    override val reply: Reply<T>,
+    override val replyUpdatedAt: Long,
     override val error: Throwable?,
     override val errorUpdatedAt: Long,
     override val mutatedCount: Int,
@@ -111,4 +122,5 @@ data class MutationSuccessObject<T, S>(
     override val reset: suspend () -> Unit
 ) : MutationObject<T, S> {
     override val status: MutationStatus = MutationStatus.Success
+    override val data: T get() = reply.getOrThrow()
 }

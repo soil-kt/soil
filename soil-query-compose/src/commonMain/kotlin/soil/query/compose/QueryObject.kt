@@ -8,6 +8,9 @@ import androidx.compose.runtime.Stable
 import soil.query.QueryFetchStatus
 import soil.query.QueryModel
 import soil.query.QueryStatus
+import soil.query.core.Reply
+import soil.query.core.getOrNull
+import soil.query.core.getOrThrow
 
 
 /**
@@ -17,6 +20,11 @@ import soil.query.QueryStatus
  */
 @Stable
 sealed interface QueryObject<out T> : QueryModel<T> {
+
+    /**
+     * The return value from the data source. (Backward compatibility with QueryModel)
+     */
+    val data: T?
 
     /**
      * Refreshes the data.
@@ -30,18 +38,19 @@ sealed interface QueryObject<out T> : QueryModel<T> {
  * @param T Type of data to retrieve.
  */
 @Immutable
-data class QueryLoadingObject<T>(
-    override val data: T?,
-    override val dataUpdatedAt: Long,
-    override val dataStaleAt: Long,
+data class QueryLoadingObject<T> internal constructor(
+    override val reply: Reply<T>,
+    override val replyUpdatedAt: Long,
     override val error: Throwable?,
     override val errorUpdatedAt: Long,
+    override val staleAt: Long,
     override val fetchStatus: QueryFetchStatus,
     override val isInvalidated: Boolean,
     override val isPlaceholderData: Boolean,
     override val refresh: suspend () -> Unit
 ) : QueryObject<T> {
     override val status: QueryStatus = QueryStatus.Pending
+    override val data: T? get() = reply.getOrNull()
 }
 
 /**
@@ -50,18 +59,19 @@ data class QueryLoadingObject<T>(
  * @param T Type of data to retrieve.
  */
 @Immutable
-data class QueryLoadingErrorObject<T>(
-    override val data: T?,
-    override val dataUpdatedAt: Long,
-    override val dataStaleAt: Long,
+data class QueryLoadingErrorObject<T> internal constructor(
+    override val reply: Reply<T>,
+    override val replyUpdatedAt: Long,
     override val error: Throwable,
     override val errorUpdatedAt: Long,
+    override val staleAt: Long,
     override val fetchStatus: QueryFetchStatus,
     override val isInvalidated: Boolean,
     override val isPlaceholderData: Boolean,
     override val refresh: suspend () -> Unit
 ) : QueryObject<T> {
     override val status: QueryStatus = QueryStatus.Failure
+    override val data: T? get() = reply.getOrNull()
 }
 
 /**
@@ -70,18 +80,19 @@ data class QueryLoadingErrorObject<T>(
  * @param T Type of data to retrieve.
  */
 @Immutable
-data class QuerySuccessObject<T>(
-    override val data: T,
-    override val dataUpdatedAt: Long,
-    override val dataStaleAt: Long,
+data class QuerySuccessObject<T> internal constructor(
+    override val reply: Reply<T>,
+    override val replyUpdatedAt: Long,
     override val error: Throwable?,
     override val errorUpdatedAt: Long,
+    override val staleAt: Long,
     override val fetchStatus: QueryFetchStatus,
     override val isInvalidated: Boolean,
     override val isPlaceholderData: Boolean,
     override val refresh: suspend () -> Unit
 ) : QueryObject<T> {
     override val status: QueryStatus = QueryStatus.Success
+    override val data: T get() = reply.getOrThrow()
 }
 
 /**
@@ -93,16 +104,17 @@ data class QuerySuccessObject<T>(
  * @constructor Creates a [QueryRefreshErrorObject].
  */
 @Immutable
-data class QueryRefreshErrorObject<T>(
-    override val data: T,
-    override val dataUpdatedAt: Long,
-    override val dataStaleAt: Long,
+data class QueryRefreshErrorObject<T> internal constructor(
+    override val reply: Reply<T>,
+    override val replyUpdatedAt: Long,
     override val error: Throwable,
     override val errorUpdatedAt: Long,
+    override val staleAt: Long,
     override val fetchStatus: QueryFetchStatus,
     override val isInvalidated: Boolean,
     override val isPlaceholderData: Boolean,
     override val refresh: suspend () -> Unit
 ) : QueryObject<T> {
     override val status: QueryStatus = QueryStatus.Failure
+    override val data: T get() = reply.getOrThrow()
 }

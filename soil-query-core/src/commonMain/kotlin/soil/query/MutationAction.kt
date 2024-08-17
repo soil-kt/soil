@@ -3,6 +3,8 @@
 
 package soil.query
 
+import soil.query.core.Reply
+
 /**
  * Mutation actions are used to update the [mutation state][MutationState].
  *
@@ -53,8 +55,8 @@ fun <T> createMutationReducer(): MutationReducer<T> = { state, action ->
     when (action) {
         is MutationAction.Reset -> {
             state.copy(
-                data = null,
-                dataUpdatedAt = 0,
+                reply = Reply.none(),
+                replyUpdatedAt = 0,
                 error = null,
                 errorUpdatedAt = 0,
                 status = MutationStatus.Idle,
@@ -71,8 +73,8 @@ fun <T> createMutationReducer(): MutationReducer<T> = { state, action ->
         is MutationAction.MutateSuccess -> {
             state.copy(
                 status = MutationStatus.Success,
-                data = action.data,
-                dataUpdatedAt = action.dataUpdatedAt,
+                reply = Reply(action.data),
+                replyUpdatedAt = action.dataUpdatedAt,
                 error = null,
                 errorUpdatedAt = action.dataUpdatedAt,
                 mutatedCount = state.mutatedCount + 1

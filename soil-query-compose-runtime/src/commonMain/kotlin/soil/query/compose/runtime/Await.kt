@@ -7,40 +7,34 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import soil.query.QueryFetchStatus
-import soil.query.QueryModel
-import soil.query.compose.InfiniteQueryLoadingErrorObject
-import soil.query.compose.InfiniteQueryLoadingObject
-import soil.query.compose.InfiniteQueryRefreshErrorObject
-import soil.query.compose.InfiniteQuerySuccessObject
-import soil.query.compose.QueryLoadingErrorObject
-import soil.query.compose.QueryLoadingObject
-import soil.query.compose.QueryRefreshErrorObject
-import soil.query.compose.QuerySuccessObject
+import soil.query.core.DataModel
+import soil.query.core.Reply
+import soil.query.core.combine
 import soil.query.core.uuid
 
 /**
- * Await for a [QueryModel] to be fulfilled.
+ * Await for a [DataModel] to be fulfilled.
  *
  * The content will be displayed when the query is fulfilled.
  * The await will be managed by the [AwaitHost].
  *
  * @param T Type of data to retrieve.
- * @param state The [QueryModel] to await.
+ * @param state The [DataModel] to await.
  * @param key The key to identify the await.
  * @param host The [AwaitHost] to manage the await. By default, it uses the [LocalAwaitHost].
  * @param content The content to display when the query is fulfilled.
  */
 @Composable
 inline fun <T> Await(
-    state: QueryModel<T>,
+    state: DataModel<T>,
     key: Any? = null,
     host: AwaitHost = LocalAwaitHost.current,
     crossinline content: @Composable (data: T) -> Unit
 ) {
     val id = remember(key) { key ?: uuid() }
-    AwaitHandler(state) { data ->
-        content(data)
+    when (val reply = state.reply) {
+        is Reply.Some -> content(reply.value)
+        is Reply.None -> Unit
     }
     LaunchedEffect(id, state) {
         host[id] = state.isAwaited()
@@ -53,32 +47,31 @@ inline fun <T> Await(
 }
 
 /**
- * Await for two [QueryModel] to be fulfilled.
+ * Await for two [DataModel] to be fulfilled.
  *
  * The content will be displayed when the queries are fulfilled.
  * The await will be managed by the [AwaitHost].
  *
  * @param T1 Type of data to retrieve.
  * @param T2 Type of data to retrieve.
- * @param state1 The first [QueryModel] to await.
- * @param state2 The second [QueryModel] to await.
+ * @param state1 The first [DataModel] to await.
+ * @param state2 The second [DataModel] to await.
  * @param key The key to identify the await.
  * @param host The [AwaitHost] to manage the await. By default, it uses the [LocalAwaitHost].
  * @param content The content to display when the queries are fulfilled.
  */
 @Composable
 inline fun <T1, T2> Await(
-    state1: QueryModel<T1>,
-    state2: QueryModel<T2>,
+    state1: DataModel<T1>,
+    state2: DataModel<T2>,
     key: Any? = null,
     host: AwaitHost = LocalAwaitHost.current,
     crossinline content: @Composable (data1: T1, data2: T2) -> Unit
 ) {
     val id = remember(key) { key ?: uuid() }
-    AwaitHandler(state1) { d1 ->
-        AwaitHandler(state2) { d2 ->
-            content(d1, d2)
-        }
+    when (val reply = Reply.combine(state1.reply, state2.reply, ::Pair)) {
+        is Reply.Some -> content(reply.value.first, reply.value.second)
+        is Reply.None -> Unit
     }
     LaunchedEffect(id, state1, state2) {
         host[id] = listOf(state1, state2).any { it.isAwaited() }
@@ -91,7 +84,7 @@ inline fun <T1, T2> Await(
 }
 
 /**
- * Await for three [QueryModel] to be fulfilled.
+ * Await for three [DataModel] to be fulfilled.
  *
  * The content will be displayed when the queries are fulfilled.
  * The await will be managed by the [AwaitHost].
@@ -99,29 +92,26 @@ inline fun <T1, T2> Await(
  * @param T1 Type of data to retrieve.
  * @param T2 Type of data to retrieve.
  * @param T3 Type of data to retrieve.
- * @param state1 The first [QueryModel] to await.
- * @param state2 The second [QueryModel] to await.
- * @param state3 The third [QueryModel] to await.
+ * @param state1 The first [DataModel] to await.
+ * @param state2 The second [DataModel] to await.
+ * @param state3 The third [DataModel] to await.
  * @param key The key to identify the await.
  * @param host The [AwaitHost] to manage the await. By default, it uses the [LocalAwaitHost].
  * @param content The content to display when the queries are fulfilled.
  */
 @Composable
 inline fun <T1, T2, T3> Await(
-    state1: QueryModel<T1>,
-    state2: QueryModel<T2>,
-    state3: QueryModel<T3>,
+    state1: DataModel<T1>,
+    state2: DataModel<T2>,
+    state3: DataModel<T3>,
     key: Any? = null,
     host: AwaitHost = LocalAwaitHost.current,
     crossinline content: @Composable (data1: T1, data2: T2, data3: T3) -> Unit
 ) {
     val id = remember(key) { key ?: uuid() }
-    AwaitHandler(state1) { d1 ->
-        AwaitHandler(state2) { d2 ->
-            AwaitHandler(state3) { d3 ->
-                content(d1, d2, d3)
-            }
-        }
+    when (val reply = Reply.combine(state1.reply, state2.reply, state3.reply, ::Triple)) {
+        is Reply.Some -> content(reply.value.first, reply.value.second, reply.value.third)
+        is Reply.None -> Unit
     }
     LaunchedEffect(id, state1, state2, state3) {
         host[id] = listOf(state1, state2, state3).any { it.isAwaited() }
@@ -131,149 +121,4 @@ inline fun <T1, T2, T3> Await(
             host.remove(id)
         }
     }
-}
-
-/**
- * Await for four [QueryModel] to be fulfilled.
- *
- * The content will be displayed when the queries are fulfilled.
- * The await will be managed by the [AwaitHost].
- *
- * @param T1 Type of data to retrieve.
- * @param T2 Type of data to retrieve.
- * @param T3 Type of data to retrieve.
- * @param T4 Type of data to retrieve.
- * @param state1 The first [QueryModel] to await.
- * @param state2 The second [QueryModel] to await.
- * @param state3 The third [QueryModel] to await.
- * @param state4 The fourth [QueryModel] to await.
- * @param key The key to identify the await.
- * @param host The [AwaitHost] to manage the await. By default, it uses the [LocalAwaitHost].
- * @param content The content to display when the queries are fulfilled.
- */
-@Composable
-inline fun <T1, T2, T3, T4> Await(
-    state1: QueryModel<T1>,
-    state2: QueryModel<T2>,
-    state3: QueryModel<T3>,
-    state4: QueryModel<T4>,
-    key: Any? = null,
-    host: AwaitHost = LocalAwaitHost.current,
-    crossinline content: @Composable (data1: T1, data2: T2, data3: T3, data4: T4) -> Unit
-) {
-    val id = remember(key) { key ?: uuid() }
-    AwaitHandler(state1) { d1 ->
-        AwaitHandler(state2) { d2 ->
-            AwaitHandler(state3) { d3 ->
-                AwaitHandler(state4) { d4 ->
-                    content(d1, d2, d3, d4)
-                }
-            }
-        }
-    }
-    LaunchedEffect(id, state1, state2, state3, state4) {
-        host[id] = listOf(state1, state2, state3, state4).any { it.isAwaited() }
-    }
-    DisposableEffect(id) {
-        onDispose {
-            host.remove(id)
-        }
-    }
-}
-
-/**
- * Await for five [QueryModel] to be fulfilled.
- *
- * The content will be displayed when the queries are fulfilled.
- * The await will be managed by the [AwaitHost].
- *
- * @param T1 Type of data to retrieve.
- * @param T2 Type of data to retrieve.
- * @param T3 Type of data to retrieve.
- * @param T4 Type of data to retrieve.
- * @param T5 Type of data to retrieve.
- * @param state1 The first [QueryModel] to await.
- * @param state2 The second [QueryModel] to await.
- * @param state3 The third [QueryModel] to await.
- * @param state4 The fourth [QueryModel] to await.
- * @param state5 The fifth [QueryModel] to await.
- * @param key The key to identify the await.
- * @param host The [AwaitHost] to manage the await. By default, it uses the [LocalAwaitHost].
- * @param content The content to display when the queries are fulfilled.
- */
-@Composable
-inline fun <T1, T2, T3, T4, T5> Await(
-    state1: QueryModel<T1>,
-    state2: QueryModel<T2>,
-    state3: QueryModel<T3>,
-    state4: QueryModel<T4>,
-    state5: QueryModel<T5>,
-    key: Any? = null,
-    host: AwaitHost = LocalAwaitHost.current,
-    crossinline content: @Composable (data1: T1, data2: T2, data3: T3, data4: T4, data5: T5) -> Unit
-) {
-    val id = remember(key) { key ?: uuid() }
-    AwaitHandler(state1) { d1 ->
-        AwaitHandler(state2) { d2 ->
-            AwaitHandler(state3) { d3 ->
-                AwaitHandler(state4) { d4 ->
-                    AwaitHandler(state5) { d5 ->
-                        content(d1, d2, d3, d4, d5)
-                    }
-                }
-            }
-        }
-    }
-    LaunchedEffect(id, state1, state2, state3, state4) {
-        host[id] = listOf(state1, state2, state3, state4).any { it.isAwaited() }
-    }
-    DisposableEffect(id) {
-        onDispose {
-            host.remove(id)
-        }
-    }
-}
-
-/**
- * Await for [QueryModel] to be fulfilled.
- *
- * This function is part of the [Await].
- * It is used to handle the [QueryModel] state and display the content when the query is fulfilled.
- *
- * @param T Type of data to retrieve.
- * @param state The [QueryModel] to await.
- * @param content The content to display when the query is fulfilled.
- */
-@Suppress("UNCHECKED_CAST")
-@Composable
-fun <T> AwaitHandler(
-    state: QueryModel<T>,
-    content: @Composable (data: T) -> Unit
-) {
-    when (state) {
-        is QuerySuccessObject<T> -> content(state.data)
-        is QueryRefreshErrorObject<T> -> content(state.data)
-        is QueryLoadingErrorObject<T>,
-        is QueryLoadingObject<T> -> Unit
-
-        is InfiniteQuerySuccessObject<T, *> -> content(state.data)
-        is InfiniteQueryRefreshErrorObject<T, *> -> content(state.data)
-        is InfiniteQueryLoadingErrorObject<T, *>,
-        is InfiniteQueryLoadingObject<T, *> -> Unit
-
-        else -> {
-            if (state.isSuccess || (state.isFailure && state.dataUpdatedAt > 0)) {
-                content(state.data as T)
-            }
-        }
-    }
-}
-
-/**
- * Returns true if the [QueryModel] is awaited.
- */
-fun QueryModel<*>.isAwaited(): Boolean {
-    return isPending
-        || (isFailure && fetchStatus == QueryFetchStatus.Fetching)
-        || (isInvalidated && fetchStatus == QueryFetchStatus.Fetching)
 }

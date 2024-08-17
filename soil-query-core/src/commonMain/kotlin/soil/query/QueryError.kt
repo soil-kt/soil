@@ -25,11 +25,11 @@ class QueryError @PublishedApi internal constructor(
                 message=${exception.message},
                 key=$key,
                 model={
-                    dataUpdatedAt=${model.dataUpdatedAt},
-                    dataStaleAt=${model.dataStaleAt},
+                    replyUpdatedAt=${model.replyUpdatedAt},
                     errorUpdatedAt=${model.errorUpdatedAt},
+                    staleAt=${model.staleAt},
                     status=${model.status},
-                    isInvalidated=${model.isInvalidated},
+                    isInvalidated=${model.isInvalidated}
                 }
             )
         """.trimIndent()
