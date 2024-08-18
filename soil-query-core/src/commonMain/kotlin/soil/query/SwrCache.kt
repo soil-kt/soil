@@ -392,7 +392,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         return coroutineScope.launch {
             try {
                 withTimeoutOrNull(query.options.prefetchWindowTime) {
-                    query.prefetch()
+                    query.resume()
                 }
             } finally {
                 scope.cancel()
@@ -406,7 +406,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         return coroutineScope.launch {
             try {
                 withTimeoutOrNull(query.options.prefetchWindowTime) {
-                    query.prefetch()
+                    query.resume()
                 }
             } finally {
                 scope.cancel()

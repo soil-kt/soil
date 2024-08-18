@@ -37,6 +37,13 @@ data class QueryState<T> internal constructor(
     companion object {
 
         /**
+         * Creates a new [QueryState] with the [QueryStatus.Pending] status.
+         */
+        fun <T> initial(): QueryState<T> {
+            return QueryState()
+        }
+
+        /**
          * Creates a new [QueryState] with the [QueryStatus.Success] status.
          *
          * @param data The data to be stored in the state.

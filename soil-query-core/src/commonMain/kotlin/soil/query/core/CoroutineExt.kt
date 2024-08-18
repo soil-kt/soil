@@ -3,6 +3,7 @@
 
 package soil.query.core
 
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.coroutineScope
@@ -57,5 +58,16 @@ internal fun <T> Flow<T>.chunkedWithTimeout(
                 tickerTimeout.cancel()
             }
         }
+    }
+}
+
+/**
+ * Returns null if an exception, including cancellation, occurs.
+ */
+internal suspend fun <T> Deferred<T>.awaitOrNull(): T? {
+    return try {
+        await()
+    } catch (e: Throwable) {
+        null
     }
 }

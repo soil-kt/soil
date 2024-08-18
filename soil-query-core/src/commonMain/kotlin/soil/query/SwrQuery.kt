@@ -3,13 +3,10 @@
 
 package soil.query
 
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlin.coroutines.cancellation.CancellationException
 
 internal class SwrQuery<T>(
     override val key: QueryKey<T>,
@@ -36,21 +33,5 @@ internal class SwrQuery<T>(
             QueryEvent.Invalidate -> invalidate()
             QueryEvent.Resume -> resume()
         }
-    }
-}
-
-/**
- * Prefetches the Query.
- */
-internal suspend fun <T> QueryRef<T>.prefetch(): Boolean {
-    val deferred = CompletableDeferred<T>()
-    send(QueryCommands.Connect(key, state.value.revision, deferred::completeWith))
-    return try {
-        deferred.await()
-        true
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: Throwable) {
-        false
     }
 }

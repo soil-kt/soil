@@ -34,9 +34,7 @@ fun <T, S> rememberMutation(
     val scope = rememberCoroutineScope()
     val mutation = remember(key) { client.getMutation(key).also { it.launchIn(scope) } }
     val state by mutation.state.collectAsState()
-    return remember(mutation, state) {
-        state.toObject(mutation = mutation)
-    }
+    return state.toObject(mutation = mutation)
 }
 
 private fun <T, S> MutationState<T>.toObject(

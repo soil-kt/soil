@@ -3,8 +3,11 @@
 
 package soil.query
 
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.flow.StateFlow
 import soil.query.core.Actor
+import soil.query.core.awaitOrNull
 
 /**
  * A reference to an Query for [InfiniteQueryKey].
@@ -31,19 +34,25 @@ interface InfiniteQueryRef<T, S> : Actor {
  * setting [QueryModel.isInvalidated] to `true` until revalidation is completed.
  */
 suspend fun <T, S> InfiniteQueryRef<T, S>.invalidate() {
-    send(InfiniteQueryCommands.Invalidate(key, state.value.revision))
+    val deferred = CompletableDeferred<QueryChunks<T, S>>()
+    send(InfiniteQueryCommands.Invalidate(key, state.value.revision, deferred::completeWith))
+    deferred.awaitOrNull()
 }
 
 /**
  * Resumes the Query.
  */
 suspend fun <T, S> InfiniteQueryRef<T, S>.resume() {
-    send(InfiniteQueryCommands.Connect(key, state.value.revision))
+    val deferred = CompletableDeferred<QueryChunks<T, S>>()
+    send(InfiniteQueryCommands.Connect(key, state.value.revision, deferred::completeWith))
+    deferred.awaitOrNull()
 }
 
 /**
  * Fetches data for the [InfiniteQueryKey] using the value of [param].
  */
 suspend fun <T, S> InfiniteQueryRef<T, S>.loadMore(param: S) {
-    send(InfiniteQueryCommands.LoadMore(key, param))
+    val deferred = CompletableDeferred<QueryChunks<T, S>>()
+    send(InfiniteQueryCommands.LoadMore(key, param, deferred::completeWith))
+    deferred.awaitOrNull()
 }

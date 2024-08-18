@@ -4,9 +4,6 @@
 package soil.query.compose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import soil.query.InfiniteQueryKey
@@ -20,7 +17,6 @@ import soil.query.core.isNone
 import soil.query.core.map
 import soil.query.invalidate
 import soil.query.loadMore
-import soil.query.resume
 
 /**
  * Remember a [InfiniteQueryObject] and subscribes to the query state of [key].
@@ -34,17 +30,12 @@ import soil.query.resume
 @Composable
 fun <T, S> rememberInfiniteQuery(
     key: InfiniteQueryKey<T, S>,
+    strategy: QueryCachingStrategy = QueryCachingStrategy,
     client: QueryClient = LocalQueryClient.current
 ): InfiniteQueryObject<QueryChunks<T, S>, S> {
     val scope = rememberCoroutineScope()
     val query = remember(key) { client.getInfiniteQuery(key).also { it.launchIn(scope) } }
-    val state by query.state.collectAsState()
-    LaunchedEffect(query) {
-        query.resume()
-    }
-    return remember(query, state) {
-        state.toInfiniteObject(query = query, select = { it })
-    }
+    return strategy.collectAsState(query).toInfiniteObject(query = query, select = { it })
 }
 
 /**
@@ -61,17 +52,12 @@ fun <T, S> rememberInfiniteQuery(
 fun <T, S, U> rememberInfiniteQuery(
     key: InfiniteQueryKey<T, S>,
     select: (chunks: QueryChunks<T, S>) -> U,
+    strategy: QueryCachingStrategy = QueryCachingStrategy,
     client: QueryClient = LocalQueryClient.current
 ): InfiniteQueryObject<U, S> {
     val scope = rememberCoroutineScope()
     val query = remember(key) { client.getInfiniteQuery(key).also { it.launchIn(scope) } }
-    val state by query.state.collectAsState()
-    LaunchedEffect(query) {
-        query.resume()
-    }
-    return remember(query, state) {
-        state.toInfiniteObject(query = query, select = select)
-    }
+    return strategy.collectAsState(query).toInfiniteObject(query = query, select = select)
 }
 
 private fun <T, S, U> QueryState<QueryChunks<T, S>>.toInfiniteObject(
