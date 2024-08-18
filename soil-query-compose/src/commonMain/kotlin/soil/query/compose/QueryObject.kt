@@ -46,7 +46,6 @@ data class QueryLoadingObject<T> internal constructor(
     override val staleAt: Long,
     override val fetchStatus: QueryFetchStatus,
     override val isInvalidated: Boolean,
-    override val isPlaceholderData: Boolean,
     override val refresh: suspend () -> Unit
 ) : QueryObject<T> {
     override val status: QueryStatus = QueryStatus.Pending
@@ -67,7 +66,6 @@ data class QueryLoadingErrorObject<T> internal constructor(
     override val staleAt: Long,
     override val fetchStatus: QueryFetchStatus,
     override val isInvalidated: Boolean,
-    override val isPlaceholderData: Boolean,
     override val refresh: suspend () -> Unit
 ) : QueryObject<T> {
     override val status: QueryStatus = QueryStatus.Failure
@@ -88,7 +86,6 @@ data class QuerySuccessObject<T> internal constructor(
     override val staleAt: Long,
     override val fetchStatus: QueryFetchStatus,
     override val isInvalidated: Boolean,
-    override val isPlaceholderData: Boolean,
     override val refresh: suspend () -> Unit
 ) : QueryObject<T> {
     override val status: QueryStatus = QueryStatus.Success
@@ -112,7 +109,6 @@ data class QueryRefreshErrorObject<T> internal constructor(
     override val staleAt: Long,
     override val fetchStatus: QueryFetchStatus,
     override val isInvalidated: Boolean,
-    override val isPlaceholderData: Boolean,
     override val refresh: suspend () -> Unit
 ) : QueryObject<T> {
     override val status: QueryStatus = QueryStatus.Failure

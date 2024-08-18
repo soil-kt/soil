@@ -33,7 +33,6 @@ import soil.query.core.MemoryPressure
 import soil.query.core.MemoryPressureLevel
 import soil.query.core.NetworkConnectivity
 import soil.query.core.NetworkConnectivityEvent
-import soil.query.core.Reply
 import soil.query.core.SurrogateKey
 import soil.query.core.TimeBasedCache
 import soil.query.core.UniqueId
@@ -330,13 +329,9 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     }
 
     private fun <T> newQueryState(key: QueryKey<T>): QueryState<T> {
-        val onPlaceholderData = key.onPlaceholderData() ?: return QueryState()
-        val placeholderData = with(this) { onPlaceholderData() } ?: return QueryState()
-        return QueryState(
-            reply = Reply(placeholderData),
-            status = QueryStatus.Success,
-            isPlaceholderData = true
-        )
+        val onInitialData = key.onInitialData() ?: return QueryState()
+        val initialData = with(this) { onInitialData() } ?: return QueryState()
+        return QueryState.success(data = initialData, dataUpdatedAt = 0)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -352,7 +347,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     private fun <T> saveToCache(query: ManagedQuery<T>) {
         val lastValue = query.state.value
         val ttl = query.options.gcTime
-        if (lastValue.isSuccess && !lastValue.isPlaceholderData && ttl.isPositive()) {
+        if (lastValue.isSuccess && ttl.isPositive()) {
             queryCache.set(query.id, lastValue, ttl)
             query.options.vvv(query.id) { "cached(ttl=$ttl)" }
         }
@@ -369,7 +364,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
             query = newInfiniteQuery(
                 id = id,
                 options = options,
-                initialValue = queryCache[id] as? QueryState<QueryChunks<T, S>> ?: newInfiniteQueryState(key)
+                initialValue = queryCache[id] as? QueryState<QueryChunks<T, S>> ?: QueryState()
             ).also { queryStore[id] = it }
         }
         return SwrInfiniteQuery(
@@ -388,18 +383,6 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
             id = id,
             options = options,
             initialValue = initialValue
-        )
-    }
-
-    private fun <T, S> newInfiniteQueryState(
-        key: InfiniteQueryKey<T, S>
-    ): QueryState<QueryChunks<T, S>> {
-        val onPlaceholderData = key.onPlaceholderData() ?: return QueryState()
-        val placeholderData = with(this) { onPlaceholderData() } ?: return QueryState()
-        return QueryState(
-            reply = Reply(placeholderData),
-            status = QueryStatus.Success,
-            isPlaceholderData = true
         )
     }
 

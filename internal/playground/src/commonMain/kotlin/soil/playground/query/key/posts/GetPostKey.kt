@@ -4,8 +4,8 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import soil.playground.query.data.Post
 import soil.query.QueryId
+import soil.query.QueryInitialData
 import soil.query.QueryKey
-import soil.query.QueryPlaceholderData
 import soil.query.chunkedData
 import soil.query.receivers.ktor.buildKtorQueryKey
 
@@ -16,7 +16,7 @@ class GetPostKey(private val postId: Int) : QueryKey<Post> by buildKtorQueryKey(
     }
 ) {
 
-    override fun onPlaceholderData(): QueryPlaceholderData<Post> = {
+    override fun onInitialData(): QueryInitialData<Post> = {
         getInfiniteQueryData(GetPostsKey.Id())?.let {
             it.chunkedData.firstOrNull { post -> post.id == postId }
         }

@@ -48,7 +48,7 @@ interface QueryClient {
 /**
  * Interface for directly accessing retrieved [Query] data by [QueryClient].
  *
- * [QueryPlaceholderData] is designed to calculate initial data from other [Query].
+ * [QueryInitialData] is designed to calculate initial data from other [Query].
  * This is useful when the type included in the list on the overview screen matches the type of content on the detailed screen.
  */
 interface QueryReadonlyClient {
@@ -123,7 +123,7 @@ interface QueryMutableClient : QueryReadonlyClient {
     fun <U : UniqueId> resumeQueriesBy(vararg ids: U)
 }
 
-typealias QueryPlaceholderData<T> = QueryReadonlyClient.() -> T?
+typealias QueryInitialData<T> = QueryReadonlyClient.() -> T?
 typealias QueryEffect = QueryMutableClient.() -> Unit
 
 typealias QueryRecoverData<T> = (error: Throwable) -> T
