@@ -39,21 +39,21 @@ interface QueryKey<T> {
     fun onConfigureOptions(): QueryOptionsOverride? = null
 
     /**
-     * Function to specify placeholder data.
+     * Function to specify initial data.
      *
-     * You can specify placeholder data instead of the initial loading state.
+     * You can specify initial data instead of the initial loading state.
      *
      * ```kotlin
-     * override fun onPlaceholderData(): QueryPlaceholderData<User> = {
+     * override fun onInitialData(): QueryInitialData<User> = {
      *     getInfiniteQueryData(GetUsersKey.Id())?.let {
      *         it.chunkedData.firstOrNull { user -> user.id == userId }
      *     }
      * }
      * ```
      *
-     * @see QueryPlaceholderData
+     * @see QueryInitialData
      */
-    fun onPlaceholderData(): QueryPlaceholderData<T>? = null
+    fun onInitialData(): QueryInitialData<T>? = null
 
     /**
      * Function to convert specific exceptions as data.

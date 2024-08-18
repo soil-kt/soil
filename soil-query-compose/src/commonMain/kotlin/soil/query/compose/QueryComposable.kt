@@ -83,7 +83,6 @@ private fun <T, U> QueryState<T>.toObject(
             staleAt = staleAt,
             fetchStatus = fetchStatus,
             isInvalidated = isInvalidated,
-            isPlaceholderData = isPlaceholderData,
             refresh = query::invalidate
         )
 
@@ -95,7 +94,6 @@ private fun <T, U> QueryState<T>.toObject(
             staleAt = staleAt,
             fetchStatus = fetchStatus,
             isInvalidated = isInvalidated,
-            isPlaceholderData = isPlaceholderData,
             refresh = query::invalidate
         )
 
@@ -108,7 +106,6 @@ private fun <T, U> QueryState<T>.toObject(
                 staleAt = staleAt,
                 fetchStatus = fetchStatus,
                 isInvalidated = isInvalidated,
-                isPlaceholderData = isPlaceholderData,
                 refresh = query::invalidate
             )
         } else {
@@ -120,7 +117,6 @@ private fun <T, U> QueryState<T>.toObject(
                 errorUpdatedAt = errorUpdatedAt,
                 fetchStatus = fetchStatus,
                 isInvalidated = isInvalidated,
-                isPlaceholderData = isPlaceholderData,
                 refresh = query::invalidate
             )
         }

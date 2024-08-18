@@ -51,7 +51,6 @@ fun <T> QueryCommand.Context<T>.shouldFetch(revision: String? = null): Boolean {
         return false
     }
     return state.isInvalidated
-        || state.isPlaceholderData
         || state.isPending
         || state.isStaled()
 }

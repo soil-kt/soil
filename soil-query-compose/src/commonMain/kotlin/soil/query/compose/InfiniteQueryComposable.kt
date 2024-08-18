@@ -87,7 +87,6 @@ private fun <T, S, U> QueryState<QueryChunks<T, S>>.toInfiniteObject(
             staleAt = staleAt,
             fetchStatus = fetchStatus,
             isInvalidated = isInvalidated,
-            isPlaceholderData = isPlaceholderData,
             refresh = query::invalidate,
             loadMore = query::loadMore,
             loadMoreParam = null
@@ -101,7 +100,6 @@ private fun <T, S, U> QueryState<QueryChunks<T, S>>.toInfiniteObject(
             staleAt = staleAt,
             fetchStatus = fetchStatus,
             isInvalidated = isInvalidated,
-            isPlaceholderData = isPlaceholderData,
             refresh = query::invalidate,
             loadMore = query::loadMore,
             loadMoreParam = query.key.loadMoreParam(reply.getOrThrow())
@@ -116,7 +114,6 @@ private fun <T, S, U> QueryState<QueryChunks<T, S>>.toInfiniteObject(
                 staleAt = staleAt,
                 fetchStatus = fetchStatus,
                 isInvalidated = isInvalidated,
-                isPlaceholderData = isPlaceholderData,
                 refresh = query::invalidate,
                 loadMore = query::loadMore,
                 loadMoreParam = null
@@ -130,7 +127,6 @@ private fun <T, S, U> QueryState<QueryChunks<T, S>>.toInfiniteObject(
                 staleAt = staleAt,
                 fetchStatus = fetchStatus,
                 isInvalidated = isInvalidated,
-                isPlaceholderData = isPlaceholderData,
                 refresh = query::invalidate,
                 loadMore = query::loadMore,
                 loadMoreParam = query.key.loadMoreParam(reply.getOrThrow())

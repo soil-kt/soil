@@ -37,7 +37,7 @@ sealed class InfiniteQueryCommands<T, S> : QueryCommand<QueryChunks<T, S>> {
             }
             ctx.dispatch(QueryAction.Fetching())
             val chunks = ctx.state.reply.getOrNull()
-            if (chunks.isNullOrEmpty() || ctx.state.isPlaceholderData) {
+            if (chunks.isNullOrEmpty()) {
                 ctx.dispatchFetchChunksResult(key, key.initialParam(), callback)
             } else {
                 ctx.dispatchRevalidateChunksResult(key, chunks, callback)
@@ -66,7 +66,7 @@ sealed class InfiniteQueryCommands<T, S> : QueryCommand<QueryChunks<T, S>> {
             }
             ctx.dispatch(QueryAction.Fetching(isInvalidated = true))
             val chunks = ctx.state.reply.getOrNull()
-            if (chunks.isNullOrEmpty() || ctx.state.isPlaceholderData) {
+            if (chunks.isNullOrEmpty()) {
                 ctx.dispatchFetchChunksResult(key, key.initialParam(), callback)
             } else {
                 ctx.dispatchRevalidateChunksResult(key, chunks, callback)

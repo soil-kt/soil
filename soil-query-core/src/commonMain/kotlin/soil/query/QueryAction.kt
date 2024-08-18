@@ -88,8 +88,7 @@ fun <T> createQueryReducer(): QueryReducer<T> = { state, action ->
                 staleAt = action.dataStaleAt,
                 status = QueryStatus.Success,
                 fetchStatus = QueryFetchStatus.Idle,
-                isInvalidated = false,
-                isPlaceholderData = false
+                isInvalidated = false
             )
         }
 

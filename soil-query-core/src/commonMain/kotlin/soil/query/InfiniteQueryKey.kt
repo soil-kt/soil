@@ -48,15 +48,6 @@ interface InfiniteQueryKey<T, S> {
     fun onConfigureOptions(): QueryOptionsOverride? = null
 
     /**
-     * Function to specify placeholder data.
-     *
-     * You can specify placeholder data instead of the initial loading state.
-     *
-     * @see QueryPlaceholderData
-     */
-    fun onPlaceholderData(): QueryPlaceholderData<QueryChunks<T, S>>? = null
-
-    /**
      * Function to convert specific exceptions as data.
      *
      * Depending on the type of exception that occurred during data retrieval, it is possible to recover it as normal data.

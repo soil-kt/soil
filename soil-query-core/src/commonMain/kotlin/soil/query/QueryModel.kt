@@ -37,11 +37,6 @@ interface QueryModel<out T> : DataModel<T> {
     val isInvalidated: Boolean
 
     /**
-     * Returns `true` if the query is placeholder data, `false` otherwise.
-     */
-    val isPlaceholderData: Boolean
-
-    /**
      * The revision of the currently snapshot.
      */
     val revision: String get() = "d-$replyUpdatedAt/e-$errorUpdatedAt"

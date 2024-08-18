@@ -17,8 +17,7 @@ data class QueryState<T> internal constructor(
     override val staleAt: Long = 0,
     override val status: QueryStatus = QueryStatus.Pending,
     override val fetchStatus: QueryFetchStatus = QueryFetchStatus.Idle,
-    override val isInvalidated: Boolean = false,
-    override val isPlaceholderData: Boolean = false
+    override val isInvalidated: Boolean = false
 ) : QueryModel<T> {
 
     /**

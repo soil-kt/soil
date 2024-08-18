@@ -58,7 +58,6 @@ data class InfiniteQueryLoadingObject<T, S> internal constructor(
     override val staleAt: Long,
     override val fetchStatus: QueryFetchStatus,
     override val isInvalidated: Boolean,
-    override val isPlaceholderData: Boolean,
     override val refresh: suspend () -> Unit,
     override val loadMore: suspend (param: S) -> Unit,
     override val loadMoreParam: S?
@@ -83,7 +82,6 @@ data class InfiniteQueryLoadingErrorObject<T, S> internal constructor(
     override val staleAt: Long,
     override val fetchStatus: QueryFetchStatus,
     override val isInvalidated: Boolean,
-    override val isPlaceholderData: Boolean,
     override val refresh: suspend () -> Unit,
     override val loadMore: suspend (param: S) -> Unit,
     override val loadMoreParam: S?
@@ -108,7 +106,6 @@ data class InfiniteQuerySuccessObject<T, S> internal constructor(
     override val staleAt: Long,
     override val fetchStatus: QueryFetchStatus,
     override val isInvalidated: Boolean,
-    override val isPlaceholderData: Boolean,
     override val refresh: suspend () -> Unit,
     override val loadMore: suspend (param: S) -> Unit,
     override val loadMoreParam: S?
@@ -135,7 +132,6 @@ data class InfiniteQueryRefreshErrorObject<T, S> internal constructor(
     override val staleAt: Long,
     override val fetchStatus: QueryFetchStatus,
     override val isInvalidated: Boolean,
-    override val isPlaceholderData: Boolean,
     override val refresh: suspend () -> Unit,
     override val loadMore: suspend (param: S) -> Unit,
     override val loadMoreParam: S?
