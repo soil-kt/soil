@@ -3,8 +3,11 @@
 
 package soil.query
 
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.flow.StateFlow
 import soil.query.core.Actor
+import soil.query.core.awaitOrNull
 
 /**
  * A reference to an Query for [QueryKey].
@@ -30,12 +33,16 @@ interface QueryRef<T> : Actor {
  * setting [QueryModel.isInvalidated] to `true` until revalidation is completed.
  */
 suspend fun <T> QueryRef<T>.invalidate() {
-    send(QueryCommands.Invalidate(key, state.value.revision))
+    val deferred = CompletableDeferred<T>()
+    send(QueryCommands.Invalidate(key, state.value.revision, deferred::completeWith))
+    deferred.awaitOrNull()
 }
 
 /**
  * Resumes the Query.
  */
 suspend fun <T> QueryRef<T>.resume() {
-    send(QueryCommands.Connect(key, state.value.revision))
+    val deferred = CompletableDeferred<T>()
+    send(QueryCommands.Connect(key, state.value.revision, deferred::completeWith))
+    deferred.awaitOrNull()
 }

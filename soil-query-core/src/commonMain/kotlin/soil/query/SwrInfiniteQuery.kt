@@ -3,11 +3,8 @@
 
 package soil.query
 
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
@@ -36,21 +33,5 @@ internal class SwrInfiniteQuery<T, S>(
             QueryEvent.Invalidate -> invalidate()
             QueryEvent.Resume -> resume()
         }
-    }
-}
-
-/**
- * Prefetches the Query.
- */
-internal suspend fun <T, S> InfiniteQueryRef<T, S>.prefetch(): Boolean {
-    val deferred = CompletableDeferred<QueryChunks<T, S>>()
-    send(InfiniteQueryCommands.Connect(key, state.value.revision, deferred::completeWith))
-    return try {
-        deferred.await()
-        true
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: Throwable) {
-        false
     }
 }

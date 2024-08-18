@@ -37,6 +37,7 @@ kotlin {
         commonMain.dependencies {
             api(projects.soilQueryCore)
             implementation(compose.runtime)
+            implementation(compose.runtimeSaveable)
         }
 
         commonTest.dependencies {

@@ -20,6 +20,13 @@ data class MutationState<T> internal constructor(
     companion object {
 
         /**
+         * Creates a new [MutationState] with the [MutationStatus.Idle] status.
+         */
+        fun <T> initial(): MutationState<T> {
+            return MutationState()
+        }
+
+        /**
          * Creates a new [MutationState] with the [MutationStatus.Success] status.
          *
          * @param data The data to be stored in the state.

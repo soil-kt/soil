@@ -4,9 +4,6 @@
 package soil.query.compose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import soil.query.QueryClient
@@ -17,7 +14,6 @@ import soil.query.QueryStatus
 import soil.query.core.isNone
 import soil.query.core.map
 import soil.query.invalidate
-import soil.query.resume
 
 /**
  * Remember a [QueryObject] and subscribes to the query state of [key].
@@ -30,17 +26,12 @@ import soil.query.resume
 @Composable
 fun <T> rememberQuery(
     key: QueryKey<T>,
+    strategy: QueryCachingStrategy = QueryCachingStrategy,
     client: QueryClient = LocalQueryClient.current
 ): QueryObject<T> {
     val scope = rememberCoroutineScope()
     val query = remember(key) { client.getQuery(key).also { it.launchIn(scope) } }
-    val state by query.state.collectAsState()
-    LaunchedEffect(query) {
-        query.resume()
-    }
-    return remember(query, state) {
-        state.toObject(query = query, select = { it })
-    }
+    return strategy.collectAsState(query).toObject(query = query, select = { it })
 }
 
 /**
@@ -57,17 +48,12 @@ fun <T> rememberQuery(
 fun <T, U> rememberQuery(
     key: QueryKey<T>,
     select: (T) -> U,
+    strategy: QueryCachingStrategy = QueryCachingStrategy,
     client: QueryClient = LocalQueryClient.current
 ): QueryObject<U> {
     val scope = rememberCoroutineScope()
     val query = remember(key) { client.getQuery(key).also { it.launchIn(scope) } }
-    val state by query.state.collectAsState()
-    LaunchedEffect(query) {
-        query.resume()
-    }
-    return remember(query, state) {
-        state.toObject(query = query, select = select)
-    }
+    return strategy.collectAsState(query).toObject(query = query, select = select)
 }
 
 private fun <T, U> QueryState<T>.toObject(
