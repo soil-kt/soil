@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.dokka)
+    alias(libs.plugins.kover)
 }
 
 val buildTarget = the<BuildTargetExtension>()
@@ -72,3 +73,12 @@ android {
         debugImplementation(libs.compose.ui.tooling)
     }
 }
+
+kover {
+    currentProject {
+        createVariant("soil") {
+            add("debug")
+        }
+    }
+}
+

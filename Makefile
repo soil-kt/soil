@@ -22,6 +22,10 @@ test:
 fmt:
 	@$(GRADLE_CMD) spotlessApply
 
+.PHONY: kover
+kover:
+	@$(GRADLE_CMD) koverHtmlReport
+
 .PHONY: dokka
 dokka:
 	@$(GRADLE_CMD) dokkaHtmlMultiModule
