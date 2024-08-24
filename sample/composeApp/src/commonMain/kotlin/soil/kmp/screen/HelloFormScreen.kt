@@ -19,12 +19,14 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.serialization.ExperimentalSerializationApi
 import soil.form.compose.Controller
 import soil.form.compose.FieldControl
 import soil.form.compose.Form
 import soil.form.compose.FormScope
 import soil.form.compose.rememberFieldRuleControl
 import soil.form.compose.rememberSubmissionRuleAutoControl
+import soil.form.compose.serializationSaver
 import soil.form.rule.StringRuleBuilder
 import soil.form.rule.StringRuleTester
 import soil.form.rule.notBlank
@@ -57,7 +59,7 @@ fun HelloFormScreen() {
 
 // The form input fields are based on the Live Demo used in React Hook Form.
 // You can reference it here: https://react-hook-form.com/
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalSerializationApi::class)
 @Composable
 private fun HelloFormContent(
     onSubmitted: (FormData) -> Unit,
@@ -72,7 +74,8 @@ private fun HelloFormContent(
         },
         initialValue = FormData(),
         modifier = modifier,
-        key = formVersion
+        key = formVersion,
+        saver = serializationSaver()
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),

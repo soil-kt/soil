@@ -1,7 +1,12 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.compose.multiplatform) apply false
+    alias(libs.plugins.kotlin.compose.compiler) apply false
     alias(libs.plugins.kotlin.multiplatform) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.maven.publish) apply false
@@ -15,6 +20,20 @@ allprojects {
         androidMinSdk = providers.gradleProperty("androidMinSdk").map { it.toInt() }
         androidTargetSdk = providers.gradleProperty("androidTargetSdk").map { it.toInt() }
         javaVersion = provider { JavaVersion.VERSION_11 }
+    }
+
+    tasks.withType<KotlinJvmCompile>().configureEach {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
+        }
+    }
+
+    tasks.withType<KotlinCompilationTask<*>>().configureEach {
+        compilerOptions {
+            // Note: Kotlin 2.0.20 ~
+            // https://kotlinlang.org/docs/whatsnew2020.html#data-class-copy-function-to-have-the-same-visibility-as-constructor
+            freeCompilerArgs.add("-Xconsistent-data-class-copy-visibility")
+        }
     }
 
     apply(plugin = "com.diffplug.spotless")

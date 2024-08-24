@@ -1,12 +1,13 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+
 
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.kotlin.compose.compiler)
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
-    id("kotlin-parcelize")
 }
 
 val buildTarget = the<BuildTargetExtension>()
@@ -16,11 +17,6 @@ kotlin {
 
     jvm()
     androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = buildTarget.javaVersion.get().toString()
-            }
-        }
         publishLibraryVariants("release")
     }
 
@@ -87,7 +83,7 @@ kotlin {
             }
         }
 
-        named("wasmJsMain") {
+        wasmJsMain {
             dependsOn(skikoMain)
         }
     }

@@ -1,14 +1,14 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.kotlin.compose.compiler)
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
-    id("kotlin-parcelize")
 }
 
 val buildTarget = the<BuildTargetExtension>()
@@ -33,13 +33,7 @@ kotlin {
         binaries.executable()
     }
 
-    androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = buildTarget.javaVersion.get().toString()
-            }
-        }
-    }
+    androidTarget()
 
     jvm("desktop")
 
@@ -114,7 +108,7 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
         }
 
-        named("wasmJsMain") {
+        wasmJsMain {
             dependsOn(skikoMain)
         }
     }
@@ -164,8 +158,4 @@ compose.desktop {
             packageVersion = "1.0.0"
         }
     }
-}
-
-compose.experimental {
-    web.application {}
 }
