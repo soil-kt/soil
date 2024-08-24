@@ -24,7 +24,7 @@ interface InfiniteQueryRef<T, S> : Actor {
     /**
      * Sends a [QueryCommand] to the Actor.
      */
-    suspend fun send(command: QueryCommand<QueryChunks<T, S>>)
+    suspend fun send(command: InfiniteQueryCommand<T, S>)
 }
 
 /**

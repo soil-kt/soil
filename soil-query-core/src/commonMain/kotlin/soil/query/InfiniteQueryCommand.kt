@@ -9,6 +9,14 @@ import soil.query.core.getOrElse
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
+ * Query command for [InfiniteQueryKey].
+ *
+ * @param T Type of data to retrieve.
+ * @param S Type of parameter.
+ */
+interface InfiniteQueryCommand<T, S> : QueryCommand<QueryChunks<T, S>>
+
+/**
  * Fetches data for the [InfiniteQueryKey] using the value of [variable].
  *
  * @receiver [QueryCommand.Context] for [InfiniteQueryKey].

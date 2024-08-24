@@ -8,13 +8,7 @@ import soil.query.core.getOrNull
 import soil.query.core.vvv
 import kotlin.coroutines.cancellation.CancellationException
 
-/**
- * Query command for [InfiniteQueryKey].
- *
- * @param T Type of data to retrieve.
- * @param S Type of parameter.
- */
-sealed class InfiniteQueryCommands<T, S> : QueryCommand<QueryChunks<T, S>> {
+object InfiniteQueryCommands {
 
     /**
      * Performs data fetching and validation based on the current data state.
@@ -24,11 +18,11 @@ sealed class InfiniteQueryCommands<T, S> : QueryCommand<QueryChunks<T, S>> {
      * @param key Instance of a class implementing [InfiniteQueryKey].
      * @param revision The revision of the data to be fetched.
      */
-    data class Connect<T, S>(
+    class Connect<T, S>(
         val key: InfiniteQueryKey<T, S>,
         val revision: String? = null,
         val callback: QueryCallback<QueryChunks<T, S>>? = null
-    ) : InfiniteQueryCommands<T, S>() {
+    ) : InfiniteQueryCommand<T, S> {
         override suspend fun handle(ctx: QueryCommand.Context<QueryChunks<T, S>>) {
             if (!ctx.shouldFetch(revision)) {
                 ctx.options.vvv(key.id) { "skip fetch(shouldFetch=false)" }
@@ -53,11 +47,11 @@ sealed class InfiniteQueryCommands<T, S> : QueryCommand<QueryChunks<T, S>> {
      * @param key Instance of a class implementing [InfiniteQueryKey].
      * @param revision The revision of the data to be invalidated.
      */
-    data class Invalidate<T, S>(
+    class Invalidate<T, S>(
         val key: InfiniteQueryKey<T, S>,
         val revision: String,
         val callback: QueryCallback<QueryChunks<T, S>>? = null
-    ) : InfiniteQueryCommands<T, S>() {
+    ) : InfiniteQueryCommand<T, S> {
         override suspend fun handle(ctx: QueryCommand.Context<QueryChunks<T, S>>) {
             if (ctx.state.revision != revision) {
                 ctx.options.vvv(key.id) { "skip fetch(revision is not matched)" }
@@ -80,11 +74,11 @@ sealed class InfiniteQueryCommands<T, S> : QueryCommand<QueryChunks<T, S>> {
      * @param key Instance of a class implementing [InfiniteQueryKey].
      * @param param The parameter required for fetching data for [InfiniteQueryKey].
      */
-    data class LoadMore<T, S>(
+    class LoadMore<T, S>(
         val key: InfiniteQueryKey<T, S>,
         val param: S,
         val callback: QueryCallback<QueryChunks<T, S>>? = null
-    ) : InfiniteQueryCommands<T, S>() {
+    ) : InfiniteQueryCommand<T, S> {
         override suspend fun handle(ctx: QueryCommand.Context<QueryChunks<T, S>>) {
             val chunks = ctx.state.reply.getOrElse { emptyList() }
             if (param != key.loadMoreParam(chunks)) {
