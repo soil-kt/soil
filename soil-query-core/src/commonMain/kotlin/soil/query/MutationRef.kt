@@ -24,32 +24,32 @@ interface MutationRef<T, S> : Actor {
      * Sends a [MutationCommand] to the Actor.
      */
     suspend fun send(command: MutationCommand<T>)
-}
 
-/**
- * Mutates the variable.
- *
- * @param variable The variable to be mutated.
- * @return The result of the mutation.
- */
-suspend fun <T, S> MutationRef<T, S>.mutate(variable: S): T {
-    val deferred = CompletableDeferred<T>()
-    send(MutationCommands.Mutate(key, variable, state.value.revision, deferred::completeWith))
-    return deferred.await()
-}
+    /**
+     * Mutates the variable.
+     *
+     * @param variable The variable to be mutated.
+     * @return The result of the mutation.
+     */
+    suspend fun mutate(variable: S): T {
+        val deferred = CompletableDeferred<T>()
+        send(MutationCommands.Mutate(key, variable, state.value.revision, deferred::completeWith))
+        return deferred.await()
+    }
 
-/**
- * Mutates the variable asynchronously.
- *
- * @param variable The variable to be mutated.
- */
-suspend fun <T, S> MutationRef<T, S>.mutateAsync(variable: S) {
-    send(MutationCommands.Mutate(key, variable, state.value.revision))
-}
+    /**
+     * Mutates the variable asynchronously.
+     *
+     * @param variable The variable to be mutated.
+     */
+    suspend fun mutateAsync(variable: S) {
+        send(MutationCommands.Mutate(key, variable, state.value.revision))
+    }
 
-/**
- * Resets the mutation state.
- */
-suspend fun <T, S> MutationRef<T, S>.reset() {
-    send(MutationCommands.Reset())
+    /**
+     * Resets the mutation state.
+     */
+    suspend fun reset() {
+        send(MutationCommands.Reset())
+    }
 }

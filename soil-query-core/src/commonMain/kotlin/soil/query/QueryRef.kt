@@ -24,25 +24,25 @@ interface QueryRef<T> : Actor {
      * Sends a [QueryCommand] to the Actor.
      */
     suspend fun send(command: QueryCommand<T>)
-}
 
-/**
- * Invalidates the Query.
- *
- * Calling this function will invalidate the retrieved data of the Query,
- * setting [QueryModel.isInvalidated] to `true` until revalidation is completed.
- */
-suspend fun <T> QueryRef<T>.invalidate() {
-    val deferred = CompletableDeferred<T>()
-    send(QueryCommands.Invalidate(key, state.value.revision, deferred::completeWith))
-    deferred.awaitOrNull()
-}
+    /**
+     * Resumes the Query.
+     */
+    suspend fun resume() {
+        val deferred = CompletableDeferred<T>()
+        send(QueryCommands.Connect(key, state.value.revision, deferred::completeWith))
+        deferred.awaitOrNull()
+    }
 
-/**
- * Resumes the Query.
- */
-suspend fun <T> QueryRef<T>.resume() {
-    val deferred = CompletableDeferred<T>()
-    send(QueryCommands.Connect(key, state.value.revision, deferred::completeWith))
-    deferred.awaitOrNull()
+    /**
+     * Invalidates the Query.
+     *
+     * Calling this function will invalidate the retrieved data of the Query,
+     * setting [QueryModel.isInvalidated] to `true` until revalidation is completed.
+     */
+    suspend fun invalidate() {
+        val deferred = CompletableDeferred<T>()
+        send(QueryCommands.Invalidate(key, state.value.revision, deferred::completeWith))
+        deferred.awaitOrNull()
+    }
 }
