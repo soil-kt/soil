@@ -6,12 +6,7 @@ package soil.query
 import soil.query.core.vvv
 import kotlin.coroutines.cancellation.CancellationException
 
-/**
- * Mutation commands are used to update the [mutation state][MutationState].
- *
- * @param T Type of the return value from the mutation.
- */
-sealed class MutationCommands<T> : MutationCommand<T> {
+object MutationCommands {
 
     /**
      * Executes the [mutate][MutationKey.mutate] function of the specified [MutationKey].
@@ -22,12 +17,12 @@ sealed class MutationCommands<T> : MutationCommand<T> {
      * @param variable The variable to be mutated.
      * @param revision The revision of the mutation state.
      */
-    data class Mutate<T, S>(
+    class Mutate<T, S>(
         val key: MutationKey<T, S>,
         val variable: S,
         val revision: String,
         val callback: MutationCallback<T>? = null
-    ) : MutationCommands<T>() {
+    ) : MutationCommand<T> {
 
         override suspend fun handle(ctx: MutationCommand.Context<T>) {
             if (!ctx.shouldMutate(revision)) {
@@ -43,7 +38,7 @@ sealed class MutationCommands<T> : MutationCommand<T> {
     /**
      * Resets the mutation state.
      */
-    class Reset<T> : MutationCommands<T>() {
+    class Reset<T> : MutationCommand<T> {
 
         override suspend fun handle(ctx: MutationCommand.Context<T>) {
             ctx.dispatch(MutationAction.Reset)

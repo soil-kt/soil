@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import soil.query.InfiniteQueryCommand
 import soil.query.InfiniteQueryKey
 import soil.query.InfiniteQueryRef
 import soil.query.QueryChunks
@@ -69,6 +70,6 @@ class QueryPreviewClient(
         override val state: StateFlow<QueryState<QueryChunks<T, S>>>
     ) : InfiniteQueryRef<T, S> {
         override fun launchIn(scope: CoroutineScope): Job = Job()
-        override suspend fun send(command: QueryCommand<QueryChunks<T, S>>) = Unit
+        override suspend fun send(command: InfiniteQueryCommand<T, S>) = Unit
     }
 }

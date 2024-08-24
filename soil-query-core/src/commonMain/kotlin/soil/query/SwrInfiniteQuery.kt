@@ -24,7 +24,7 @@ internal class SwrInfiniteQuery<T, S>(
         }
     }
 
-    override suspend fun send(command: QueryCommand<QueryChunks<T, S>>) {
+    override suspend fun send(command: InfiniteQueryCommand<T, S>) {
         query.command.send(command)
     }
 

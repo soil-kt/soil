@@ -6,12 +6,7 @@ package soil.query
 import soil.query.core.vvv
 import kotlin.coroutines.cancellation.CancellationException
 
-/**
- * Query command for [QueryKey].
- *
- * @param T Type of data to retrieve.
- */
-sealed class QueryCommands<T> : QueryCommand<T> {
+object QueryCommands {
 
     /**
      * Performs data fetching and validation based on the current data state.
@@ -21,11 +16,11 @@ sealed class QueryCommands<T> : QueryCommand<T> {
      * @param key Instance of a class implementing [QueryKey].
      * @param revision The revision of the data to be fetched.
      */
-    data class Connect<T>(
+    class Connect<T>(
         val key: QueryKey<T>,
         val revision: String? = null,
         val callback: QueryCallback<T>? = null
-    ) : QueryCommands<T>() {
+    ) : QueryCommand<T> {
 
         override suspend fun handle(ctx: QueryCommand.Context<T>) {
             if (!ctx.shouldFetch(revision)) {
@@ -46,11 +41,11 @@ sealed class QueryCommands<T> : QueryCommand<T> {
      * @param key Instance of a class implementing [QueryKey].
      * @param revision The revision of the data to be invalidated.
      */
-    data class Invalidate<T>(
+    class Invalidate<T>(
         val key: QueryKey<T>,
         val revision: String,
         val callback: QueryCallback<T>? = null
-    ) : QueryCommands<T>() {
+    ) : QueryCommand<T> {
 
         override suspend fun handle(ctx: QueryCommand.Context<T>) {
             if (ctx.state.revision != revision) {
