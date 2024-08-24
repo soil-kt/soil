@@ -13,7 +13,6 @@ import soil.query.QueryState
 import soil.query.QueryStatus
 import soil.query.core.isNone
 import soil.query.core.map
-import soil.query.invalidate
 
 /**
  * Remember a [QueryObject] and subscribes to the query state of [key].

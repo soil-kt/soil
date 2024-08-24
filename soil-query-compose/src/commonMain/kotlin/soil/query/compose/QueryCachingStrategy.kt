@@ -20,7 +20,6 @@ import soil.query.QueryState
 import soil.query.annotation.ExperimentalSoilQueryApi
 import soil.query.core.UniqueId
 import soil.query.core.isNone
-import soil.query.resume
 
 /**
  * A mechanism to finely adjust the behavior of the query results on a component basis in Composable functions.

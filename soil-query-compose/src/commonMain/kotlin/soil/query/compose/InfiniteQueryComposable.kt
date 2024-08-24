@@ -15,8 +15,6 @@ import soil.query.QueryStatus
 import soil.query.core.getOrThrow
 import soil.query.core.isNone
 import soil.query.core.map
-import soil.query.invalidate
-import soil.query.loadMore
 
 /**
  * Remember a [InfiniteQueryObject] and subscribes to the query state of [key].

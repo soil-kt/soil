@@ -62,6 +62,8 @@ class QueryPreviewClient(
     ) : QueryRef<T> {
         override fun launchIn(scope: CoroutineScope): Job = Job()
         override suspend fun send(command: QueryCommand<T>) = Unit
+        override suspend fun resume() = Unit
+        override suspend fun invalidate() = Unit
     }
 
     private class SnapshotInfiniteQuery<T, S>(
@@ -71,5 +73,8 @@ class QueryPreviewClient(
     ) : InfiniteQueryRef<T, S> {
         override fun launchIn(scope: CoroutineScope): Job = Job()
         override suspend fun send(command: InfiniteQueryCommand<T, S>) = Unit
+        override suspend fun resume() = Unit
+        override suspend fun loadMore(param: S) = Unit
+        override suspend fun invalidate() = Unit
     }
 }
