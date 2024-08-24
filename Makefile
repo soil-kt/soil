@@ -14,6 +14,10 @@ clean:
 build:
 	@$(GRADLE_CMD) assemble
 
+.PHONY: test
+test:
+	@$(GRADLE_CMD) allTests
+
 .PHONY: fmt
 fmt:
 	@$(GRADLE_CMD) spotlessApply

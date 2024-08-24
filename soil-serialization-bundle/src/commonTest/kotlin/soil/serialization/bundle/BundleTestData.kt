@@ -57,6 +57,7 @@ data class ObjectTestData(
     val age: Int
 )
 
+@Serializable
 enum class EnumTestData {
     Foo, Bar
 }
