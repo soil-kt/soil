@@ -1,9 +1,9 @@
 [versions]
 # Kotlin Multiplatform Gradle plugin compatibility:
 # - Gradle: 8.8
-# - Android Gradle plugin: 8.5.0
+# - Android Gradle plugin: 8.5
 # https://kotlinlang.org/docs/multiplatform-compatibility-guide.html#version-compatibility
-android-gradle = "8.2.2"
+android-gradle = "8.5.2"
 androidx-activity = "1.8.2"
 androidx-annotation = "1.7.1"
 androidx-core = "1.12.0"
