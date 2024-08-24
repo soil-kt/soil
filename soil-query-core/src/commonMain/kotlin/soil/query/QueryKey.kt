@@ -100,6 +100,8 @@ open class QueryId<T>(
     override fun toString(): String {
         return "QueryId(namespace='$namespace', tags=${tags.contentToString()})"
     }
+
+    companion object
 }
 
 /**

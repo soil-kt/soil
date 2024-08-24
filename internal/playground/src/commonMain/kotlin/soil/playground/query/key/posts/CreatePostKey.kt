@@ -4,6 +4,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import soil.playground.query.data.Post
+import soil.query.InfiniteQueryId
 import soil.query.MutationKey
 import soil.query.QueryEffect
 import soil.query.receivers.ktor.buildKtorMutationKey
@@ -17,7 +18,7 @@ class CreatePostKey : MutationKey<Post, PostForm> by buildKtorMutationKey(
     }
 ) {
     override fun onQueryUpdate(variable: PostForm, data: Post): QueryEffect = {
-        invalidateQueriesBy(GetPostsKey.Id())
+        invalidateQueriesBy(InfiniteQueryId.forGetPosts())
     }
 }
 
