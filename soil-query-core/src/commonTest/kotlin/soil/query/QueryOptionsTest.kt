@@ -22,6 +22,7 @@ class QueryOptionsTest : UnitTest() {
         assertEquals(QueryOptions.Default.revalidateOnReconnect, actual.revalidateOnReconnect)
         assertEquals(QueryOptions.Default.revalidateOnFocus, actual.revalidateOnFocus)
         assertEquals(QueryOptions.Default.onError, actual.onError)
+        assertEquals(QueryOptions.Default.shouldSuppressErrorRelay, actual.shouldSuppressErrorRelay)
         assertEquals(QueryOptions.Default.keepAliveTime, actual.keepAliveTime)
         assertEquals(QueryOptions.Default.logger, actual.logger)
         assertEquals(QueryOptions.Default.shouldRetry, actual.shouldRetry)
@@ -42,7 +43,8 @@ class QueryOptionsTest : UnitTest() {
             pauseDurationAfter = { null },
             revalidateOnReconnect = false,
             revalidateOnFocus = false,
-            onError = { },
+            onError = { _, _ -> },
+            shouldSuppressErrorRelay = { _, _ -> true },
             keepAliveTime = 4000.seconds,
             logger = { _ -> },
             shouldRetry = { _ -> true },
@@ -60,6 +62,7 @@ class QueryOptionsTest : UnitTest() {
         assertNotEquals(QueryOptions.Default.revalidateOnReconnect, actual.revalidateOnReconnect)
         assertNotEquals(QueryOptions.Default.revalidateOnFocus, actual.revalidateOnFocus)
         assertNotEquals(QueryOptions.Default.onError, actual.onError)
+        assertNotEquals(QueryOptions.Default.shouldSuppressErrorRelay, actual.shouldSuppressErrorRelay)
         assertNotEquals(QueryOptions.Default.keepAliveTime, actual.keepAliveTime)
         assertNotEquals(QueryOptions.Default.logger, actual.logger)
         assertNotEquals(QueryOptions.Default.shouldRetry, actual.shouldRetry)
@@ -81,6 +84,7 @@ class QueryOptionsTest : UnitTest() {
         assertEquals(QueryOptions.Default.revalidateOnReconnect, actual.revalidateOnReconnect)
         assertEquals(QueryOptions.Default.revalidateOnFocus, actual.revalidateOnFocus)
         assertEquals(QueryOptions.Default.onError, actual.onError)
+        assertEquals(QueryOptions.Default.shouldSuppressErrorRelay, actual.shouldSuppressErrorRelay)
         assertEquals(QueryOptions.Default.keepAliveTime, actual.keepAliveTime)
         assertEquals(QueryOptions.Default.logger, actual.logger)
         assertEquals(QueryOptions.Default.shouldRetry, actual.shouldRetry)
@@ -101,7 +105,8 @@ class QueryOptionsTest : UnitTest() {
             pauseDurationAfter = { null },
             revalidateOnReconnect = false,
             revalidateOnFocus = false,
-            onError = { },
+            onError = { _, _  -> },
+            shouldSuppressErrorRelay = { _, _ -> true },
             keepAliveTime = 4000.seconds,
             logger = { _ -> },
             shouldRetry = { _ -> true },
@@ -119,6 +124,7 @@ class QueryOptionsTest : UnitTest() {
         assertNotEquals(QueryOptions.Default.revalidateOnReconnect, actual.revalidateOnReconnect)
         assertNotEquals(QueryOptions.Default.revalidateOnFocus, actual.revalidateOnFocus)
         assertNotEquals(QueryOptions.Default.onError, actual.onError)
+        assertNotEquals(QueryOptions.Default.shouldSuppressErrorRelay, actual.shouldSuppressErrorRelay)
         assertNotEquals(QueryOptions.Default.keepAliveTime, actual.keepAliveTime)
         assertNotEquals(QueryOptions.Default.logger, actual.logger)
         assertNotEquals(QueryOptions.Default.shouldRetry, actual.shouldRetry)

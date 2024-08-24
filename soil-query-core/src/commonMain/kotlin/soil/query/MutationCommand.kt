@@ -5,6 +5,7 @@ package soil.query
 
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
+import soil.query.core.ErrorRecord
 import soil.query.core.RetryCallback
 import soil.query.core.RetryFn
 import soil.query.core.UniqueId
@@ -39,6 +40,8 @@ interface MutationCommand<T> {
         val relay: MutationErrorRelay?
     }
 }
+
+internal typealias MutationErrorRelay = (ErrorRecord) -> Unit
 
 /**
  * Determines whether a mutation operation is necessary based on the current state.
@@ -139,9 +142,12 @@ fun <T> MutationCommand.Context<T>.reportMutationError(error: Throwable, id: Uni
     if (options.onError == null && relay == null) {
         return
     }
-    val record = MutationError(error, id, state)
-    options.onError?.invoke(record)
-    relay?.invoke(record)
+    val record = ErrorRecord(error, id)
+    options.onError?.invoke(record, state)
+    val errorRelay = relay
+    if (errorRelay != null && options.shouldSuppressErrorRelay?.invoke(record, state) != true) {
+        errorRelay(record)
+    }
 }
 
 internal fun <T> MutationCommand.Context<T>.onRetryCallback(

@@ -3,6 +3,7 @@
 
 package soil.query
 
+import soil.query.core.ErrorRecord
 import soil.query.core.RetryCallback
 import soil.query.core.RetryFn
 import soil.query.core.UniqueId
@@ -37,6 +38,8 @@ interface QueryCommand<T> {
         val relay: QueryErrorRelay?
     }
 }
+
+internal typealias QueryErrorRelay = (ErrorRecord) -> Unit
 
 /**
  * Determines whether a fetch operation is necessary based on the current state.
@@ -144,9 +147,12 @@ fun <T> QueryCommand.Context<T>.reportQueryError(error: Throwable, id: UniqueId)
     if (options.onError == null && relay == null) {
         return
     }
-    val record = QueryError(error, id, state)
-    options.onError?.invoke(record)
-    relay?.invoke(record)
+    val record = ErrorRecord(error, id)
+    options.onError?.invoke(record, state)
+    val errorRelay = relay
+    if (errorRelay != null && options.shouldSuppressErrorRelay?.invoke(record, state) != true) {
+        errorRelay(record)
+    }
 }
 
 internal fun <T> QueryCommand.Context<T>.onRetryCallback(
