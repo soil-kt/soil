@@ -4,6 +4,7 @@
 package soil.query
 
 import soil.query.core.ActorOptions
+import soil.query.core.ErrorRecord
 import soil.query.core.LoggerFn
 import soil.query.core.LoggingOptions
 import soil.query.core.RetryOptions
@@ -30,7 +31,12 @@ interface MutationOptions : ActorOptions, LoggingOptions, RetryOptions {
     /**
      * This callback function will be called if some mutation encounters an error.
      */
-    val onError: ((MutationError) -> Unit)?
+    val onError: ((ErrorRecord, MutationModel<*>) -> Unit)?
+
+    /**
+     * Determines whether to suppress error information when relaying it using [soil.query.core.ErrorRelay].
+     */
+    val shouldSuppressErrorRelay: ((ErrorRecord, MutationModel<*>) -> Boolean)?
 
     /**
      * Whether the query side effect should be synchronous. If true, side effect will be executed synchronously.
@@ -40,7 +46,8 @@ interface MutationOptions : ActorOptions, LoggingOptions, RetryOptions {
     companion object Default : MutationOptions {
         override val isOneShot: Boolean = false
         override val isStrictMode: Boolean = false
-        override val onError: ((MutationError) -> Unit)? = null
+        override val onError: ((ErrorRecord, MutationModel<*>) -> Unit)? = null
+        override val shouldSuppressErrorRelay: ((ErrorRecord, MutationModel<*>) -> Boolean)? = null
         override val shouldExecuteEffectSynchronously: Boolean = false
 
         // ----- ActorOptions ----- //
@@ -60,10 +67,29 @@ interface MutationOptions : ActorOptions, LoggingOptions, RetryOptions {
     }
 }
 
+/**
+ * Creates a new [MutationOptions] with the specified settings.
+ *
+ * @param isOneShot Only allows mutate to execute once while active (until reset).
+ * @param isStrictMode Requires revision match as a precondition for executing mutate.
+ * @param onError This callback function will be called if some mutation encounters an error.
+ * @param shouldSuppressErrorRelay Determines whether to suppress error information when relaying it using [soil.query.core.ErrorRelay].
+ * @param shouldExecuteEffectSynchronously Whether the query side effect should be synchronous.
+ * @param keepAliveTime The duration to keep the actor alive after the last message is processed.
+ * @param logger The logger function to use for logging.
+ * @param shouldRetry The predicate function to determine whether to retry on a given exception.
+ * @param retryCount The maximum number of retry attempts.
+ * @param retryInitialInterval The initial interval for exponential backoff.
+ * @param retryMaxInterval The maximum interval for exponential backoff.
+ * @param retryMultiplier The multiplier for exponential backoff.
+ * @param retryRandomizationFactor The randomization factor for exponential backoff.
+ * @param retryRandomizer The random number generator for exponential backoff.
+ */
 fun MutationOptions(
     isOneShot: Boolean = MutationOptions.isOneShot,
     isStrictMode: Boolean = MutationOptions.isStrictMode,
-    onError: ((MutationError) -> Unit)? = MutationOptions.onError,
+    onError: ((ErrorRecord, MutationModel<*>) -> Unit)? = MutationOptions.onError,
+    shouldSuppressErrorRelay: ((ErrorRecord, MutationModel<*>) -> Boolean)? = MutationOptions.shouldSuppressErrorRelay,
     shouldExecuteEffectSynchronously: Boolean = MutationOptions.shouldExecuteEffectSynchronously,
     keepAliveTime: Duration = MutationOptions.keepAliveTime,
     logger: LoggerFn? = MutationOptions.logger,
@@ -78,7 +104,8 @@ fun MutationOptions(
     return object : MutationOptions {
         override val isOneShot: Boolean = isOneShot
         override val isStrictMode: Boolean = isStrictMode
-        override val onError: ((MutationError) -> Unit)? = onError
+        override val onError: ((ErrorRecord, MutationModel<*>) -> Unit)? = onError
+        override val shouldSuppressErrorRelay: ((ErrorRecord, MutationModel<*>) -> Boolean)? = shouldSuppressErrorRelay
         override val shouldExecuteEffectSynchronously: Boolean = shouldExecuteEffectSynchronously
         override val keepAliveTime: Duration = keepAliveTime
         override val logger: LoggerFn? = logger
@@ -92,10 +119,14 @@ fun MutationOptions(
     }
 }
 
+/**
+ * Copies the current [MutationOptions] with the specified settings.
+ */
 fun MutationOptions.copy(
     isOneShot: Boolean = this.isOneShot,
     isStrictMode: Boolean = this.isStrictMode,
-    onError: ((MutationError) -> Unit)? = this.onError,
+    onError: ((ErrorRecord, MutationModel<*>) -> Unit)? = this.onError,
+    shouldSuppressErrorRelay: ((ErrorRecord, MutationModel<*>) -> Boolean)? = this.shouldSuppressErrorRelay,
     shouldExecuteEffectSynchronously: Boolean = this.shouldExecuteEffectSynchronously,
     keepAliveTime: Duration = this.keepAliveTime,
     logger: LoggerFn? = this.logger,
@@ -111,6 +142,7 @@ fun MutationOptions.copy(
         isOneShot = isOneShot,
         isStrictMode = isStrictMode,
         onError = onError,
+        shouldSuppressErrorRelay = shouldSuppressErrorRelay,
         shouldExecuteEffectSynchronously = shouldExecuteEffectSynchronously,
         keepAliveTime = keepAliveTime,
         logger = logger,

@@ -4,6 +4,7 @@
 package soil.query
 
 import soil.query.core.ActorOptions
+import soil.query.core.ErrorRecord
 import soil.query.core.LoggerFn
 import soil.query.core.LoggingOptions
 import soil.query.core.RetryOptions
@@ -63,7 +64,12 @@ interface QueryOptions : ActorOptions, LoggingOptions, RetryOptions {
     /**
      * This callback function will be called if some query encounters an error.
      */
-    val onError: ((QueryError) -> Unit)?
+    val onError: ((ErrorRecord, QueryModel<*>) -> Unit)?
+
+    /**
+     * Determines whether to suppress error information when relaying it using [soil.query.core.ErrorRelay].
+     */
+    val shouldSuppressErrorRelay: ((ErrorRecord, QueryModel<*>) -> Boolean)?
 
     companion object Default : QueryOptions {
         override val staleTime: Duration = Duration.ZERO
@@ -72,7 +78,8 @@ interface QueryOptions : ActorOptions, LoggingOptions, RetryOptions {
         override val pauseDurationAfter: ((Throwable) -> Duration?)? = null
         override val revalidateOnReconnect: Boolean = true
         override val revalidateOnFocus: Boolean = true
-        override val onError: ((QueryError) -> Unit)? = null
+        override val onError: ((ErrorRecord, QueryModel<*>) -> Unit)? = null
+        override val shouldSuppressErrorRelay: ((ErrorRecord, QueryModel<*>) -> Boolean)? = null
 
         // ----- ActorOptions ----- //
         override val keepAliveTime: Duration = 5.seconds
@@ -93,6 +100,27 @@ interface QueryOptions : ActorOptions, LoggingOptions, RetryOptions {
     }
 }
 
+/**
+ * Creates a new [QueryOptions] with the specified settings.
+ *
+ * @param staleTime The duration after which the returned value of the fetch function block is considered stale.
+ * @param gcTime The period during which the Key's return value, if not referenced anywhere, is temporarily cached in memory.
+ * @param prefetchWindowTime Maximum window time on prefetch processing.
+ * @param pauseDurationAfter Determines whether query processing needs to be paused based on error.
+ * @param revalidateOnReconnect Automatically revalidate active [Query] when the network reconnects.
+ * @param revalidateOnFocus Automatically revalidate active [Query] when the window is refocused.
+ * @param onError This callback function will be called if some query encounters an error.
+ * @param shouldSuppressErrorRelay Determines whether to suppress error information when relaying it using [soil.query.core.ErrorRelay].
+ * @param keepAliveTime The duration to keep the actor alive after the last command is executed.
+ * @param logger The logger function.
+ * @param shouldRetry Determines whether to retry the command when an error occurs.
+ * @param retryCount The number of times to retry the command.
+ * @param retryInitialInterval The initial interval for exponential backoff.
+ * @param retryMaxInterval The maximum interval for exponential backoff.
+ * @param retryMultiplier The multiplier for exponential backoff.
+ * @param retryRandomizationFactor The randomization factor for exponential backoff.
+ * @param retryRandomizer The randomizer for exponential backoff.
+ */
 fun QueryOptions(
     staleTime: Duration = QueryOptions.staleTime,
     gcTime: Duration = QueryOptions.gcTime,
@@ -100,7 +128,8 @@ fun QueryOptions(
     pauseDurationAfter: ((Throwable) -> Duration?)? = QueryOptions.pauseDurationAfter,
     revalidateOnReconnect: Boolean = QueryOptions.revalidateOnReconnect,
     revalidateOnFocus: Boolean = QueryOptions.revalidateOnFocus,
-    onError: ((QueryError) -> Unit)? = QueryOptions.onError,
+    onError: ((ErrorRecord, QueryModel<*>) -> Unit)? = QueryOptions.onError,
+    shouldSuppressErrorRelay: ((ErrorRecord, QueryModel<*>) -> Boolean)? = QueryOptions.shouldSuppressErrorRelay,
     keepAliveTime: Duration = QueryOptions.keepAliveTime,
     logger: LoggerFn? = QueryOptions.logger,
     shouldRetry: (Throwable) -> Boolean = QueryOptions.shouldRetry,
@@ -118,7 +147,8 @@ fun QueryOptions(
         override val pauseDurationAfter: ((Throwable) -> Duration?)? = pauseDurationAfter
         override val revalidateOnReconnect: Boolean = revalidateOnReconnect
         override val revalidateOnFocus: Boolean = revalidateOnFocus
-        override val onError: ((QueryError) -> Unit)? = onError
+        override val onError: ((ErrorRecord, QueryModel<*>) -> Unit)? = onError
+        override val shouldSuppressErrorRelay: ((ErrorRecord, QueryModel<*>) -> Boolean)? = shouldSuppressErrorRelay
         override val keepAliveTime: Duration = keepAliveTime
         override val logger: LoggerFn? = logger
         override val shouldRetry: (Throwable) -> Boolean = shouldRetry
@@ -131,6 +161,9 @@ fun QueryOptions(
     }
 }
 
+/**
+ * Copies the current [QueryOptions] with the specified settings.
+ */
 fun QueryOptions.copy(
     staleTime: Duration = this.staleTime,
     gcTime: Duration = this.gcTime,
@@ -138,7 +171,8 @@ fun QueryOptions.copy(
     pauseDurationAfter: ((Throwable) -> Duration?)? = this.pauseDurationAfter,
     revalidateOnReconnect: Boolean = this.revalidateOnReconnect,
     revalidateOnFocus: Boolean = this.revalidateOnFocus,
-    onError: ((QueryError) -> Unit)? = this.onError,
+    onError: ((ErrorRecord, QueryModel<*>) -> Unit)? = this.onError,
+    shouldSuppressErrorRelay: ((ErrorRecord, QueryModel<*>) -> Boolean)? = this.shouldSuppressErrorRelay,
     keepAliveTime: Duration = this.keepAliveTime,
     logger: LoggerFn? = this.logger,
     shouldRetry: (Throwable) -> Boolean = this.shouldRetry,
@@ -157,6 +191,7 @@ fun QueryOptions.copy(
         revalidateOnReconnect = revalidateOnReconnect,
         revalidateOnFocus = revalidateOnFocus,
         onError = onError,
+        shouldSuppressErrorRelay = shouldSuppressErrorRelay,
         keepAliveTime = keepAliveTime,
         logger = logger,
         shouldRetry = shouldRetry,
