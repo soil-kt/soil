@@ -3,6 +3,7 @@
 
 package soil.query
 
+import soil.query.core.Marker
 import soil.query.core.getOrElse
 import soil.query.core.getOrNull
 import soil.query.core.vvv
@@ -17,10 +18,13 @@ object InfiniteQueryCommands {
      *
      * @param key Instance of a class implementing [InfiniteQueryKey].
      * @param revision The revision of the data to be fetched.
+     * @param marker The marker with additional information based on the caller of a query.
+     * @param callback The callback to receive the result of the query.
      */
     class Connect<T, S>(
         val key: InfiniteQueryKey<T, S>,
         val revision: String? = null,
+        val marker: Marker = Marker.None,
         val callback: QueryCallback<QueryChunks<T, S>>? = null
     ) : InfiniteQueryCommand<T, S> {
         override suspend fun handle(ctx: QueryCommand.Context<QueryChunks<T, S>>) {
@@ -32,9 +36,9 @@ object InfiniteQueryCommands {
             ctx.dispatch(QueryAction.Fetching())
             val chunks = ctx.state.reply.getOrNull()
             if (chunks.isNullOrEmpty()) {
-                ctx.dispatchFetchChunksResult(key, key.initialParam(), callback)
+                ctx.dispatchFetchChunksResult(key, key.initialParam(), marker, callback)
             } else {
-                ctx.dispatchRevalidateChunksResult(key, chunks, callback)
+                ctx.dispatchRevalidateChunksResult(key, chunks, marker, callback)
             }
         }
     }
@@ -46,10 +50,13 @@ object InfiniteQueryCommands {
      *
      * @param key Instance of a class implementing [InfiniteQueryKey].
      * @param revision The revision of the data to be invalidated.
+     * @param marker The marker with additional information based on the caller of a query.
+     * @param callback The callback to receive the result of the query.
      */
     class Invalidate<T, S>(
         val key: InfiniteQueryKey<T, S>,
         val revision: String,
+        val marker: Marker = Marker.None,
         val callback: QueryCallback<QueryChunks<T, S>>? = null
     ) : InfiniteQueryCommand<T, S> {
         override suspend fun handle(ctx: QueryCommand.Context<QueryChunks<T, S>>) {
@@ -61,9 +68,9 @@ object InfiniteQueryCommands {
             ctx.dispatch(QueryAction.Fetching(isInvalidated = true))
             val chunks = ctx.state.reply.getOrNull()
             if (chunks.isNullOrEmpty()) {
-                ctx.dispatchFetchChunksResult(key, key.initialParam(), callback)
+                ctx.dispatchFetchChunksResult(key, key.initialParam(), marker, callback)
             } else {
-                ctx.dispatchRevalidateChunksResult(key, chunks, callback)
+                ctx.dispatchRevalidateChunksResult(key, chunks, marker, callback)
             }
         }
     }
@@ -73,10 +80,13 @@ object InfiniteQueryCommands {
      *
      * @param key Instance of a class implementing [InfiniteQueryKey].
      * @param param The parameter required for fetching data for [InfiniteQueryKey].
+     * @param marker The marker with additional information based on the caller of a query.
+     * @param callback The callback to receive the result of the query.
      */
     class LoadMore<T, S>(
         val key: InfiniteQueryKey<T, S>,
         val param: S,
+        val marker: Marker = Marker.None,
         val callback: QueryCallback<QueryChunks<T, S>>? = null
     ) : InfiniteQueryCommand<T, S> {
         override suspend fun handle(ctx: QueryCommand.Context<QueryChunks<T, S>>) {
@@ -88,7 +98,7 @@ object InfiniteQueryCommands {
             }
 
             ctx.dispatch(QueryAction.Fetching())
-            ctx.dispatchFetchChunksResult(key, param, callback)
+            ctx.dispatchFetchChunksResult(key, param, marker, callback)
         }
     }
 }

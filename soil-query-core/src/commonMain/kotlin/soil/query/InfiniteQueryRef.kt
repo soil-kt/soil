@@ -7,6 +7,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.flow.StateFlow
 import soil.query.core.Actor
+import soil.query.core.Marker
 import soil.query.core.awaitOrNull
 
 /**
@@ -18,7 +19,7 @@ import soil.query.core.awaitOrNull
 interface InfiniteQueryRef<T, S> : Actor {
 
     val key: InfiniteQueryKey<T, S>
-    val options: QueryOptions
+    val marker: Marker
     val state: StateFlow<QueryState<QueryChunks<T, S>>>
 
     /**
@@ -31,7 +32,7 @@ interface InfiniteQueryRef<T, S> : Actor {
      */
     suspend fun resume() {
         val deferred = CompletableDeferred<QueryChunks<T, S>>()
-        send(InfiniteQueryCommands.Connect(key, state.value.revision, deferred::completeWith))
+        send(InfiniteQueryCommands.Connect(key, state.value.revision, marker, deferred::completeWith))
         deferred.awaitOrNull()
     }
 
@@ -40,7 +41,7 @@ interface InfiniteQueryRef<T, S> : Actor {
      */
     suspend fun loadMore(param: S) {
         val deferred = CompletableDeferred<QueryChunks<T, S>>()
-        send(InfiniteQueryCommands.LoadMore(key, param, deferred::completeWith))
+        send(InfiniteQueryCommands.LoadMore(key, param, marker, deferred::completeWith))
         deferred.awaitOrNull()
     }
 
@@ -52,7 +53,7 @@ interface InfiniteQueryRef<T, S> : Actor {
      */
     suspend fun invalidate() {
         val deferred = CompletableDeferred<QueryChunks<T, S>>()
-        send(InfiniteQueryCommands.Invalidate(key, state.value.revision, deferred::completeWith))
+        send(InfiniteQueryCommands.Invalidate(key, state.value.revision, marker, deferred::completeWith))
         deferred.awaitOrNull()
     }
 }

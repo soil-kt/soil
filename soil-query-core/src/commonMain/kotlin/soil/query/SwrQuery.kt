@@ -7,10 +7,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import soil.query.core.Marker
 
 internal class SwrQuery<T>(
     override val key: QueryKey<T>,
-    override val options: QueryOptions,
+    override val marker: Marker,
     private val query: Query<T>
 ) : QueryRef<T> {
 

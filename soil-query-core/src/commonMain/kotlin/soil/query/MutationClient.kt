@@ -3,6 +3,8 @@
 
 package soil.query
 
+import soil.query.core.Marker
+
 /**
  * A Mutation client, which allows you to make mutations actor and handle [MutationKey].
  */
@@ -17,7 +19,8 @@ interface MutationClient {
      * Gets the [MutationRef] by the specified [MutationKey].
      */
     fun <T, S> getMutation(
-        key: MutationKey<T, S>
+        key: MutationKey<T, S>,
+        marker: Marker = Marker.None
     ): MutationRef<T, S>
 }
 

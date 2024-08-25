@@ -13,6 +13,7 @@ import soil.query.QueryId
 import soil.query.QueryKey
 import soil.query.QueryRef
 import soil.query.SwrClient
+import soil.query.core.Marker
 
 /**
  * This extended interface of the [SwrClient] provides the capability to mock specific queries and mutations for the purpose of testing.
@@ -71,32 +72,41 @@ internal class TestSwrClientImpl(
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T, S> getMutation(key: MutationKey<T, S>): MutationRef<T, S> {
+    override fun <T, S> getMutation(
+        key: MutationKey<T, S>,
+        marker: Marker
+    ): MutationRef<T, S> {
         val mock = mockMutations[key.id] as? FakeMutationMutate<T, S>
         return if (mock != null) {
-            target.getMutation(FakeMutationKey(key, mock))
+            target.getMutation(FakeMutationKey(key, mock), marker)
         } else {
-            target.getMutation(key)
+            target.getMutation(key, marker)
         }
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T> getQuery(key: QueryKey<T>): QueryRef<T> {
+    override fun <T> getQuery(
+        key: QueryKey<T>,
+        marker: Marker
+    ): QueryRef<T> {
         val mock = mockQueries[key.id] as? FakeQueryFetch<T>
         return if (mock != null) {
-            target.getQuery(FakeQueryKey(key, mock))
+            target.getQuery(FakeQueryKey(key, mock), marker)
         } else {
-            target.getQuery(key)
+            target.getQuery(key, marker)
         }
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T, S> getInfiniteQuery(key: InfiniteQueryKey<T, S>): InfiniteQueryRef<T, S> {
+    override fun <T, S> getInfiniteQuery(
+        key: InfiniteQueryKey<T, S>,
+        marker: Marker
+    ): InfiniteQueryRef<T, S> {
         val mock = mockInfiniteQueries[key.id] as? FakeInfiniteQueryFetch<T, S>
         return if (mock != null) {
-            target.getInfiniteQuery(FakeInfiniteQueryKey(key, mock))
+            target.getInfiniteQuery(FakeInfiniteQueryKey(key, mock), marker)
         } else {
-            target.getInfiniteQuery(key)
+            target.getInfiniteQuery(key, marker)
         }
     }
 }

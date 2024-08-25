@@ -14,6 +14,7 @@ import soil.query.MutationKey
 import soil.query.MutationOptions
 import soil.query.MutationRef
 import soil.query.MutationState
+import soil.query.core.Marker
 import soil.query.core.UniqueId
 
 /**
@@ -34,15 +35,17 @@ class MutationPreviewClient(
 ) : MutationClient {
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T, S> getMutation(key: MutationKey<T, S>): MutationRef<T, S> {
+    override fun <T, S> getMutation(
+        key: MutationKey<T, S>,
+        marker: Marker
+    ): MutationRef<T, S> {
         val state = previewData[key.id] as? MutationState<T> ?: MutationState.initial()
-        val options = key.onConfigureOptions()?.invoke(defaultMutationOptions) ?: defaultMutationOptions
-        return SnapshotMutation(key, options, MutableStateFlow(state))
+        return SnapshotMutation(key, marker, MutableStateFlow(state))
     }
 
     private class SnapshotMutation<T, S>(
         override val key: MutationKey<T, S>,
-        override val options: MutationOptions,
+        override val marker: Marker,
         override val state: StateFlow<MutationState<T>>
     ) : MutationRef<T, S> {
         override fun launchIn(scope: CoroutineScope): Job = Job()

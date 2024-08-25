@@ -15,9 +15,12 @@ data class ErrorRecord internal constructor(
     val exception: Throwable,
 
     /**
-     * Key information that caused the error.
-     *
-     * NOTE: Defining an ID with a custom interface, such as metadata, can be helpful when receiving error information.
+     * The unique identifier of the key that caused the error.
      */
-    val key: UniqueId
+    val keyId: UniqueId,
+
+    /**
+     * The marker that was set when the error occurred.
+     */
+    val marker: Marker
 )

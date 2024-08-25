@@ -6,6 +6,7 @@ package soil.query
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import soil.query.core.ErrorRecord
+import soil.query.core.Marker
 import soil.query.core.RetryCallback
 import soil.query.core.RetryFn
 import soil.query.core.UniqueId
@@ -86,10 +87,13 @@ suspend fun <T, S> MutationCommand.Context<T>.mutate(
  *
  * @param key Instance of a class implementing [MutationKey].
  * @param variable The variable to be mutated.
+ * @param marker The marker with additional information based on the caller of a mutation.
+ * @param callback The callback to receive the result of the mutation.
  */
 suspend inline fun <T, S> MutationCommand.Context<T>.dispatchMutateResult(
     key: MutationKey<T, S>,
     variable: S,
+    marker: Marker,
     noinline callback: MutationCallback<T>?
 ) {
     mutate(key, variable)
@@ -103,10 +107,8 @@ suspend inline fun <T, S> MutationCommand.Context<T>.dispatchMutateResult(
             }
         }
         .onFailure(::dispatchMutateFailure)
-        .onFailure { reportMutationError(it, key.id) }
-        .also {
-            callback?.invoke(it)
-        }
+        .onFailure { reportMutationError(it, key.id, marker) }
+        .also { callback?.invoke(it) }
 }
 
 /**
@@ -138,11 +140,11 @@ fun <T> MutationCommand.Context<T>.dispatchMutateFailure(error: Throwable) {
 }
 
 
-fun <T> MutationCommand.Context<T>.reportMutationError(error: Throwable, id: UniqueId) {
+fun <T> MutationCommand.Context<T>.reportMutationError(error: Throwable, id: UniqueId, marker: Marker) {
     if (options.onError == null && relay == null) {
         return
     }
-    val record = ErrorRecord(error, id)
+    val record = ErrorRecord(error, id, marker)
     options.onError?.invoke(record, state)
     val errorRelay = relay
     if (errorRelay != null && options.shouldSuppressErrorRelay?.invoke(record, state) != true) {

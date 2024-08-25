@@ -4,6 +4,7 @@
 package soil.query
 
 import soil.query.core.ErrorRecord
+import soil.query.core.Marker
 import soil.query.core.RetryCallback
 import soil.query.core.RetryFn
 import soil.query.core.UniqueId
@@ -100,16 +101,19 @@ suspend fun <T> QueryCommand.Context<T>.fetch(
  * Dispatches the fetch result.
  *
  * @param key Instance of a class implementing [QueryKey].
+ * @param marker The marker with additional information based on the caller of a query.
+ * @param callback The callback to receive the result of the query.
  */
 suspend inline fun <T> QueryCommand.Context<T>.dispatchFetchResult(
     key: QueryKey<T>,
-    noinline callback: QueryCallback<T>? = null
+    marker: Marker,
+    noinline callback: QueryCallback<T>?
 ) {
     fetch(key)
         .run { key.onRecoverData()?.let(::recoverCatching) ?: this }
         .onSuccess(::dispatchFetchSuccess)
         .onFailure(::dispatchFetchFailure)
-        .onFailure { reportQueryError(it, key.id) }
+        .onFailure { reportQueryError(it, key.id, marker) }
         .also { callback?.invoke(it) }
 }
 
@@ -143,11 +147,11 @@ fun <T> QueryCommand.Context<T>.dispatchFetchFailure(error: Throwable) {
     dispatch(action)
 }
 
-fun <T> QueryCommand.Context<T>.reportQueryError(error: Throwable, id: UniqueId) {
+fun <T> QueryCommand.Context<T>.reportQueryError(error: Throwable, id: UniqueId, marker: Marker) {
     if (options.onError == null && relay == null) {
         return
     }
-    val record = ErrorRecord(error, id)
+    val record = ErrorRecord(error, id, marker)
     options.onError?.invoke(record, state)
     val errorRelay = relay
     if (errorRelay != null && options.shouldSuppressErrorRelay?.invoke(record, state) != true) {

@@ -29,6 +29,7 @@ import soil.query.core.ActorBlockRunner
 import soil.query.core.ActorSequenceNumber
 import soil.query.core.BatchScheduler
 import soil.query.core.ErrorRecord
+import soil.query.core.Marker
 import soil.query.core.MemoryPressure
 import soil.query.core.MemoryPressureLevel
 import soil.query.core.NetworkConnectivity
@@ -185,21 +186,21 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
 
     @Suppress("UNCHECKED_CAST")
     override fun <T, S> getMutation(
-        key: MutationKey<T, S>
+        key: MutationKey<T, S>,
+        marker: Marker
     ): MutationRef<T, S> {
         val id = key.id
-        val options = key.onConfigureOptions()?.invoke(defaultMutationOptions) ?: defaultMutationOptions
         var mutation = mutationStore[id] as? ManagedMutation<T>
         if (mutation == null) {
             mutation = newMutation(
                 id = id,
-                options = options,
+                options = key.configureOptions(defaultMutationOptions),
                 initialValue = MutationState<T>()
             ).also { mutationStore[id] = it }
         }
         return SwrMutation(
             key = key,
-            options = options,
+            marker = marker,
             mutation = mutation
         )
     }
@@ -260,20 +261,22 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T> getQuery(key: QueryKey<T>): QueryRef<T> {
+    override fun <T> getQuery(
+        key: QueryKey<T>,
+        marker: Marker
+    ): QueryRef<T> {
         val id = key.id
-        val options = key.onConfigureOptions()?.invoke(defaultQueryOptions) ?: defaultQueryOptions
         var query = queryStore[id] as? ManagedQuery<T>
         if (query == null) {
             query = newQuery(
                 id = id,
-                options = options,
+                options = key.configureOptions(defaultQueryOptions),
                 initialValue = queryCache[key.id] as? QueryState<T> ?: newQueryState(key)
             ).also { queryStore[id] = it }
         }
         return SwrQuery(
             key = key,
-            options = options,
+            marker = marker,
             query = query
         )
     }
@@ -355,21 +358,21 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
 
     @Suppress("UNCHECKED_CAST")
     override fun <T, S> getInfiniteQuery(
-        key: InfiniteQueryKey<T, S>
+        key: InfiniteQueryKey<T, S>,
+        marker: Marker
     ): InfiniteQueryRef<T, S> {
         val id = key.id
-        val options = key.onConfigureOptions()?.invoke(defaultQueryOptions) ?: defaultQueryOptions
         var query = queryStore[id] as? ManagedQuery<QueryChunks<T, S>>
         if (query == null) {
             query = newInfiniteQuery(
                 id = id,
-                options = options,
+                options = key.configureOptions(defaultQueryOptions),
                 initialValue = queryCache[id] as? QueryState<QueryChunks<T, S>> ?: QueryState()
             ).also { queryStore[id] = it }
         }
         return SwrInfiniteQuery(
             key = key,
-            options = options,
+            marker = marker,
             query = query
         )
     }
@@ -386,12 +389,16 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         )
     }
 
-    override fun <T> prefetchQuery(key: QueryKey<T>): Job {
+    override fun <T> prefetchQuery(
+        key: QueryKey<T>,
+        marker: Marker
+    ): Job {
         val scope = CoroutineScope(policy.mainDispatcher)
-        val query = getQuery(key).also { it.launchIn(scope) }
+        val query = getQuery(key, marker).also { it.launchIn(scope) }
         return coroutineScope.launch {
             try {
-                withTimeoutOrNull(query.options.prefetchWindowTime) {
+                val options = key.configureOptions(defaultQueryOptions)
+                withTimeoutOrNull(options.prefetchWindowTime) {
                     query.resume()
                 }
             } finally {
@@ -400,12 +407,16 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         }
     }
 
-    override fun <T, S> prefetchInfiniteQuery(key: InfiniteQueryKey<T, S>): Job {
+    override fun <T, S> prefetchInfiniteQuery(
+        key: InfiniteQueryKey<T, S>,
+        marker: Marker
+    ): Job {
         val scope = CoroutineScope(policy.mainDispatcher)
-        val query = getInfiniteQuery(key).also { it.launchIn(scope) }
+        val query = getInfiniteQuery(key, marker).also { it.launchIn(scope) }
         return coroutineScope.launch {
             try {
-                withTimeoutOrNull(query.options.prefetchWindowTime) {
+                val options = key.configureOptions(defaultQueryOptions)
+                withTimeoutOrNull(options.prefetchWindowTime) {
                     query.resume()
                 }
             } finally {
@@ -660,6 +671,18 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
             return parent.coroutineContext + Job(parent.coroutineContext[Job])
         }
     }
+}
+
+private fun <T, S> MutationKey<T, S>.configureOptions(defaultOptions: MutationOptions): MutationOptions {
+    return onConfigureOptions()?.invoke(defaultOptions) ?: defaultOptions
+}
+
+private fun <T> QueryKey<T>.configureOptions(defaultOptions: QueryOptions): QueryOptions {
+    return onConfigureOptions()?.invoke(defaultOptions) ?: defaultOptions
+}
+
+private fun <T, S> InfiniteQueryKey<T, S>.configureOptions(defaultOptions: QueryOptions): QueryOptions {
+    return onConfigureOptions()?.invoke(defaultOptions) ?: defaultOptions
 }
 
 /**

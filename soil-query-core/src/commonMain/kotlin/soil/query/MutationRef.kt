@@ -7,6 +7,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.flow.StateFlow
 import soil.query.core.Actor
+import soil.query.core.Marker
 
 /**
  * A reference to a Mutation for [MutationKey].
@@ -17,7 +18,7 @@ import soil.query.core.Actor
 interface MutationRef<T, S> : Actor {
 
     val key: MutationKey<T, S>
-    val options: MutationOptions
+    val marker: Marker
     val state: StateFlow<MutationState<T>>
 
     /**
@@ -33,7 +34,7 @@ interface MutationRef<T, S> : Actor {
      */
     suspend fun mutate(variable: S): T {
         val deferred = CompletableDeferred<T>()
-        send(MutationCommands.Mutate(key, variable, state.value.revision, deferred::completeWith))
+        send(MutationCommands.Mutate(key, variable, state.value.revision, marker, deferred::completeWith))
         return deferred.await()
     }
 
@@ -43,7 +44,7 @@ interface MutationRef<T, S> : Actor {
      * @param variable The variable to be mutated.
      */
     suspend fun mutateAsync(variable: S) {
-        send(MutationCommands.Mutate(key, variable, state.value.revision))
+        send(MutationCommands.Mutate(key, variable, state.value.revision, marker))
     }
 
     /**

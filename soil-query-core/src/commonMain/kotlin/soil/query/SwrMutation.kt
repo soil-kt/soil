@@ -6,10 +6,11 @@ package soil.query
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
+import soil.query.core.Marker
 
 internal class SwrMutation<T, S>(
     override val key: MutationKey<T, S>,
-    override val options: MutationOptions,
+    override val marker: Marker,
     private val mutation: Mutation<T>
 ) : MutationRef<T, S> {
 

@@ -3,6 +3,7 @@
 
 package soil.query
 
+import soil.query.core.Marker
 import soil.query.core.RetryFn
 import soil.query.core.exponentialBackOff
 import soil.query.core.getOrElse
@@ -83,11 +84,14 @@ suspend fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.revalidate(
  * @param S Type of parameter.
  * @param key Instance of a class implementing [InfiniteQueryKey].
  * @param variable Value of the parameter required for fetching data for [InfiniteQueryKey].
+ * @param marker The marker with additional information based on the caller of a query.
+ * @param callback Callback to handle the result.
  */
 suspend inline fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.dispatchFetchChunksResult(
     key: InfiniteQueryKey<T, S>,
     variable: S,
-    noinline callback: QueryCallback<QueryChunks<T, S>>? = null
+    marker: Marker,
+    noinline callback: QueryCallback<QueryChunks<T, S>>?
 ) {
     fetch(key, variable)
         .map { QueryChunk(it, variable) }
@@ -95,7 +99,7 @@ suspend inline fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.dispatchFetchC
         .run { key.onRecoverData()?.let(::recoverCatching) ?: this }
         .onSuccess(::dispatchFetchSuccess)
         .onFailure(::dispatchFetchFailure)
-        .onFailure { reportQueryError(it, key.id) }
+        .onFailure { reportQueryError(it, key.id, marker) }
         .also { callback?.invoke(it) }
 }
 
@@ -107,16 +111,19 @@ suspend inline fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.dispatchFetchC
  * @param S Type of parameter.
  * @param key Instance of a class implementing [InfiniteQueryKey].
  * @param chunks Data to revalidate.
+ * @param marker The marker with additional information based on the caller of a query.
+ * @param callback Callback to handle the result.
  */
 suspend inline fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.dispatchRevalidateChunksResult(
     key: InfiniteQueryKey<T, S>,
     chunks: QueryChunks<T, S>,
-    noinline callback: QueryCallback<QueryChunks<T, S>>? = null
+    marker: Marker,
+    noinline callback: QueryCallback<QueryChunks<T, S>>?
 ) {
     revalidate(key, chunks)
         .run { key.onRecoverData()?.let(::recoverCatching) ?: this }
         .onSuccess(::dispatchFetchSuccess)
         .onFailure(::dispatchFetchFailure)
-        .onFailure { reportQueryError(it, key.id) }
+        .onFailure { reportQueryError(it, key.id, marker) }
         .also { callback?.invoke(it) }
 }
