@@ -10,7 +10,7 @@ import soil.query.InfiniteQueryKey
 import soil.query.receivers.ktor.buildKtorInfiniteQueryKey
 
 class GetAlbumsKey : InfiniteQueryKey<Albums, PageParam> by buildKtorInfiniteQueryKey(
-    id = Id(),
+    id = InfiniteQueryId.forGetAlbums(),
     fetch = { param ->
         get("https://jsonplaceholder.typicode.com/albums") {
             parameter("_start", param.offset)
@@ -23,8 +23,8 @@ class GetAlbumsKey : InfiniteQueryKey<Albums, PageParam> by buildKtorInfiniteQue
             ?.takeIf { it.data.isNotEmpty() }
             ?.run { param.copy(offset = param.offset + param.limit) }
     }
-) {
-    class Id : InfiniteQueryId<Albums, PageParam>(
-        namespace = "albums/*"
-    )
-}
+)
+
+fun InfiniteQueryId.Companion.forGetAlbums() = InfiniteQueryId<Albums, PageParam>(
+    namespace = "albums/*"
+)

@@ -10,7 +10,7 @@ import soil.query.InfiniteQueryKey
 import soil.query.receivers.ktor.buildKtorInfiniteQueryKey
 
 class GetPostCommentsKey(private val postId: Int) : InfiniteQueryKey<Comments, PageParam> by buildKtorInfiniteQueryKey(
-    id = Id(postId),
+    id = InfiniteQueryId.forGetPostComments(postId),
     fetch = { param ->
         get("https://jsonplaceholder.typicode.com/posts/$postId/comments") {
             parameter("_start", param.offset)
@@ -23,8 +23,8 @@ class GetPostCommentsKey(private val postId: Int) : InfiniteQueryKey<Comments, P
             ?.takeIf { it.data.isNotEmpty() }
             ?.run { param.copy(offset = param.offset + param.limit) }
     }
-) {
-    class Id(postId: Int) : InfiniteQueryId<Comments, PageParam>(
-        namespace = "posts/$postId/comments/*"
-    )
-}
+)
+
+fun InfiniteQueryId.Companion.forGetPostComments(postId: Int) = InfiniteQueryId<Comments, PageParam>(
+    namespace = "posts/$postId/comments/*"
+)

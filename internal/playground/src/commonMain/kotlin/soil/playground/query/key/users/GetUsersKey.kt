@@ -10,7 +10,7 @@ import soil.query.InfiniteQueryKey
 import soil.query.receivers.ktor.buildKtorInfiniteQueryKey
 
 class GetUsersKey : InfiniteQueryKey<Users, PageParam> by buildKtorInfiniteQueryKey(
-    id = Id(),
+    id = InfiniteQueryId.forGetUsers(),
     fetch = { param ->
         get("https://jsonplaceholder.typicode.com/users") {
             parameter("_start", param.offset)
@@ -23,8 +23,8 @@ class GetUsersKey : InfiniteQueryKey<Users, PageParam> by buildKtorInfiniteQuery
             ?.takeIf { it.data.isNotEmpty() }
             ?.run { param.copy(offset = param.offset + param.limit) }
     }
-) {
-    class Id : InfiniteQueryId<Users, PageParam>(
-        namespace = "users/*"
-    )
-}
+)
+
+fun InfiniteQueryId.Companion.forGetUsers() = InfiniteQueryId<Users, PageParam>(
+    namespace = "users/*"
+)

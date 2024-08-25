@@ -12,8 +12,8 @@ import soil.query.receivers.ktor.buildKtorInfiniteQueryKey
 // NOTE: userId
 // Filtering resources
 // ref. https://jsonplaceholder.typicode.com/guide/
-class GetPostsKey(userId: Int? = null) : InfiniteQueryKey<Posts, PageParam> by buildKtorInfiniteQueryKey(
-    id = Id(userId),
+class GetPostsKey(val userId: Int? = null) : InfiniteQueryKey<Posts, PageParam> by buildKtorInfiniteQueryKey(
+    id = InfiniteQueryId.forGetPosts(userId),
     fetch = { param ->
         get("https://jsonplaceholder.typicode.com/posts") {
             parameter("_start", param.offset)
@@ -29,9 +29,9 @@ class GetPostsKey(userId: Int? = null) : InfiniteQueryKey<Posts, PageParam> by b
             ?.takeIf { it.data.isNotEmpty() }
             ?.run { param.copy(offset = param.offset + param.limit) }
     }
-) {
-    class Id(userId: Int? = null) : InfiniteQueryId<Posts, PageParam>(
-        namespace = "posts/*",
-        "userId" to userId
-    )
-}
+)
+
+fun InfiniteQueryId.Companion.forGetPosts(userId: Int? = null) = InfiniteQueryId<Posts, PageParam>(
+    namespace = "posts/*",
+    "userId" to userId
+)

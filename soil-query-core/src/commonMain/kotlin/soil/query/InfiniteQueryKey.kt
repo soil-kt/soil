@@ -82,6 +82,8 @@ open class InfiniteQueryId<T, S>(
     override fun toString(): String {
         return "InfiniteQueryId(namespace='$namespace', tags=${tags.contentToString()})"
     }
+
+    companion object
 }
 
 internal fun <T, S> InfiniteQueryKey<T, S>.hasMore(chunks: QueryChunks<T, S>): Boolean {
