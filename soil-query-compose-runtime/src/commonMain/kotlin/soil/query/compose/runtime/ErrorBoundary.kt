@@ -9,12 +9,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Wrap an ErrorBoundary around other [Catch] composable functions to catch errors and render a fallback UI.
@@ -71,7 +72,7 @@ fun ErrorBoundary(
     state: ErrorBoundaryState = remember { ErrorBoundaryState() },
     content: @Composable () -> Unit
 ) {
-    val currentError by remember(state) { derivedStateOf { state.error } }
+    val currentError by state.error.collectAsState()
     val onErrorCallback by rememberUpdatedState(newValue = onError)
     val onResetCallback by rememberUpdatedState(newValue = onReset)
     Box(modifier) {
@@ -115,13 +116,11 @@ class ErrorBoundaryContext(
  */
 @Stable
 class ErrorBoundaryState : CatchThrowHost {
-    private val hostMap = mutableStateMapOf<Any, Throwable>()
+    private val hostMap = mutableMapOf<Any, Throwable>()
 
-    /**
-     * Returns the caught error.
-     */
-    val error: Throwable?
-        get() = hostMap.values.firstOrNull()
+    // FIXME: This can be fixed by enabling K2 mode
+    private val _error = MutableStateFlow<Throwable?>(null)
+    val error: StateFlow<Throwable?> = _error
 
     override val keys: Set<Any> get() = hostMap.keys
 
@@ -131,9 +130,15 @@ class ErrorBoundaryState : CatchThrowHost {
 
     override fun set(key: Any, error: Throwable) {
         hostMap[key] = error
+        onStateChanged()
     }
 
     override fun remove(key: Any) {
         hostMap.remove(key)
+        onStateChanged()
+    }
+
+    private fun onStateChanged() {
+        _error.value = hostMap.values.firstOrNull()
     }
 }

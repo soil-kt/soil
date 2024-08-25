@@ -9,14 +9,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -55,9 +56,7 @@ fun Suspense(
     contentThreshold: Duration = 3.seconds,
     content: @Composable () -> Unit
 ) {
-    val isAwaited by remember(state) {
-        derivedStateOf { state.isAwaited() }
-    }
+    val isAwaited by state.isAwaited.collectAsState()
     var isFirstTime by remember { mutableStateOf(true) }
     Box(modifier = modifier) {
         CompositionLocalProvider(LocalAwaitHost provides state) {
@@ -80,7 +79,11 @@ fun Suspense(
  */
 @Stable
 class SuspenseState : AwaitHost {
-    private val hostMap = mutableStateMapOf<Any, Boolean>()
+    private val hostMap = mutableMapOf<Any, Boolean>()
+
+    // FIXME: This can be fixed by enabling K2 mode
+    private val _isAwaited = MutableStateFlow(false)
+    val isAwaited: StateFlow<Boolean> = _isAwaited
 
     override val keys: Set<Any> get() = hostMap.keys
 
@@ -90,16 +93,15 @@ class SuspenseState : AwaitHost {
 
     override fun set(key: Any, isAwaited: Boolean) {
         hostMap[key] = isAwaited
+        onStateChanged()
     }
 
     override fun remove(key: Any) {
         hostMap.remove(key)
+        onStateChanged()
     }
 
-    /**
-     * Returns `true` if any of the [Await] is awaited.
-     */
-    fun isAwaited(): Boolean {
-        return hostMap.any { it.value }
+    private fun onStateChanged() {
+        _isAwaited.value = hostMap.any { it.value }
     }
 }
