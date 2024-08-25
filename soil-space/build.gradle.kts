@@ -101,3 +101,12 @@ android {
         debugImplementation(libs.compose.ui.tooling)
     }
 }
+
+composeCompiler {
+    if (buildTarget.composeCompilerMetrics.getOrElse(false)) {
+        metricsDestination = buildTarget.composeCompilerDestination
+    }
+    if (buildTarget.composeCompilerReports.getOrElse(false)) {
+        reportsDestination = buildTarget.composeCompilerDestination
+    }
+}
