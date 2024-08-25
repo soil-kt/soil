@@ -20,6 +20,9 @@ allprojects {
         androidMinSdk = providers.gradleProperty("androidMinSdk").map { it.toInt() }
         androidTargetSdk = providers.gradleProperty("androidTargetSdk").map { it.toInt() }
         javaVersion = provider { JavaVersion.VERSION_11 }
+        composeCompilerDestination = layout.buildDirectory.dir("compose-compiler")
+        composeCompilerMetrics = providers.gradleProperty("composeCompilerMetrics").map { it.toBoolean() }
+        composeCompilerReports = providers.gradleProperty("composeCompilerReports").map { it.toBoolean() }
     }
 
     tasks.withType<KotlinJvmCompile>().configureEach {
