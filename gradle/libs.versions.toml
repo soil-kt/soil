@@ -21,6 +21,7 @@ junit = "4.13.2"
 kotlin = "2.0.20"
 kotlinx-coroutines = "1.8.1"
 kotlinx-serialization = "1.7.0"
+kover = "0.8.3"
 ktor = "3.0.0-beta-2"
 maven-publish = "0.28.0"
 robolectric = "4.12.2"
@@ -67,5 +68,6 @@ dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 kotlin-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.maven.publish) apply false
     alias(libs.plugins.dokka)
+    alias(libs.plugins.kover)
     alias(libs.plugins.spotless)
 }
 
@@ -67,4 +68,30 @@ allprojects {
             }
         }
     }
+}
+
+kover {
+    currentProject {
+        createVariant("soil") {
+
+        }
+    }
+    reports {
+        filters {
+            excludes {
+                androidGeneratedClasses()
+            }
+        }
+    }
+}
+
+dependencies {
+    kover(projects.soilQueryCore)
+    kover(projects.soilQueryCompose)
+    kover(projects.soilQueryComposeRuntime)
+    kover(projects.soilQueryReceivers.ktor)
+    kover(projects.soilQueryTest)
+    kover(projects.soilSerializationBundle)
+    kover(projects.soilForm)
+    kover(projects.soilSpace)
 }

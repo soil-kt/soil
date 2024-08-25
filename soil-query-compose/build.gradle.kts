@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.maven.publish)
     alias(libs.plugins.dokka)
+    alias(libs.plugins.kover)
 }
 
 val buildTarget = the<BuildTargetExtension>()
@@ -106,5 +107,13 @@ composeCompiler {
     }
     if (buildTarget.composeCompilerReports.getOrElse(false)) {
         reportsDestination = buildTarget.composeCompilerDestination
+    }
+}
+
+kover {
+    currentProject {
+        createVariant("soil") {
+            add("debug")
+        }
     }
 }
