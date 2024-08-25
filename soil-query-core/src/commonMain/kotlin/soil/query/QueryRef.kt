@@ -7,6 +7,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.flow.StateFlow
 import soil.query.core.Actor
+import soil.query.core.Marker
 import soil.query.core.awaitOrNull
 
 /**
@@ -17,7 +18,7 @@ import soil.query.core.awaitOrNull
 interface QueryRef<T> : Actor {
 
     val key: QueryKey<T>
-    val options: QueryOptions
+    val marker: Marker
     val state: StateFlow<QueryState<T>>
 
     /**
@@ -30,7 +31,7 @@ interface QueryRef<T> : Actor {
      */
     suspend fun resume() {
         val deferred = CompletableDeferred<T>()
-        send(QueryCommands.Connect(key, state.value.revision, deferred::completeWith))
+        send(QueryCommands.Connect(key, state.value.revision, marker, deferred::completeWith))
         deferred.awaitOrNull()
     }
 
@@ -42,7 +43,7 @@ interface QueryRef<T> : Actor {
      */
     suspend fun invalidate() {
         val deferred = CompletableDeferred<T>()
-        send(QueryCommands.Invalidate(key, state.value.revision, deferred::completeWith))
+        send(QueryCommands.Invalidate(key, state.value.revision, marker, deferred::completeWith))
         deferred.awaitOrNull()
     }
 }

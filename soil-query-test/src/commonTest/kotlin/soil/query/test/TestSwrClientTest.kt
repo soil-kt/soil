@@ -24,6 +24,7 @@ import soil.query.SwrCachePolicy
 import soil.query.buildInfiniteQueryKey
 import soil.query.buildMutationKey
 import soil.query.buildQueryKey
+import soil.query.core.Marker
 import soil.query.core.getOrThrow
 import soil.query.mutate
 import soil.testing.UnitTest
@@ -128,12 +129,12 @@ private class ExampleInfiniteQueryKey : InfiniteQueryKey<String, Int> by buildIn
 
 private suspend fun <T> QueryRef<T>.test(): T {
     val deferred = CompletableDeferred<T>()
-    send(QueryCommands.Connect(key, callback = deferred::completeWith))
+    send(QueryCommands.Connect(key, marker = Marker.None, callback = deferred::completeWith))
     return deferred.await()
 }
 
 private suspend fun <T, S> InfiniteQueryRef<T, S>.test(): QueryChunks<T, S> {
     val deferred = CompletableDeferred<QueryChunks<T, S>>()
-    send(InfiniteQueryCommands.Connect(key, callback = deferred::completeWith))
+    send(InfiniteQueryCommands.Connect(key, marker = Marker.None, callback = deferred::completeWith))
     return deferred.await()
 }

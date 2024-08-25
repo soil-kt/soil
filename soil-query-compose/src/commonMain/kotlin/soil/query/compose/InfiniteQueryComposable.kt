@@ -22,18 +22,19 @@ import soil.query.core.map
  * @param T Type of data to retrieve.
  * @param S Type of parameter.
  * @param key The [InfiniteQueryKey] for managing [query][soil.query.Query] associated with [id][soil.query.InfiniteQueryId].
+ * @param config The configuration for the query. By default, it uses the [InfiniteQueryConfig.Default].
  * @param client The [QueryClient] to resolve [key]. By default, it uses the [LocalQueryClient].
  * @return A [InfiniteQueryObject] each the query state changed.
  */
 @Composable
 fun <T, S> rememberInfiniteQuery(
     key: InfiniteQueryKey<T, S>,
-    strategy: QueryCachingStrategy = QueryCachingStrategy,
+    config: InfiniteQueryConfig = InfiniteQueryConfig.Default,
     client: QueryClient = LocalQueryClient.current
 ): InfiniteQueryObject<QueryChunks<T, S>, S> {
     val scope = rememberCoroutineScope()
-    val query = remember(key) { client.getInfiniteQuery(key).also { it.launchIn(scope) } }
-    return strategy.collectAsState(query).toInfiniteObject(query = query, select = { it })
+    val query = remember(key) { client.getInfiniteQuery(key, config.marker).also { it.launchIn(scope) } }
+    return config.strategy.collectAsState(query).toInfiniteObject(query = query, select = { it })
 }
 
 /**
@@ -43,6 +44,7 @@ fun <T, S> rememberInfiniteQuery(
  * @param S Type of parameter.
  * @param key The [InfiniteQueryKey] for managing [query][soil.query.Query] associated with [id][soil.query.InfiniteQueryId].
  * @param select A function to select data from [QueryChunks].
+ * @param config The configuration for the query. By default, it uses the [InfiniteQueryConfig.Default].
  * @param client The [QueryClient] to resolve [key]. By default, it uses the [LocalQueryClient].
  * @return A [InfiniteQueryObject] with selected data each the query state changed.
  */
@@ -50,12 +52,12 @@ fun <T, S> rememberInfiniteQuery(
 fun <T, S, U> rememberInfiniteQuery(
     key: InfiniteQueryKey<T, S>,
     select: (chunks: QueryChunks<T, S>) -> U,
-    strategy: QueryCachingStrategy = QueryCachingStrategy,
+    config: InfiniteQueryConfig = InfiniteQueryConfig.Default,
     client: QueryClient = LocalQueryClient.current
 ): InfiniteQueryObject<U, S> {
     val scope = rememberCoroutineScope()
-    val query = remember(key) { client.getInfiniteQuery(key).also { it.launchIn(scope) } }
-    return strategy.collectAsState(query).toInfiniteObject(query = query, select = select)
+    val query = remember(key) { client.getInfiniteQuery(key, config.marker).also { it.launchIn(scope) } }
+    return config.strategy.collectAsState(query).toInfiniteObject(query = query, select = select)
 }
 
 private fun <T, S, U> QueryState<QueryChunks<T, S>>.toInfiniteObject(

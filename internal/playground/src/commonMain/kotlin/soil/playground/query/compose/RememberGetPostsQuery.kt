@@ -6,13 +6,17 @@ import soil.playground.query.data.PageParam
 import soil.playground.query.data.Posts
 import soil.playground.query.key.posts.GetPostsKey
 import soil.query.chunkedData
+import soil.query.compose.InfiniteQueryConfig
 import soil.query.compose.InfiniteQueryObject
 import soil.query.compose.rememberInfiniteQuery
 
 typealias GetPostsQueryObject = InfiniteQueryObject<Posts, PageParam>
 
 @Composable
-fun rememberGetPostsQuery(userId: Int? = null): GetPostsQueryObject {
+fun rememberGetPostsQuery(
+    userId: Int? = null,
+    builderBlock: InfiniteQueryConfig.Builder.() -> Unit = {}
+): GetPostsQueryObject {
     val key = remember(userId) { GetPostsKey(userId) }
-    return rememberInfiniteQuery(key, select = { it.chunkedData })
+    return rememberInfiniteQuery(key, select = { it.chunkedData }, config = InfiniteQueryConfig(builderBlock))
 }

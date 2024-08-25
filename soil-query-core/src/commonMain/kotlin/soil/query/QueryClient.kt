@@ -4,6 +4,7 @@
 package soil.query
 
 import kotlinx.coroutines.Job
+import soil.query.core.Marker
 import soil.query.core.UniqueId
 
 /**
@@ -19,12 +20,18 @@ interface QueryClient {
     /**
      * Gets the [QueryRef] by the specified [QueryKey].
      */
-    fun <T> getQuery(key: QueryKey<T>): QueryRef<T>
+    fun <T> getQuery(
+        key: QueryKey<T>,
+        marker: Marker = Marker.None
+    ): QueryRef<T>
 
     /**
      * Gets the [InfiniteQueryRef] by the specified [InfiniteQueryKey].
      */
-    fun <T, S> getInfiniteQuery(key: InfiniteQueryKey<T, S>): InfiniteQueryRef<T, S>
+    fun <T, S> getInfiniteQuery(
+        key: InfiniteQueryKey<T, S>,
+        marker: Marker = Marker.None
+    ): InfiniteQueryRef<T, S>
 
     /**
      * Prefetches the query by the specified [QueryKey].
@@ -33,7 +40,10 @@ interface QueryClient {
      * Prefetch is executed within a [kotlinx.coroutines.CoroutineScope] associated with the instance of [QueryClient].
      * After data retrieval, subscription is automatically unsubscribed, hence the caching period depends on [QueryOptions].
      */
-    fun <T> prefetchQuery(key: QueryKey<T>): Job
+    fun <T> prefetchQuery(
+        key: QueryKey<T>,
+        marker: Marker = Marker.None
+    ): Job
 
     /**
      * Prefetches the infinite query by the specified [InfiniteQueryKey].
@@ -42,7 +52,10 @@ interface QueryClient {
      * Prefetch is executed within a [kotlinx.coroutines.CoroutineScope] associated with the instance of [QueryClient].
      * After data retrieval, subscription is automatically unsubscribed, hence the caching period depends on [QueryOptions].
      */
-    fun <T, S> prefetchInfiniteQuery(key: InfiniteQueryKey<T, S>): Job
+    fun <T, S> prefetchInfiniteQuery(
+        key: InfiniteQueryKey<T, S>,
+        marker: Marker = Marker.None
+    ): Job
 }
 
 /**

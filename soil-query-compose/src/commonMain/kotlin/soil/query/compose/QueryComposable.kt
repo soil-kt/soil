@@ -19,18 +19,19 @@ import soil.query.core.map
  *
  * @param T Type of data to retrieve.
  * @param key The [QueryKey] for managing [query][soil.query.Query].
+ * @param config The configuration for the query. By default, it uses the [QueryConfig.Default].
  * @param client The [QueryClient] to resolve [key]. By default, it uses the [LocalQueryClient].
  * @return A [QueryObject] each the query state changed.
  */
 @Composable
 fun <T> rememberQuery(
     key: QueryKey<T>,
-    strategy: QueryCachingStrategy = QueryCachingStrategy,
+    config: QueryConfig = QueryConfig.Default,
     client: QueryClient = LocalQueryClient.current
 ): QueryObject<T> {
     val scope = rememberCoroutineScope()
-    val query = remember(key) { client.getQuery(key).also { it.launchIn(scope) } }
-    return strategy.collectAsState(query).toObject(query = query, select = { it })
+    val query = remember(key) { client.getQuery(key, config.marker).also { it.launchIn(scope) } }
+    return config.strategy.collectAsState(query).toObject(query = query, select = { it })
 }
 
 /**
@@ -40,6 +41,7 @@ fun <T> rememberQuery(
  * @param U Type of selected data.
  * @param key The [QueryKey] for managing [query][soil.query.Query].
  * @param select A function to select data from [T].
+ * @param config The configuration for the query. By default, it uses the [QueryConfig.Default].
  * @param client The [QueryClient] to resolve [key]. By default, it uses the [LocalQueryClient].
  * @return A [QueryObject] with selected data each the query state changed.
  */
@@ -47,12 +49,12 @@ fun <T> rememberQuery(
 fun <T, U> rememberQuery(
     key: QueryKey<T>,
     select: (T) -> U,
-    strategy: QueryCachingStrategy = QueryCachingStrategy,
+    config: QueryConfig = QueryConfig.Default,
     client: QueryClient = LocalQueryClient.current
 ): QueryObject<U> {
     val scope = rememberCoroutineScope()
-    val query = remember(key) { client.getQuery(key).also { it.launchIn(scope) } }
-    return strategy.collectAsState(query).toObject(query = query, select = select)
+    val query = remember(key) { client.getQuery(key, config.marker).also { it.launchIn(scope) } }
+    return config.strategy.collectAsState(query).toObject(query = query, select = select)
 }
 
 private fun <T, U> QueryState<T>.toObject(

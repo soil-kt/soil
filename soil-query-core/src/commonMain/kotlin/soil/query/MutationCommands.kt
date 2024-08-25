@@ -3,6 +3,7 @@
 
 package soil.query
 
+import soil.query.core.Marker
 import soil.query.core.vvv
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -16,11 +17,14 @@ object MutationCommands {
      * @param key Instance of a class implementing [MutationKey].
      * @param variable The variable to be mutated.
      * @param revision The revision of the mutation state.
+     * @param marker The marker with additional information based on the caller of a mutation.
+     * @param callback The callback to receive the result of the mutation.
      */
     class Mutate<T, S>(
         val key: MutationKey<T, S>,
         val variable: S,
         val revision: String,
+        val marker: Marker = Marker.None,
         val callback: MutationCallback<T>? = null
     ) : MutationCommand<T> {
 
@@ -31,7 +35,7 @@ object MutationCommands {
                 return
             }
             ctx.dispatch(MutationAction.Mutating)
-            ctx.dispatchMutateResult(key, variable, callback)
+            ctx.dispatchMutateResult(key, variable, marker, callback)
         }
     }
 

@@ -18,6 +18,7 @@ import soil.query.QueryKey
 import soil.query.QueryOptions
 import soil.query.QueryRef
 import soil.query.QueryState
+import soil.query.core.Marker
 import soil.query.core.UniqueId
 
 /**
@@ -38,26 +39,36 @@ class QueryPreviewClient(
 ) : QueryClient {
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T> getQuery(key: QueryKey<T>): QueryRef<T> {
+    override fun <T> getQuery(
+        key: QueryKey<T>,
+        marker: Marker
+    ): QueryRef<T> {
         val state = previewData[key.id] as? QueryState<T> ?: QueryState.initial()
-        val options = key.onConfigureOptions()?.invoke(defaultQueryOptions) ?: defaultQueryOptions
-        return SnapshotQuery(key, options, MutableStateFlow(state))
+        return SnapshotQuery(key, marker, MutableStateFlow(state))
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T, S> getInfiniteQuery(key: InfiniteQueryKey<T, S>): InfiniteQueryRef<T, S> {
+    override fun <T, S> getInfiniteQuery(
+        key: InfiniteQueryKey<T, S>,
+        marker: Marker
+    ): InfiniteQueryRef<T, S> {
         val state = previewData[key.id] as? QueryState<QueryChunks<T, S>> ?: QueryState.initial()
-        val options = key.onConfigureOptions()?.invoke(defaultQueryOptions) ?: defaultQueryOptions
-        return SnapshotInfiniteQuery(key, options, MutableStateFlow(state))
+        return SnapshotInfiniteQuery(key, marker, MutableStateFlow(state))
     }
 
-    override fun <T> prefetchQuery(key: QueryKey<T>): Job = Job()
+    override fun <T> prefetchQuery(
+        key: QueryKey<T>,
+        marker: Marker
+    ): Job = Job()
 
-    override fun <T, S> prefetchInfiniteQuery(key: InfiniteQueryKey<T, S>): Job = Job()
+    override fun <T, S> prefetchInfiniteQuery(
+        key: InfiniteQueryKey<T, S>,
+        marker: Marker
+    ): Job = Job()
 
     private class SnapshotQuery<T>(
         override val key: QueryKey<T>,
-        override val options: QueryOptions,
+        override val marker: Marker,
         override val state: StateFlow<QueryState<T>>
     ) : QueryRef<T> {
         override fun launchIn(scope: CoroutineScope): Job = Job()
@@ -68,7 +79,7 @@ class QueryPreviewClient(
 
     private class SnapshotInfiniteQuery<T, S>(
         override val key: InfiniteQueryKey<T, S>,
-        override val options: QueryOptions,
+        override val marker: Marker,
         override val state: StateFlow<QueryState<QueryChunks<T, S>>>
     ) : InfiniteQueryRef<T, S> {
         override fun launchIn(scope: CoroutineScope): Job = Job()

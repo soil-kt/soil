@@ -20,16 +20,18 @@ import soil.query.MutationStatus
  * @param T Type of the return value from the mutation.
  * @param S Type of the variable to be mutated.
  * @param key The [MutationKey] for managing [mutation][soil.query.Mutation] associated with [id][soil.query.MutationId].
+ * @param config The configuration for the mutation. By default, it uses the [MutationConfig.Default].
  * @param client The [MutationClient] to resolve [key]. By default, it uses the [LocalMutationClient].
  * @return A [MutationObject] each the mutation state changed.
  */
 @Composable
 fun <T, S> rememberMutation(
     key: MutationKey<T, S>,
+    config: MutationConfig = MutationConfig.Default,
     client: MutationClient = LocalMutationClient.current
 ): MutationObject<T, S> {
     val scope = rememberCoroutineScope()
-    val mutation = remember(key) { client.getMutation(key).also { it.launchIn(scope) } }
+    val mutation = remember(key) { client.getMutation(key, config.marker).also { it.launchIn(scope) } }
     val state by mutation.state.collectAsState()
     return state.toObject(mutation = mutation)
 }
