@@ -95,7 +95,7 @@ class TimeBasedCache<K : Any, V : Any> internal constructor(
             cache.remove(item.key)
         }
 
-        if (cache.size == size) {
+        if (cache.size == size && cache.size >= capacity) {
             val item = queue.pop()!!
             cache.remove(item.key)
         }
