@@ -13,6 +13,7 @@ sealed interface Reply<out T> {
     data class Some<out T> internal constructor(val value: T) : Reply<T>
 
     companion object {
+        @Suppress("NOTHING_TO_INLINE")
         internal inline operator fun <T> invoke(value: T): Reply<T> = Some(value)
 
         fun <T> none(): Reply<T> = None

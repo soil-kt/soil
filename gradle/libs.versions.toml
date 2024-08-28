@@ -26,6 +26,7 @@ ktor = "3.0.0-beta-2"
 maven-publish = "0.28.0"
 robolectric = "4.12.2"
 spotless = "6.25.0"
+turbine = "1.1.0"
 
 
 [libraries]
@@ -58,6 +59,7 @@ ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "kto
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 
 
 [plugins]
