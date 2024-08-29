@@ -25,10 +25,10 @@ import soil.query.core.ErrorRecord
  */
 @Stable
 class SwrPreviewClient(
-    queryPreviewClient: QueryPreviewClient = QueryPreviewClient(emptyMap()),
-    mutationPreviewClient: MutationPreviewClient = MutationPreviewClient(emptyMap()),
+    queryPreview: QueryPreviewClient = QueryPreviewClient(emptyMap()),
+    mutationPreview: MutationPreviewClient = MutationPreviewClient(emptyMap()),
     override val errorRelay: Flow<ErrorRecord> = flow { }
-) : SwrClient, QueryClient by queryPreviewClient, MutationClient by mutationPreviewClient {
+) : SwrClient, QueryClient by queryPreview, MutationClient by mutationPreview {
     override fun perform(sideEffects: QueryEffect): Job = Job()
     override fun onMount(id: String) = Unit
     override fun onUnmount(id: String) = Unit
