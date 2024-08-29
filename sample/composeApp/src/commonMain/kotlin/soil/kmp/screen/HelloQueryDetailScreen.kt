@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -13,6 +14,7 @@ import soil.playground.query.compose.ContentLoading
 import soil.playground.query.compose.ContentUnavailable
 import soil.playground.query.compose.PostDetailItem
 import soil.playground.query.compose.PostUserDetailItem
+import soil.playground.query.compose.rememberExampleSubscription
 import soil.playground.query.compose.rememberGetPostQuery
 import soil.playground.query.compose.rememberGetUserPostsQuery
 import soil.playground.query.compose.rememberGetUserQuery
@@ -24,6 +26,7 @@ import soil.query.compose.runtime.Await
 import soil.query.compose.runtime.Catch
 import soil.query.compose.runtime.ErrorBoundary
 import soil.query.compose.runtime.Suspense
+import soil.query.core.getOrElse
 
 @Composable
 fun HelloQueryDetailScreen(postId: Int) {
@@ -64,11 +67,13 @@ private fun PostDetailContent(
     postId: Int,
     modifier: Modifier = Modifier
 ) {
+    val foo = rememberExampleSubscription()
     PostDetailContainer(postId) { post ->
         Column(
             modifier = modifier.verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
+            Text(text = foo.reply.getOrElse { "" })
             PostDetailItem(post, modifier = Modifier.fillMaxWidth())
             PostUserDetailContainer(userId = post.userId) { user, posts ->
                 PostUserDetailItem(user = user, posts = posts)

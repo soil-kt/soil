@@ -3,12 +3,8 @@
 
 package soil.query
 
-import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
@@ -57,7 +53,7 @@ import kotlin.coroutines.CoroutineContext
  * On the other hand, [Query] in the Inactive state gradually disappears from memory when one of the following conditions is met:
  * - Exceeds the maximum retention count of [TimeBasedCache]
  * - Past the [QueryOptions.gcTime] period since saved in [TimeBasedCache]
- * - [evictCache] or [clearCache] is executed for unnecessary memory release
+ * - [gc] is executed for unnecessary memory release
  *
  * [Mutation] is managed similarly to Active state [Query], but it is not explicitly deleted like [removeQueries].
  * Typically, since the result of [Mutation] execution is not reused, it does not cache after going inactive.
@@ -65,7 +61,7 @@ import kotlin.coroutines.CoroutineContext
  * @param policy The policy for the [SwrCache].
  * @constructor Creates a new [SwrCache] instance.
  */
-class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClient {
+open class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClient {
 
     @Suppress("unused")
     constructor(coroutineScope: CoroutineScope) : this(SwrCachePolicy(coroutineScope))
@@ -78,31 +74,11 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     private val coroutineScope: CoroutineScope = CoroutineScope(
         context = newCoroutineContext(policy.coroutineScope)
     )
-    private val batchScheduler: BatchScheduler by lazy {
-        policy.batchSchedulerFactory.create(coroutineScope)
-    }
+    private val batchScheduler: BatchScheduler = policy.batchSchedulerFactory.create(coroutineScope)
 
     private var mountedIds: Set<String> = emptySet()
     private var mountedScope: CoroutineScope? = null
 
-    /**
-     * Releases data in memory based on the specified [level].
-     */
-    @Suppress("MemberVisibilityCanBePrivate")
-    fun gc(level: MemoryPressureLevel = MemoryPressureLevel.Low) {
-        when (level) {
-            MemoryPressureLevel.Low -> evictCache()
-            MemoryPressureLevel.High -> clearCache()
-        }
-    }
-
-    private fun evictCache() {
-        queryCache.evict()
-    }
-
-    private fun clearCache() {
-        queryCache.clear()
-    }
 
     // ----- SwrClient ----- //
 
@@ -111,6 +87,13 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
 
     override val errorRelay: Flow<ErrorRecord>
         get() = policy.errorRelay?.receiveAsFlow() ?: error("policy.errorRelay is not configured :(")
+
+    override fun gc(level: MemoryPressureLevel) {
+        when (level) {
+            MemoryPressureLevel.Low -> queryCache.evict()
+            MemoryPressureLevel.High -> queryCache.clear()
+        }
+    }
 
     override fun perform(sideEffects: QueryEffect): Job {
         return coroutineScope.launch {
@@ -192,11 +175,11 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         if (mutation == null) {
             mutation = newMutation(
                 id = id,
-                options = key.configureOptions(defaultMutationOptions),
+                options = key.onConfigureOptions()?.invoke(defaultMutationOptions) ?: defaultMutationOptions,
                 initialValue = MutationState<T>()
             ).also { mutationStore[id] = it }
         }
-        return SwrMutation(
+        return MutationRef(
             key = key,
             marker = marker,
             mutation = mutation
@@ -268,11 +251,11 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         if (query == null) {
             query = newQuery(
                 id = id,
-                options = key.configureOptions(defaultQueryOptions),
+                options = key.onConfigureOptions()?.invoke(defaultQueryOptions) ?: defaultQueryOptions,
                 initialValue = queryCache[key.id] as? QueryState<T> ?: newQueryState(key)
             ).also { queryStore[id] = it }
         }
-        return SwrQuery(
+        return QueryRef(
             key = key,
             marker = marker,
             query = query
@@ -364,11 +347,11 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         if (query == null) {
             query = newInfiniteQuery(
                 id = id,
-                options = key.configureOptions(defaultQueryOptions),
+                options = key.onConfigureOptions()?.invoke(defaultQueryOptions) ?: defaultQueryOptions,
                 initialValue = queryCache[id] as? QueryState<QueryChunks<T, S>> ?: QueryState()
             ).also { queryStore[id] = it }
         }
-        return SwrInfiniteQuery(
+        return InfiniteQueryRef(
             key = key,
             marker = marker,
             query = query
@@ -663,31 +646,8 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     ) : QueryCommand.Context<T>
 
     companion object {
-        private fun newCoroutineContext(parent: CoroutineScope): CoroutineContext {
+        internal fun newCoroutineContext(parent: CoroutineScope): CoroutineContext {
             return parent.coroutineContext + Job(parent.coroutineContext[Job])
         }
     }
-}
-
-private fun <T, S> MutationKey<T, S>.configureOptions(defaultOptions: MutationOptions): MutationOptions {
-    return onConfigureOptions()?.invoke(defaultOptions) ?: defaultOptions
-}
-
-private fun <T> QueryKey<T>.configureOptions(defaultOptions: QueryOptions): QueryOptions {
-    return onConfigureOptions()?.invoke(defaultOptions) ?: defaultOptions
-}
-
-private fun <T, S> InfiniteQueryKey<T, S>.configureOptions(defaultOptions: QueryOptions): QueryOptions {
-    return onConfigureOptions()?.invoke(defaultOptions) ?: defaultOptions
-}
-
-/**
- * [CoroutineScope] with limited concurrency for [SwrCache].
- */
-@OptIn(ExperimentalCoroutinesApi::class)
-class SwrCacheScope(parent: Job? = null) : CoroutineScope {
-    override val coroutineContext: CoroutineContext =
-        SupervisorJob(parent) +
-            Dispatchers.Default.limitedParallelism(1) +
-            CoroutineName("SwrCache")
 }

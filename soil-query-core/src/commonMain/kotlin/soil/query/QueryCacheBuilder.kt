@@ -29,6 +29,7 @@ interface QueryCacheBuilder {
      * @param data Data to store.
      * @param dataUpdatedAt Timestamp when the data was updated. Default is the current epoch time.
      * @param dataStaleAt The timestamp after which data is considered stale. Default is the same as [dataUpdatedAt]
+     * @param ttl Time to live for the data. Default is [Duration.INFINITE]
      */
     fun <T> put(
         id: QueryId<T>,
@@ -45,6 +46,7 @@ interface QueryCacheBuilder {
      * @param data Data to store.
      * @param dataUpdatedAt Timestamp when the data was updated. Default is the current epoch time.
      * @param dataStaleAt The timestamp after which data is considered stale. Default is the same as [dataUpdatedAt]
+     * @param ttl Time to live for the data. Default is [Duration.INFINITE]
      */
     fun <T, S> put(
         id: InfiniteQueryId<T, S>,

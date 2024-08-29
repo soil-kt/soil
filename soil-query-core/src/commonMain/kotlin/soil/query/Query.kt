@@ -13,7 +13,7 @@ import soil.query.core.Actor
  *
  * @param T Type of the return value from the query.
  */
-internal interface Query<T> : Actor {
+interface Query<T> : Actor {
 
     /**
      * The QueryOptions configured for the query.
@@ -39,7 +39,7 @@ internal interface Query<T> : Actor {
 /**
  * Events occurring in the query.
  */
-internal enum class QueryEvent {
+enum class QueryEvent {
     Invalidate,
     Resume
 }

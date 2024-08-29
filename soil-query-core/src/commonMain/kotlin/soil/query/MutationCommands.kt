@@ -21,11 +21,11 @@ object MutationCommands {
      * @param callback The callback to receive the result of the mutation.
      */
     class Mutate<T, S>(
-        val key: MutationKey<T, S>,
-        val variable: S,
-        val revision: String,
-        val marker: Marker = Marker.None,
-        val callback: MutationCallback<T>? = null
+        private val key: MutationKey<T, S>,
+        private val variable: S,
+        private val revision: String,
+        private val marker: Marker = Marker.None,
+        private val callback: MutationCallback<T>? = null
     ) : MutationCommand<T> {
 
         override suspend fun handle(ctx: MutationCommand.Context<T>) {

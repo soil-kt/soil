@@ -22,10 +22,10 @@ object InfiniteQueryCommands {
      * @param callback The callback to receive the result of the query.
      */
     class Connect<T, S>(
-        val key: InfiniteQueryKey<T, S>,
-        val revision: String? = null,
-        val marker: Marker = Marker.None,
-        val callback: QueryCallback<QueryChunks<T, S>>? = null
+        private val key: InfiniteQueryKey<T, S>,
+        private val revision: String? = null,
+        private val marker: Marker = Marker.None,
+        private val callback: QueryCallback<QueryChunks<T, S>>? = null
     ) : InfiniteQueryCommand<T, S> {
         override suspend fun handle(ctx: QueryCommand.Context<QueryChunks<T, S>>) {
             if (!ctx.shouldFetch(revision)) {
@@ -54,10 +54,10 @@ object InfiniteQueryCommands {
      * @param callback The callback to receive the result of the query.
      */
     class Invalidate<T, S>(
-        val key: InfiniteQueryKey<T, S>,
-        val revision: String,
-        val marker: Marker = Marker.None,
-        val callback: QueryCallback<QueryChunks<T, S>>? = null
+        private val key: InfiniteQueryKey<T, S>,
+        private val revision: String,
+        private val marker: Marker = Marker.None,
+        private val callback: QueryCallback<QueryChunks<T, S>>? = null
     ) : InfiniteQueryCommand<T, S> {
         override suspend fun handle(ctx: QueryCommand.Context<QueryChunks<T, S>>) {
             if (ctx.state.revision != revision) {
@@ -84,10 +84,10 @@ object InfiniteQueryCommands {
      * @param callback The callback to receive the result of the query.
      */
     class LoadMore<T, S>(
-        val key: InfiniteQueryKey<T, S>,
-        val param: S,
-        val marker: Marker = Marker.None,
-        val callback: QueryCallback<QueryChunks<T, S>>? = null
+        private val key: InfiniteQueryKey<T, S>,
+        private val param: S,
+        private val marker: Marker = Marker.None,
+        private val callback: QueryCallback<QueryChunks<T, S>>? = null
     ) : InfiniteQueryCommand<T, S> {
         override suspend fun handle(ctx: QueryCommand.Context<QueryChunks<T, S>>) {
             val chunks = ctx.state.reply.getOrElse { emptyList() }

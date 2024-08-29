@@ -26,15 +26,22 @@ interface InfiniteQueryStrategy {
     @Composable
     fun <T, S> collectAsState(query: InfiniteQueryRef<T, S>): QueryState<QueryChunks<T, S>>
 
-    companion object Default : InfiniteQueryStrategy {
+    companion object
+}
 
-        @Composable
-        override fun <T, S> collectAsState(query: InfiniteQueryRef<T, S>): QueryState<QueryChunks<T, S>> {
-            val state by query.state.collectAsState()
-            LaunchedEffect(query.key.id) {
-                query.resume()
-            }
-            return state
+/**
+ * The default built-in strategy for Infinite Query built into the library.
+ */
+val InfiniteQueryStrategy.Companion.Default: InfiniteQueryStrategy
+    get() = InfiniteQueryStrategyDefault
+
+private object InfiniteQueryStrategyDefault : InfiniteQueryStrategy {
+    @Composable
+    override fun <T, S> collectAsState(query: InfiniteQueryRef<T, S>): QueryState<QueryChunks<T, S>> {
+        val state by query.state.collectAsState()
+        LaunchedEffect(query.key.id) {
+            query.resume()
         }
+        return state
     }
 }

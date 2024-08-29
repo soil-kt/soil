@@ -36,4 +36,4 @@ interface Retryable {
 /**
  * Callback function to notify the execution of retry logic.
  */
-typealias RetryCallback = (err: Throwable, count: Int, nextBackOff: Duration) -> Unit
+typealias RetryCallback = (err: Throwable, attempt: Int, nextBackOff: Duration) -> Unit
