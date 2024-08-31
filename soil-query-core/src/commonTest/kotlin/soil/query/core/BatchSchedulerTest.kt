@@ -20,13 +20,13 @@ class BatchSchedulerTest : UnitTest() {
 
     @Test
     fun testDefault_chunkSizeTrigger() = runTest {
-        val scheduler = BatchScheduler.default(
+        val factory = BatchSchedulerFactory.default(
             dispatcher = StandardTestDispatcher(testScheduler),
             interval = 3.seconds,
             chunkSize = 3
         )
         val scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler))
-        scheduler.start(scope)
+        val scheduler = factory.create(scope)
         val task = TestBatchTask()
 
         scheduler.post(task)
@@ -43,13 +43,13 @@ class BatchSchedulerTest : UnitTest() {
 
     @Test
     fun testDefault_intervalTrigger() = runTest {
-        val scheduler = BatchScheduler.default(
+        val factory = BatchSchedulerFactory.default(
             dispatcher = StandardTestDispatcher(testScheduler),
             interval = 3.seconds,
             chunkSize = 3
         )
         val scope = CoroutineScope(backgroundScope.coroutineContext + UnconfinedTestDispatcher(testScheduler))
-        scheduler.start(scope)
+        val scheduler = factory.create(scope)
         val task = TestBatchTask()
 
         scheduler.post(task)

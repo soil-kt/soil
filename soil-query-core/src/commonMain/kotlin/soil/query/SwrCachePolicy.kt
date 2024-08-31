@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import soil.query.core.BatchScheduler
+import soil.query.core.BatchSchedulerFactory
 import soil.query.core.ErrorRelay
 import soil.query.core.MemoryPressure
 import soil.query.core.NetworkConnectivity
@@ -69,7 +70,7 @@ class SwrCachePolicy(
      * This is used for internal processes such as moving inactive query caches.
      * Please avoid changing this unless you need to substitute it for testing purposes.
      */
-    val batchScheduler: BatchScheduler = BatchScheduler.default(mainDispatcher),
+    val batchSchedulerFactory: BatchSchedulerFactory = BatchSchedulerFactory.default(mainDispatcher),
 
     /**
      * Specify the mechanism of [ErrorRelay] when using [SwrClient.errorRelay].

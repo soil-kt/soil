@@ -6,7 +6,6 @@ package soil.query.core
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -20,19 +19,24 @@ import kotlin.time.Duration.Companion.milliseconds
 interface BatchScheduler {
 
     /**
-     * Start the scheduler.
-     */
-    fun start(scope: CoroutineScope): Job
-
-    /**
      * Post a task to the scheduler.
      */
     suspend fun post(task: BatchTask)
+}
+
+/**
+ * Factory for creating [BatchScheduler] instances.
+ */
+fun interface BatchSchedulerFactory {
+
+    /**
+     * Create a new [BatchScheduler] instance.
+     */
+    fun create(scope: CoroutineScope): BatchScheduler
 
     companion object {
-
         /**
-         * Create a new [BatchScheduler] with built-in scheduler implementation.
+         * Create a new [BatchScheduler] factory with built-in scheduler implementation.
          *
          * @param dispatcher Coroutine dispatcher for the main thread.
          * @param interval Interval for batching tasks.
@@ -42,8 +46,8 @@ interface BatchScheduler {
             dispatcher: CoroutineDispatcher = Dispatchers.Main,
             interval: Duration = 500.milliseconds,
             chunkSize: Int = 10
-        ): BatchScheduler {
-            return DefaultBatchScheduler(dispatcher, interval, chunkSize)
+        ): BatchSchedulerFactory = BatchSchedulerFactory { scope ->
+            DefaultBatchScheduler(scope, dispatcher, interval, chunkSize)
         }
     }
 }
@@ -51,15 +55,16 @@ interface BatchScheduler {
 typealias BatchTask = () -> Unit
 
 internal class DefaultBatchScheduler(
-    private val dispatcher: CoroutineDispatcher,
-    private val interval: Duration,
-    private val chunkSize: Int
+    scope: CoroutineScope,
+    dispatcher: CoroutineDispatcher,
+    interval: Duration,
+    chunkSize: Int
 ) : BatchScheduler {
 
     private val batchFlow: MutableSharedFlow<BatchTask> = MutableSharedFlow()
 
-    override fun start(scope: CoroutineScope): Job {
-        return batchFlow
+    init {
+        batchFlow
             .chunkedWithTimeout(size = chunkSize, duration = interval)
             .onEach { tasks ->
                 withContext(dispatcher) {

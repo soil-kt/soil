@@ -75,17 +75,15 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     private val queryReceiver = policy.queryReceiver
     private val queryStore: MutableMap<UniqueId, ManagedQuery<*>> = mutableMapOf()
     private val queryCache: QueryCache = policy.queryCache
-    private val batchScheduler: BatchScheduler = policy.batchScheduler
     private val coroutineScope: CoroutineScope = CoroutineScope(
         context = newCoroutineContext(policy.coroutineScope)
     )
+    private val batchScheduler: BatchScheduler by lazy {
+        policy.batchSchedulerFactory.create(coroutineScope)
+    }
 
     private var mountedIds: Set<String> = emptySet()
     private var mountedScope: CoroutineScope? = null
-
-    init {
-        batchScheduler.start(coroutineScope)
-    }
 
     /**
      * Releases data in memory based on the specified [level].
