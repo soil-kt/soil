@@ -15,6 +15,9 @@ internal class SwrQuery<T>(
     private val query: Query<T>
 ) : QueryRef<T> {
 
+    override val options: QueryOptions
+        get() = query.options
+
     override val state: StateFlow<QueryState<T>>
         get() = query.state
 

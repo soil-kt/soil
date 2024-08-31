@@ -240,12 +240,12 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
             }
         }
         return ManagedMutation(
+            scope = scope,
             id = id,
             options = options,
-            scope = scope,
-            actor = actor,
             state = state,
-            command = command
+            command = command,
+            actor = actor
         )
     }
 
@@ -318,14 +318,14 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
             }
         }
         return ManagedQuery(
+            scope = scope,
             id = id,
             options = options,
-            scope = scope,
-            dispatch = dispatch,
-            actor = actor,
             event = event,
             state = state,
-            command = command
+            command = command,
+            actor = actor,
+            dispatch = dispatch
         )
     }
 
@@ -395,8 +395,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         val query = getQuery(key, marker).also { it.launchIn(scope) }
         return coroutineScope.launch {
             try {
-                val options = key.configureOptions(defaultQueryOptions)
-                withTimeoutOrNull(options.prefetchWindowTime) {
+                withTimeoutOrNull(query.options.prefetchWindowTime) {
                     query.resume()
                 }
             } finally {
@@ -413,8 +412,7 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
         val query = getInfiniteQuery(key, marker).also { it.launchIn(scope) }
         return coroutineScope.launch {
             try {
-                val options = key.configureOptions(defaultQueryOptions)
-                withTimeoutOrNull(options.prefetchWindowTime) {
+                withTimeoutOrNull(query.options.prefetchWindowTime) {
                     query.resume()
                 }
             } finally {
@@ -595,12 +593,12 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     }
 
     internal class ManagedMutation<T>(
-        val id: UniqueId,
-        val options: MutationOptions,
         val scope: CoroutineScope,
-        internal val actor: ActorBlockRunner,
+        val id: UniqueId,
+        override val options: MutationOptions,
         override val state: StateFlow<MutationState<T>>,
-        override val command: SendChannel<MutationCommand<T>>
+        override val command: SendChannel<MutationCommand<T>>,
+        internal val actor: ActorBlockRunner,
     ) : Mutation<T> {
 
         override fun launchIn(scope: CoroutineScope): Job {
@@ -623,14 +621,14 @@ class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutableClie
     ) : MutationCommand.Context<T>
 
     internal class ManagedQuery<T>(
-        val id: UniqueId,
-        val options: QueryOptions,
         val scope: CoroutineScope,
-        val dispatch: QueryDispatch<T>,
-        internal val actor: ActorBlockRunner,
+        val id: UniqueId,
+        override val options: QueryOptions,
         override val event: MutableSharedFlow<QueryEvent>,
         override val state: StateFlow<QueryState<T>>,
-        override val command: SendChannel<QueryCommand<T>>
+        override val command: SendChannel<QueryCommand<T>>,
+        internal val actor: ActorBlockRunner,
+        private val dispatch: QueryDispatch<T>
     ) : Query<T> {
 
         override fun launchIn(scope: CoroutineScope): Job {

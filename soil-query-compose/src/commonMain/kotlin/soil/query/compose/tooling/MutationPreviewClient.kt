@@ -39,11 +39,13 @@ class MutationPreviewClient(
         marker: Marker
     ): MutationRef<T, S> {
         val state = previewData[key.id] as? MutationState<T> ?: MutationState.initial()
-        return SnapshotMutation(key, marker, MutableStateFlow(state))
+        val options = key.onConfigureOptions()?.invoke(defaultMutationOptions) ?: defaultMutationOptions
+        return SnapshotMutation(key, options, marker, MutableStateFlow(state))
     }
 
     private class SnapshotMutation<T, S>(
         override val key: MutationKey<T, S>,
+        override val options: MutationOptions,
         override val marker: Marker,
         override val state: StateFlow<MutationState<T>>
     ) : MutationRef<T, S> {
