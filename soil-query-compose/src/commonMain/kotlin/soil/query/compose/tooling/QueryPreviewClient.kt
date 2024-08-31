@@ -9,11 +9,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import soil.query.InfiniteQueryCommand
+import soil.query.InfiniteQueryId
 import soil.query.InfiniteQueryKey
 import soil.query.InfiniteQueryRef
 import soil.query.QueryChunks
 import soil.query.QueryClient
 import soil.query.QueryCommand
+import soil.query.QueryId
 import soil.query.QueryKey
 import soil.query.QueryOptions
 import soil.query.QueryRef
@@ -24,12 +26,10 @@ import soil.query.core.UniqueId
 /**
  * Usage:
  * ```kotlin
- * val client = QueryPreviewClient(
- *   previewData = mapOf(
- *      MyQueryId to QueryState.success("data"),
- *      ..
- *   )
- * )
+ * val queryClient = QueryPreviewClient {
+ *     on(MyQueryId1) { QueryState.success("data") }
+ *     on(MyQueryId2) { .. }
+ * }
  * ```
  */
 @Stable
@@ -88,4 +88,28 @@ class QueryPreviewClient(
         override suspend fun loadMore(param: S) = Unit
         override suspend fun invalidate() = Unit
     }
+
+    /**
+     * Builder for [QueryPreviewClient].
+     */
+    class Builder {
+        private val previewData = mutableMapOf<UniqueId, QueryState<*>>()
+
+        fun <T> on(id: QueryId<T>, snapshot: () -> QueryState<T>) {
+            previewData[id] = snapshot()
+        }
+
+        fun <T, S> on(id: InfiniteQueryId<T, S>, snapshot: () -> QueryState<QueryChunks<T, S>>) {
+            previewData[id] = snapshot()
+        }
+
+        fun build() = QueryPreviewClient(previewData)
+    }
+}
+
+/**
+ * Create a [QueryPreviewClient] instance with the provided [initializer].
+ */
+fun QueryPreviewClient(initializer: QueryPreviewClient.Builder.() -> Unit): QueryPreviewClient {
+    return QueryPreviewClient.Builder().apply(initializer).build()
 }

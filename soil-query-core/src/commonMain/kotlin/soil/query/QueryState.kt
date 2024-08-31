@@ -79,5 +79,31 @@ data class QueryState<T> internal constructor(
                 status = QueryStatus.Failure
             )
         }
+
+        /**
+         * Creates a new [QueryState] with the [QueryStatus.Failure] status.
+         *
+         * @param error The error that occurred.
+         * @param errorUpdatedAt The timestamp when the error occurred. Default is the current epoch.
+         * @param data The data to be stored in the state.
+         * @param dataUpdatedAt The timestamp when the data was updated. Default is the current epoch.
+         * @param dataStaleAt The timestamp after which data is considered stale. Default is the same as [dataUpdatedAt].
+         */
+        fun <T> failure(
+            error: Throwable,
+            errorUpdatedAt: Long = epoch(),
+            data: T,
+            dataUpdatedAt: Long = epoch(),
+            dataStaleAt: Long = dataUpdatedAt
+        ): QueryState<T> {
+            return QueryState(
+                error = error,
+                errorUpdatedAt = errorUpdatedAt,
+                status = QueryStatus.Failure,
+                reply = Reply(data),
+                replyUpdatedAt = dataUpdatedAt,
+                staleAt = dataStaleAt
+            )
+        }
     }
 }

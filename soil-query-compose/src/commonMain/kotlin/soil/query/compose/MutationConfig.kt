@@ -18,7 +18,7 @@ data class MutationConfig internal constructor(
 
     @Suppress("MemberVisibilityCanBePrivate")
     class Builder {
-        val marker: Marker = Default.marker
+        var marker: Marker = Default.marker
 
         fun build() = MutationConfig(
             marker = marker

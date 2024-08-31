@@ -21,7 +21,7 @@ data class InfiniteQueryConfig internal constructor(
     @Suppress("MemberVisibilityCanBePrivate")
     class Builder {
         var strategy: QueryCachingStrategy = Default.strategy
-        val marker: Marker = Default.marker
+        var marker: Marker = Default.marker
 
         fun build() = InfiniteQueryConfig(
             strategy = strategy,

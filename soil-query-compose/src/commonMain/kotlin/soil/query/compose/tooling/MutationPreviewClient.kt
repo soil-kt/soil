@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import soil.query.MutationClient
 import soil.query.MutationCommand
+import soil.query.MutationId
 import soil.query.MutationKey
 import soil.query.MutationOptions
 import soil.query.MutationRef
@@ -20,12 +21,10 @@ import soil.query.core.UniqueId
 /**
  * Usage:
  * ```kotlin
- * val client = MutationPreviewClient(
- *   previewData = mapOf(
- *      MyMutationId to MutationState.success("data"),
- *      ..
- *   )
- * )
+ * val mutationClient = MutationPreviewClient {
+ *     on(MyMutationId1) { MutationState.success("data") }
+ *     on(MyMutationId2) { .. }
+ * }
  * ```
  */
 @Stable
@@ -51,4 +50,24 @@ class MutationPreviewClient(
         override fun launchIn(scope: CoroutineScope): Job = Job()
         override suspend fun send(command: MutationCommand<T>) = Unit
     }
+
+    /**
+     * Builder for [MutationPreviewClient].
+     */
+    class Builder {
+        private val previewData = mutableMapOf<UniqueId, MutationState<*>>()
+
+        fun <T, S> on(id: MutationId<T, S>, snapshot: () -> MutationState<T>) {
+            previewData[id] = snapshot()
+        }
+
+        fun build(): MutationPreviewClient = MutationPreviewClient(previewData)
+    }
+}
+
+/**
+ * Creates a [MutationPreviewClient] with the provided [initializer].
+ */
+fun MutationPreviewClient(initializer: MutationPreviewClient.Builder.() -> Unit): MutationPreviewClient {
+    return MutationPreviewClient.Builder().apply(initializer).build()
 }

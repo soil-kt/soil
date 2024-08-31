@@ -49,7 +49,9 @@ interface TestSwrClient : SwrClient {
 /**
  * Switches [SwrClient] to a test interface.
  */
-fun SwrClient.test(): TestSwrClient = TestSwrClientImpl(this)
+fun SwrClient.test(initializer: TestSwrClient.() -> Unit = {}): TestSwrClient {
+    return TestSwrClientImpl(this).apply(initializer)
+}
 
 internal class TestSwrClientImpl(
     private val target: SwrClient
