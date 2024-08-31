@@ -57,8 +57,8 @@ class MutationPreviewClient(
     class Builder {
         private val previewData = mutableMapOf<UniqueId, MutationState<*>>()
 
-        fun <T, S> on(id: MutationId<T, S>, state: MutationState<T>) {
-            previewData[id] = state
+        fun <T, S> on(id: MutationId<T, S>, snapshot: () -> MutationState<T>) {
+            previewData[id] = snapshot()
         }
 
         fun build(): MutationPreviewClient = MutationPreviewClient(previewData)
