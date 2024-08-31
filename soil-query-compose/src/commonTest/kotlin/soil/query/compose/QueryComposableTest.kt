@@ -66,7 +66,7 @@ class QueryComposableTest : UnitTest() {
             }
         }
 
-        waitForIdle()
+        waitUntilExactlyOneExists(hasTestTag("query"))
         onNodeWithTag("query").assertTextEquals("HELLO, SOIL!")
     }
 
