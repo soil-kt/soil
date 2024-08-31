@@ -51,6 +51,7 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.material)
             implementation(projects.internal.testing)
+            api(projects.soilQueryTest)
         }
 
         val androidUnitTest by getting {
