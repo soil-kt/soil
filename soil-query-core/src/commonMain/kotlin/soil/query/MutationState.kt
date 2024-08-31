@@ -27,6 +27,15 @@ data class MutationState<T> internal constructor(
         }
 
         /**
+         * Creates a new [MutationState] with the [MutationStatus.Pending] status.
+         */
+        fun <T> pending(): MutationState<T> {
+            return MutationState(
+                status = MutationStatus.Pending
+            )
+        }
+
+        /**
          * Creates a new [MutationState] with the [MutationStatus.Success] status.
          *
          * @param data The data to be stored in the state.
