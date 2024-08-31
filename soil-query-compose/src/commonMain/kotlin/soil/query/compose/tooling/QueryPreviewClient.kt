@@ -44,7 +44,8 @@ class QueryPreviewClient(
         marker: Marker
     ): QueryRef<T> {
         val state = previewData[key.id] as? QueryState<T> ?: QueryState.initial()
-        return SnapshotQuery(key, marker, MutableStateFlow(state))
+        val options = key.onConfigureOptions()?.invoke(defaultQueryOptions) ?: defaultQueryOptions
+        return SnapshotQuery(key, options, marker, MutableStateFlow(state))
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -53,7 +54,8 @@ class QueryPreviewClient(
         marker: Marker
     ): InfiniteQueryRef<T, S> {
         val state = previewData[key.id] as? QueryState<QueryChunks<T, S>> ?: QueryState.initial()
-        return SnapshotInfiniteQuery(key, marker, MutableStateFlow(state))
+        val options = key.onConfigureOptions()?.invoke(defaultQueryOptions) ?: defaultQueryOptions
+        return SnapshotInfiniteQuery(key, options, marker, MutableStateFlow(state))
     }
 
     override fun <T> prefetchQuery(
@@ -68,6 +70,7 @@ class QueryPreviewClient(
 
     private class SnapshotQuery<T>(
         override val key: QueryKey<T>,
+        override val options: QueryOptions,
         override val marker: Marker,
         override val state: StateFlow<QueryState<T>>
     ) : QueryRef<T> {
@@ -79,6 +82,7 @@ class QueryPreviewClient(
 
     private class SnapshotInfiniteQuery<T, S>(
         override val key: InfiniteQueryKey<T, S>,
+        override val options: QueryOptions,
         override val marker: Marker,
         override val state: StateFlow<QueryState<QueryChunks<T, S>>>
     ) : InfiniteQueryRef<T, S> {

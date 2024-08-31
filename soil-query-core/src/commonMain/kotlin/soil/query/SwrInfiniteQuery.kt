@@ -15,6 +15,9 @@ internal class SwrInfiniteQuery<T, S>(
     private val query: Query<QueryChunks<T, S>>
 ) : InfiniteQueryRef<T, S> {
 
+    override val options: QueryOptions
+        get() = query.options
+
     override val state: StateFlow<QueryState<QueryChunks<T, S>>>
         get() = query.state
 

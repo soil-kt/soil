@@ -14,6 +14,9 @@ internal class SwrMutation<T, S>(
     private val mutation: Mutation<T>
 ) : MutationRef<T, S> {
 
+    override val options: MutationOptions
+        get() = mutation.options
+
     override val state: StateFlow<MutationState<T>>
         get() = mutation.state
 

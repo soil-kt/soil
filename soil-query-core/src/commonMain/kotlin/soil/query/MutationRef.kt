@@ -17,8 +17,24 @@ import soil.query.core.Marker
  */
 interface MutationRef<T, S> : Actor {
 
+    /**
+     * The [MutationKey] for the Mutation.
+     */
     val key: MutationKey<T, S>
+
+    /**
+     * The MutationOptions configured for the mutation.
+     */
+    val options: MutationOptions
+
+    /**
+     * The Marker specified in [MutationClient.getMutation].
+     */
     val marker: Marker
+
+    /**
+     * [State Flow][StateFlow] to receive the current state of the mutation.
+     */
     val state: StateFlow<MutationState<T>>
 
     /**

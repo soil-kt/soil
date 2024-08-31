@@ -18,8 +18,24 @@ import soil.query.core.awaitOrNull
  */
 interface InfiniteQueryRef<T, S> : Actor {
 
+    /**
+     * The [InfiniteQueryKey] for the Query.
+     */
     val key: InfiniteQueryKey<T, S>
+
+    /**
+     * The QueryOptions configured for the query.
+     */
+    val options: QueryOptions
+
+    /**
+     * The Marker specified in [QueryClient.getInfiniteQuery].
+     */
     val marker: Marker
+
+    /**
+     * [State Flow][StateFlow] to receive the current state of the query.
+     */
     val state: StateFlow<QueryState<QueryChunks<T, S>>>
 
     /**

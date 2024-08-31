@@ -17,8 +17,24 @@ import soil.query.core.awaitOrNull
  */
 interface QueryRef<T> : Actor {
 
+    /**
+     * The [QueryKey] for the Query.
+     */
     val key: QueryKey<T>
+
+    /**
+     * The QueryOptions configured for the query.
+     */
+    val options: QueryOptions
+
+    /**
+     * The Marker specified in [QueryClient.getQuery].
+     */
     val marker: Marker
+
+    /**
+     * [State Flow][StateFlow] to receive the current state of the query.
+     */
     val state: StateFlow<QueryState<T>>
 
     /**
