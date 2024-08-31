@@ -36,7 +36,7 @@ class QueryComposableTest : UnitTest() {
         setContent {
             SwrClientProvider(client) {
                 val query = rememberQuery(key, config = QueryConfig {
-                    strategy = QueryCachingStrategy.Default
+                    strategy = QueryStrategy.Default
                     marker = Marker.None
                 })
                 when (val reply = query.reply) {

@@ -39,6 +39,7 @@ class MutationComposableTest : UnitTest() {
         setContent {
             SwrClientProvider(client) {
                 val mutation = rememberMutation(key, config = MutationConfig {
+                    strategy = MutationStrategy.Default
                     marker = Marker.None
                 })
                 when (val reply = mutation.reply) {

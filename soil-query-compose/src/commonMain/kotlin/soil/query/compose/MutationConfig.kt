@@ -13,20 +13,23 @@ import soil.query.core.Marker
  */
 @Immutable
 data class MutationConfig internal constructor(
+    val strategy: MutationStrategy,
     val marker: Marker
 ) {
 
-    @Suppress("MemberVisibilityCanBePrivate")
     class Builder {
+        var strategy: MutationStrategy = Default.strategy
         var marker: Marker = Default.marker
 
         fun build() = MutationConfig(
+            strategy = strategy,
             marker = marker
         )
     }
 
     companion object {
         val Default = MutationConfig(
+            strategy = MutationStrategy.Default,
             marker = Marker.None
         )
     }

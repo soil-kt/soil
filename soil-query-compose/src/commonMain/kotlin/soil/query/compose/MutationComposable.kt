@@ -4,8 +4,6 @@
 package soil.query.compose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import soil.query.MutationClient
@@ -32,8 +30,7 @@ fun <T, S> rememberMutation(
 ): MutationObject<T, S> {
     val scope = rememberCoroutineScope()
     val mutation = remember(key) { client.getMutation(key, config.marker).also { it.launchIn(scope) } }
-    val state by mutation.state.collectAsState()
-    return state.toObject(mutation = mutation)
+    return config.strategy.collectAsState(mutation).toObject(mutation = mutation)
 }
 
 private fun <T, S> MutationState<T>.toObject(
