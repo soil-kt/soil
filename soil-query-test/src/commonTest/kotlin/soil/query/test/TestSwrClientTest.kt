@@ -26,7 +26,6 @@ import soil.query.buildMutationKey
 import soil.query.buildQueryKey
 import soil.query.core.Marker
 import soil.query.core.getOrThrow
-import soil.query.mutate
 import soil.testing.UnitTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -42,10 +41,8 @@ class TestSwrClientTest : UnitTest() {
                 mainDispatcher = UnconfinedTestDispatcher(testScheduler)
             )
         )
-        val testClient = client.test().apply {
-            mock(ExampleMutationKey.Id) {
-                "Hello, World!"
-            }
+        val testClient = client.test {
+            on(ExampleMutationKey.Id) { "Hello, World!" }
         }
         val key = ExampleMutationKey()
         val mutation = testClient.getMutation(key).also { it.launchIn(backgroundScope) }
@@ -61,10 +58,8 @@ class TestSwrClientTest : UnitTest() {
                 mainDispatcher = UnconfinedTestDispatcher(testScheduler)
             )
         )
-        val testClient = client.test().apply {
-            mock(ExampleQueryKey.Id) {
-                "Hello, World!"
-            }
+        val testClient = client.test {
+            on(ExampleQueryKey.Id) { "Hello, World!" }
         }
         val key = ExampleQueryKey()
         val query = testClient.getQuery(key).also { it.launchIn(backgroundScope) }
@@ -80,10 +75,8 @@ class TestSwrClientTest : UnitTest() {
                 mainDispatcher = UnconfinedTestDispatcher(testScheduler)
             )
         )
-        val testClient = client.test().apply {
-            mock(ExampleInfiniteQueryKey.Id) {
-                "Hello, World!"
-            }
+        val testClient = client.test {
+            on(ExampleInfiniteQueryKey.Id) { "Hello, World!" }
         }
         val key = ExampleInfiniteQueryKey()
         val query = testClient.getInfiniteQuery(key).also { it.launchIn(backgroundScope) }

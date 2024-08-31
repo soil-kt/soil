@@ -38,7 +38,7 @@ class CatchTest : UnitTest() {
         var isFirst = true
         val key = TestQueryKey("foo")
         val client = SwrCache(coroutineScope = SwrCacheScope()).test {
-            mock(key.id) {
+            on(key.id) {
                 if (isFirst) {
                     isFirst = false
                     deferred1.await()
@@ -82,7 +82,7 @@ class CatchTest : UnitTest() {
         var isFirst = true
         val key = TestQueryKey("foo")
         val client = SwrCache(coroutineScope = SwrCacheScope()).test {
-            mock(key.id) {
+            on(key.id) {
                 if (isFirst) {
                     isFirst = false
                     deferred1.await()

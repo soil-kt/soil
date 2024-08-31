@@ -42,7 +42,7 @@ class AwaitTest : UnitTest() {
         val deferred = CompletableDeferred<String>()
         val key = TestQueryKey("foo")
         val client = SwrCache(coroutineScope = SwrCacheScope()).test {
-            mock(key.id) { deferred.await() }
+            on(key.id) { deferred.await() }
         }
         setContent {
             SwrClientProvider(client) {
@@ -67,8 +67,8 @@ class AwaitTest : UnitTest() {
         val key1 = TestQueryKey("foo")
         val key2 = TestQueryKey("bar")
         val client = SwrCache(coroutineScope = SwrCacheScope()).test {
-            mock(key1.id) { deferred1.await() }
-            mock(key2.id) { deferred2.await() }
+            on(key1.id) { deferred1.await() }
+            on(key2.id) { deferred2.await() }
         }
         setContent {
             SwrClientProvider(client) {
@@ -100,9 +100,9 @@ class AwaitTest : UnitTest() {
         val key2 = TestQueryKey("bar")
         val key3 = TestInfiniteQueryKey()
         val client = SwrCache(coroutineScope = SwrCacheScope()).test {
-            mock(key1.id) { deferred1.await() }
-            mock(key2.id) { deferred2.await() }
-            mock(key3.id) { deferred3.await() }
+            on(key1.id) { deferred1.await() }
+            on(key2.id) { deferred2.await() }
+            on(key3.id) { deferred3.await() }
         }
         setContent {
             SwrClientProvider(client) {
@@ -137,8 +137,8 @@ class AwaitTest : UnitTest() {
         val key1 = TestQueryKey("foo")
         val key2 = TestQueryKey("bar")
         val client = SwrCache(coroutineScope = SwrCacheScope()).test {
-            mock(key1.id) { deferred1.await() }
-            mock(key2.id) { deferred2.await() }
+            on(key1.id) { deferred1.await() }
+            on(key2.id) { deferred2.await() }
         }
         setContent {
             SwrClientProvider(client) {
@@ -176,7 +176,7 @@ class AwaitTest : UnitTest() {
         var isFirst = true
         val key = TestQueryKey("foo")
         val client = SwrCache(coroutineScope = SwrCacheScope()).test {
-            mock(key.id) {
+            on(key.id) {
                 if (isFirst) {
                     isFirst = false
                     deferred1.await()
