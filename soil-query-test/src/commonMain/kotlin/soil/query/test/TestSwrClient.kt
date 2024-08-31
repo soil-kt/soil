@@ -22,8 +22,9 @@ import soil.query.core.Marker
  *
  * ```kotlin
  * val client = SwrCache(..)
- * val testClient = client.test()
- * testClient.mock(MyQueryId) { "returned fake data" }
+ * val testClient = client.test {
+ *      on(MyQueryId) { "returned fake data" }
+ * }
  *
  * testClient.doSomething()
  * ```
@@ -33,17 +34,17 @@ interface TestSwrClient : SwrClient {
     /**
      * Mocks the mutation process corresponding to [MutationId].
      */
-    fun <T, S> mock(id: MutationId<T, S>, mutate: FakeMutationMutate<T, S>)
+    fun <T, S> on(id: MutationId<T, S>, mutate: FakeMutationMutate<T, S>)
 
     /**
      * Mocks the query process corresponding to [QueryId].
      */
-    fun <T> mock(id: QueryId<T>, fetch: FakeQueryFetch<T>)
+    fun <T> on(id: QueryId<T>, fetch: FakeQueryFetch<T>)
 
     /**
      * Mocks the query process corresponding to [InfiniteQueryId].
      */
-    fun <T, S> mock(id: InfiniteQueryId<T, S>, fetch: FakeInfiniteQueryFetch<T, S>)
+    fun <T, S> on(id: InfiniteQueryId<T, S>, fetch: FakeInfiniteQueryFetch<T, S>)
 }
 
 /**
@@ -61,15 +62,15 @@ internal class TestSwrClientImpl(
     private val mockQueries = mutableMapOf<QueryId<*>, FakeQueryFetch<*>>()
     private val mockInfiniteQueries = mutableMapOf<InfiniteQueryId<*, *>, FakeInfiniteQueryFetch<*, *>>()
 
-    override fun <T, S> mock(id: MutationId<T, S>, mutate: FakeMutationMutate<T, S>) {
+    override fun <T, S> on(id: MutationId<T, S>, mutate: FakeMutationMutate<T, S>) {
         mockMutations[id] = mutate
     }
 
-    override fun <T> mock(id: QueryId<T>, fetch: FakeQueryFetch<T>) {
+    override fun <T> on(id: QueryId<T>, fetch: FakeQueryFetch<T>) {
         mockQueries[id] = fetch
     }
 
-    override fun <T, S> mock(id: InfiniteQueryId<T, S>, fetch: FakeInfiniteQueryFetch<T, S>) {
+    override fun <T, S> on(id: InfiniteQueryId<T, S>, fetch: FakeInfiniteQueryFetch<T, S>) {
         mockInfiniteQueries[id] = fetch
     }
 

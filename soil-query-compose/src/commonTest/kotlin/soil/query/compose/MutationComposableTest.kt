@@ -72,7 +72,7 @@ class MutationComposableTest : UnitTest() {
     fun testRememberMutation_throwError() = runComposeUiTest {
         val key = TestMutationKey()
         val client = SwrCache(coroutineScope = SwrCacheScope()).test {
-            mock(key.id) { throw RuntimeException("Failed to do something :(") }
+            on(key.id) { throw RuntimeException("Failed to do something :(") }
         }
         setContent {
             SwrClientProvider(client) {
@@ -111,7 +111,7 @@ class MutationComposableTest : UnitTest() {
     fun testRememberMutation_throwErrorAsync() = runComposeUiTest {
         val key = TestMutationKey()
         val client = SwrCache(coroutineScope = SwrCacheScope()).test {
-            mock(key.id) { throw RuntimeException("Failed to do something :(") }
+            on(key.id) { throw RuntimeException("Failed to do something :(") }
         }
         setContent {
             SwrClientProvider(client) {

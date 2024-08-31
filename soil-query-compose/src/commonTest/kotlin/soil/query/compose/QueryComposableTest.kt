@@ -54,7 +54,7 @@ class QueryComposableTest : UnitTest() {
     fun testRememberQuery_select() = runComposeUiTest {
         val key = TestQueryKey()
         val client = SwrCache(coroutineScope = SwrCacheScope()).test {
-            mock(key.id) { "Hello, Soil!" }
+            on(key.id) { "Hello, Soil!" }
         }
         setContent {
             SwrClientProvider(client) {
@@ -74,7 +74,7 @@ class QueryComposableTest : UnitTest() {
     fun testRememberQuery_throwError() = runComposeUiTest {
         val key = TestQueryKey()
         val client = SwrCache(coroutineScope = SwrCacheScope()).test {
-            mock(key.id) { throw RuntimeException("Failed to do something :(") }
+            on(key.id) { throw RuntimeException("Failed to do something :(") }
         }
         setContent {
             SwrClientProvider(client) {
