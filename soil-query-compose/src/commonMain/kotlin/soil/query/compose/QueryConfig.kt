@@ -14,13 +14,12 @@ import soil.query.core.Marker
  */
 @Immutable
 data class QueryConfig internal constructor(
-    val strategy: QueryCachingStrategy,
+    val strategy: QueryStrategy,
     val marker: Marker
 ) {
 
-    @Suppress("MemberVisibilityCanBePrivate")
     class Builder {
-        var strategy: QueryCachingStrategy = Default.strategy
+        var strategy: QueryStrategy = Default.strategy
         var marker: Marker = Default.marker
 
         fun build() = QueryConfig(
@@ -31,7 +30,7 @@ data class QueryConfig internal constructor(
 
     companion object {
         val Default = QueryConfig(
-            strategy = QueryCachingStrategy.Default,
+            strategy = QueryStrategy.Default,
             marker = Marker.None
         )
     }

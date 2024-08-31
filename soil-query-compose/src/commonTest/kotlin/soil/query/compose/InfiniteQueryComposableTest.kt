@@ -44,7 +44,7 @@ class InfiniteQueryComposableTest : UnitTest() {
         setContent {
             SwrClientProvider(client) {
                 val query = rememberInfiniteQuery(key, config = InfiniteQueryConfig {
-                    strategy = QueryCachingStrategy
+                    strategy = InfiniteQueryStrategy.Default
                     marker = Marker.None
                 })
                 when (val reply = query.reply) {

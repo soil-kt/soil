@@ -14,13 +14,12 @@ import soil.query.core.Marker
  */
 @Immutable
 data class InfiniteQueryConfig internal constructor(
-    val strategy: QueryCachingStrategy,
+    val strategy: InfiniteQueryStrategy,
     val marker: Marker
 ) {
 
-    @Suppress("MemberVisibilityCanBePrivate")
     class Builder {
-        var strategy: QueryCachingStrategy = Default.strategy
+        var strategy: InfiniteQueryStrategy = Default.strategy
         var marker: Marker = Default.marker
 
         fun build() = InfiniteQueryConfig(
@@ -31,7 +30,7 @@ data class InfiniteQueryConfig internal constructor(
 
     companion object {
         val Default = InfiniteQueryConfig(
-            strategy = QueryCachingStrategy.Default,
+            strategy = InfiniteQueryStrategy.Default,
             marker = Marker.None
         )
     }
