@@ -77,4 +77,3 @@ class SubscriptionPreviewClient(
 fun SubscriptionPreviewClient(initializer: SubscriptionPreviewClient.Builder.() -> Unit): SubscriptionPreviewClient {
     return SubscriptionPreviewClient.Builder().apply(initializer).build()
 }
-
