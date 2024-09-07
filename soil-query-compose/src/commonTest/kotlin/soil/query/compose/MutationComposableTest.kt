@@ -146,7 +146,7 @@ class MutationComposableTest : UnitTest() {
     fun testRememberMutation_idlePreview() = runComposeUiTest {
         val key = TestMutationKey()
         val client = SwrPreviewClient(
-            mutationPreview = MutationPreviewClient {
+            mutation = MutationPreviewClient {
                 on(key.id) { MutationState.initial() }
             }
         )
@@ -167,7 +167,7 @@ class MutationComposableTest : UnitTest() {
     fun testRememberMutation_loadingPreview() = runComposeUiTest {
         val key = TestMutationKey()
         val client = SwrPreviewClient(
-            mutationPreview = MutationPreviewClient {
+            mutation = MutationPreviewClient {
                 on(key.id) { MutationState.pending() }
             }
         )
@@ -188,7 +188,7 @@ class MutationComposableTest : UnitTest() {
     fun testRememberMutation_successPreview() = runComposeUiTest {
         val key = TestMutationKey()
         val client = SwrPreviewClient(
-            mutationPreview = MutationPreviewClient {
+            mutation = MutationPreviewClient {
                 on(key.id) { MutationState.success("Hello, Mutation!") }
             }
         )
@@ -209,7 +209,7 @@ class MutationComposableTest : UnitTest() {
     fun testRememberQuery_errorPreview() = runComposeUiTest {
         val key = TestMutationKey()
         val client = SwrPreviewClient(
-            mutationPreview = MutationPreviewClient {
+            mutation = MutationPreviewClient {
                 on(key.id) { MutationState.failure(RuntimeException("Error")) }
             }
         )

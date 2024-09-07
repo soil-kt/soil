@@ -6,6 +6,7 @@ package soil.query
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import soil.query.core.ErrorRecord
+import soil.query.core.MemoryPressureLevel
 
 /**
  * An all-in-one [SwrClient] integrating [MutationClient] and [QueryClient] for library users.
@@ -21,6 +22,11 @@ interface SwrClient : MutationClient, QueryClient {
      * you can display an error message on the screen using a Toast or similar when an error occurs.
      */
     val errorRelay: Flow<ErrorRecord>
+
+    /**
+     * Releases data in memory based on the specified [level].
+     */
+    fun gc(level: MemoryPressureLevel = MemoryPressureLevel.Low)
 
     /**
      * Executes side effects for queries.

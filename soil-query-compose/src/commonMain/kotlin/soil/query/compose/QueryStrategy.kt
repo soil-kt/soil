@@ -25,14 +25,22 @@ interface QueryStrategy {
     @Composable
     fun <T> collectAsState(query: QueryRef<T>): QueryState<T>
 
-    companion object Default : QueryStrategy {
-        @Composable
-        override fun <T> collectAsState(query: QueryRef<T>): QueryState<T> {
-            val state by query.state.collectAsState()
-            LaunchedEffect(query.key.id) {
-                query.resume()
-            }
-            return state
+    companion object
+}
+
+/**
+ * The default built-in strategy for Query built into the library.
+ */
+val QueryStrategy.Companion.Default: QueryStrategy
+    get() = QueryStrategyDefault
+
+private object QueryStrategyDefault : QueryStrategy {
+    @Composable
+    override fun <T> collectAsState(query: QueryRef<T>): QueryState<T> {
+        val state by query.state.collectAsState()
+        LaunchedEffect(query.key.id) {
+            query.resume()
         }
+        return state
     }
 }

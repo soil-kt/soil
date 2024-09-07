@@ -10,8 +10,11 @@ import kotlinx.coroutines.flow.flow
 import soil.query.MutationClient
 import soil.query.QueryClient
 import soil.query.QueryEffect
+import soil.query.SubscriptionClient
 import soil.query.SwrClient
+import soil.query.SwrClientPlus
 import soil.query.core.ErrorRecord
+import soil.query.core.MemoryPressureLevel
 
 /**
  * Provides the ability to preview specific queries and mutations for composable previews.
@@ -25,10 +28,12 @@ import soil.query.core.ErrorRecord
  */
 @Stable
 class SwrPreviewClient(
-    queryPreview: QueryPreviewClient = QueryPreviewClient(emptyMap()),
-    mutationPreview: MutationPreviewClient = MutationPreviewClient(emptyMap()),
+    query: QueryPreviewClient = QueryPreviewClient(emptyMap()),
+    mutation: MutationPreviewClient = MutationPreviewClient(emptyMap()),
+    subscription: SubscriptionPreviewClient = SubscriptionPreviewClient(emptyMap()),
     override val errorRelay: Flow<ErrorRecord> = flow { }
-) : SwrClient, QueryClient by queryPreview, MutationClient by mutationPreview {
+) : SwrClient, SwrClientPlus, QueryClient by query, MutationClient by mutation, SubscriptionClient by subscription {
+    override fun gc(level: MemoryPressureLevel) = Unit
     override fun perform(sideEffects: QueryEffect): Job = Job()
     override fun onMount(id: String) = Unit
     override fun onUnmount(id: String) = Unit

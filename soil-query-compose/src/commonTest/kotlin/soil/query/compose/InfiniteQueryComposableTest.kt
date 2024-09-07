@@ -142,7 +142,7 @@ class InfiniteQueryComposableTest : UnitTest() {
     fun testRememberInfiniteQuery_loadingPreview() = runComposeUiTest {
         val key = TestInfiniteQueryKey()
         val client = SwrPreviewClient(
-            queryPreview = QueryPreviewClient {
+            query = QueryPreviewClient {
                 on(key.id) { QueryState.initial() }
             }
         )
@@ -163,7 +163,7 @@ class InfiniteQueryComposableTest : UnitTest() {
     fun testRememberInfiniteQuery_successPreview() = runComposeUiTest {
         val key = TestInfiniteQueryKey()
         val client = SwrPreviewClient(
-            queryPreview = QueryPreviewClient {
+            query = QueryPreviewClient {
                 on(key.id) {
                     QueryState.success(buildList {
                         add(QueryChunk((0 until 10).map { "Item $it" }, PageParam(0, 10)))
@@ -197,7 +197,7 @@ class InfiniteQueryComposableTest : UnitTest() {
     fun testRememberInfiniteQuery_loadingErrorPreview() = runComposeUiTest {
         val key = TestInfiniteQueryKey()
         val client = SwrPreviewClient(
-            queryPreview = QueryPreviewClient {
+            query = QueryPreviewClient {
                 on(key.id) { QueryState.failure(RuntimeException("Error")) }
             }
         )
@@ -222,7 +222,7 @@ class InfiniteQueryComposableTest : UnitTest() {
     fun testRememberInfiniteQuery_refreshErrorPreview() = runComposeUiTest {
         val key = TestInfiniteQueryKey()
         val client = SwrPreviewClient(
-            queryPreview = QueryPreviewClient {
+            query = QueryPreviewClient {
                 on(key.id) {
                     QueryState.failure(RuntimeException("Refresh Error"), data = buildList {
                         add(QueryChunk((0 until 10).map { "Item $it" }, PageParam(0, 10)))

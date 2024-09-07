@@ -8,17 +8,19 @@ import soil.playground.createHttpClient
 import soil.query.AndroidMemoryPressure
 import soil.query.AndroidNetworkConnectivity
 import soil.query.AndroidWindowVisibility
-import soil.query.SwrCache
-import soil.query.SwrCachePolicy
 import soil.query.SwrCacheScope
-import soil.query.SwrClient
+import soil.query.SwrCachePlus
+import soil.query.SwrCachePlusPolicy
+import soil.query.SwrClientPlus
+import soil.query.annotation.ExperimentalSoilQueryApi
 import soil.query.receivers.ktor.KtorReceiver
 
 class SoilApplication : Application(), SwrClientFactory {
 
-    override val queryClient: SwrClient by lazy {
-        SwrCache(
-            policy = SwrCachePolicy(
+    @OptIn(ExperimentalSoilQueryApi::class)
+    override val queryClient: SwrClientPlus by lazy {
+        SwrCachePlus(
+            policy = SwrCachePlusPolicy(
                 coroutineScope = SwrCacheScope(),
                 memoryPressure = AndroidMemoryPressure(this),
                 networkConnectivity = AndroidNetworkConnectivity(this),

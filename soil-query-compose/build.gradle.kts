@@ -41,6 +41,9 @@ kotlin {
             api(projects.soilQueryCore)
             implementation(compose.runtime)
             implementation(compose.runtimeSaveable)
+            // TODO: CompositionLocal LocalLifecycleOwner not present in Android, it works only with Compose UI 1.7.0-alpha05 or above.
+            //  Therefore, we will postpone adding this code until a future release.
+            // implementation(libs.jbx.lifecycle.runtime.compose)
         }
 
         commonTest.dependencies {

@@ -1,7 +1,7 @@
 package soil.kmp
 
-import soil.query.SwrClient
+import soil.query.SwrClientPlus
 
 interface SwrClientFactory {
-    val queryClient: SwrClient
+    val queryClient: SwrClientPlus
 }

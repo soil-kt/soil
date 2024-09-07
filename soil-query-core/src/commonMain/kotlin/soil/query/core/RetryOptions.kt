@@ -5,6 +5,7 @@ package soil.query.core
 
 import kotlinx.coroutines.delay
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.math.pow
 import kotlin.random.Random
 import kotlin.time.Duration
 
@@ -55,9 +56,8 @@ interface RetryOptions {
 fun <T> RetryOptions.exponentialBackOff(
     onRetry: RetryCallback? = null
 ) = RetryFn<T> { block ->
-    var nextBackOff = retryInitialInterval
-    repeat(retryCount) { count ->
-        try {
+    repeat(retryCount) { attempt ->
+        val cause = try {
             return@RetryFn block()
         } catch (e: CancellationException) {
             throw e
@@ -65,16 +65,22 @@ fun <T> RetryOptions.exponentialBackOff(
             if (!shouldRetry(t)) {
                 throw t
             }
-            onRetry?.invoke(t, count, nextBackOff)
+            t
         }
-        val randomizedInterval = nextBackOff.times(
-            retryRandomizer.nextDouble(
-                1 - retryRandomizationFactor,
-                1 + retryRandomizationFactor
-            )
-        )
-        delay(randomizedInterval)
-        nextBackOff = nextBackOff.times(retryMultiplier).coerceAtMost(retryMaxInterval)
+
+        val nextBackOff = calculateBackoffInterval(attempt)
+        onRetry?.invoke(cause, attempt, nextBackOff)
+
+        delay(nextBackOff)
     }
     block()
+}
+
+fun RetryOptions.calculateBackoffInterval(attempt: Int): Duration {
+    val exponentialBackoff = retryInitialInterval * retryMultiplier.pow(attempt.toDouble())
+    val randomizedBackoff = exponentialBackoff * retryRandomizer.nextDouble(
+        1.0 - retryRandomizationFactor,
+        1.0 + retryRandomizationFactor
+    )
+    return randomizedBackoff.coerceAtMost(retryMaxInterval)
 }

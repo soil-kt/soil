@@ -12,7 +12,7 @@ import soil.query.core.Actor
  *
  * @param T Type of the return value from the mutation.
  */
-internal interface Mutation<T> : Actor {
+interface Mutation<T> : Actor {
 
     /**
      * The MutationOptions configured for the mutation.

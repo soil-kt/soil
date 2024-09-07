@@ -41,6 +41,7 @@ compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", ve
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 jbx-core-bundle = { module = "org.jetbrains.androidx.core:core-bundle", version.ref = "jbx-core-bundle" }
+jbx-lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "jbx-lifecycle" }
 jbx-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "jbx-lifecycle" }
 jbx-lifecycle-viewmodel-savedstate = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate", version.ref = "jbx-lifecycle" }
 jbx-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "jbx-navigation" }

@@ -4,11 +4,15 @@
 package soil.query
 
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import soil.query.core.Actor
 import soil.query.core.Marker
 import soil.query.core.awaitOrNull
+
 
 /**
  * A reference to an Query for [InfiniteQueryKey].
@@ -71,5 +75,51 @@ interface InfiniteQueryRef<T, S> : Actor {
         val deferred = CompletableDeferred<QueryChunks<T, S>>()
         send(InfiniteQueryCommands.Invalidate(key, state.value.revision, marker, deferred::completeWith))
         deferred.awaitOrNull()
+    }
+}
+
+/**
+ * Creates a new [InfiniteQueryRef] instance.
+ *
+ * @param key The [InfiniteQueryKey] for the Query.
+ * @param marker The Marker specified in [QueryClient.getInfiniteQuery].
+ * @param query The Query to create a reference.
+ */
+fun <T, S> InfiniteQueryRef(
+    key: InfiniteQueryKey<T, S>,
+    marker: Marker,
+    query: Query<QueryChunks<T, S>>
+): InfiniteQueryRef<T, S> {
+    return InfiniteQueryRefImpl(key, marker, query)
+}
+
+private class InfiniteQueryRefImpl<T, S>(
+    override val key: InfiniteQueryKey<T, S>,
+    override val marker: Marker,
+    private val query: Query<QueryChunks<T, S>>
+) : InfiniteQueryRef<T, S> {
+
+    override val options: QueryOptions
+        get() = query.options
+
+    override val state: StateFlow<QueryState<QueryChunks<T, S>>>
+        get() = query.state
+
+    override fun launchIn(scope: CoroutineScope): Job {
+        return scope.launch {
+            query.launchIn(this)
+            query.event.collect(::handleEvent)
+        }
+    }
+
+    override suspend fun send(command: InfiniteQueryCommand<T, S>) {
+        query.command.send(command)
+    }
+
+    private suspend fun handleEvent(e: QueryEvent) {
+        when (e) {
+            QueryEvent.Invalidate -> invalidate()
+            QueryEvent.Resume -> resume()
+        }
     }
 }

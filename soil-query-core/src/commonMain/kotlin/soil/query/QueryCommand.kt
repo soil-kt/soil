@@ -147,6 +147,13 @@ fun <T> QueryCommand.Context<T>.dispatchFetchFailure(error: Throwable) {
     dispatch(action)
 }
 
+/**
+ * Reports the query error.
+ *
+ * @param error The query error.
+ * @param id The unique identifier of the query.
+ * @param marker The marker for the query.
+ */
 fun <T> QueryCommand.Context<T>.reportQueryError(error: Throwable, id: UniqueId, marker: Marker) {
     if (options.onError == null && relay == null) {
         return

@@ -54,7 +54,7 @@ class QueryComposableTest : UnitTest() {
     fun testRememberQuery_select() = runComposeUiTest {
         val key = TestQueryKey()
         val client = SwrCache(coroutineScope = SwrCacheScope()).test {
-            on(key.id) { "Hello, Soil!" }
+            on(key.id) { "Hello, Compose!" }
         }
         setContent {
             SwrClientProvider(client) {
@@ -67,7 +67,7 @@ class QueryComposableTest : UnitTest() {
         }
 
         waitUntilExactlyOneExists(hasTestTag("query"))
-        onNodeWithTag("query").assertTextEquals("HELLO, SOIL!")
+        onNodeWithTag("query").assertTextEquals("HELLO, COMPOSE!")
     }
 
     @Test
@@ -97,7 +97,7 @@ class QueryComposableTest : UnitTest() {
     fun testRememberQuery_loadingPreview() = runComposeUiTest {
         val key = TestQueryKey()
         val client = SwrPreviewClient(
-            queryPreview = QueryPreviewClient {
+            query = QueryPreviewClient {
                 on(key.id) { QueryState.initial() }
             }
         )
@@ -118,7 +118,7 @@ class QueryComposableTest : UnitTest() {
     fun testRememberQuery_successPreview() = runComposeUiTest {
         val key = TestQueryKey()
         val client = SwrPreviewClient(
-            queryPreview = QueryPreviewClient {
+            query = QueryPreviewClient {
                 on(key.id) { QueryState.success("Hello, Query!") }
             }
         )
@@ -139,7 +139,7 @@ class QueryComposableTest : UnitTest() {
     fun testRememberQuery_loadingErrorPreview() = runComposeUiTest {
         val key = TestQueryKey()
         val client = SwrPreviewClient(
-            queryPreview = QueryPreviewClient {
+            query = QueryPreviewClient {
                 on(key.id) { QueryState.failure(RuntimeException("Error")) }
             }
         )
@@ -160,7 +160,7 @@ class QueryComposableTest : UnitTest() {
     fun testRememberQuery_refreshErrorPreview() = runComposeUiTest {
         val key = TestQueryKey()
         val client = SwrPreviewClient(
-            queryPreview = QueryPreviewClient {
+            query = QueryPreviewClient {
                 on(key.id) { QueryState.failure(RuntimeException("Refresh Error"), data = "Hello, Query!") }
             }
         )

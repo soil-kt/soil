@@ -6,6 +6,7 @@ package soil.query.receivers.ktor
 import io.ktor.client.HttpClient
 import soil.query.MutationReceiver
 import soil.query.QueryReceiver
+import soil.query.SubscriptionReceiver
 
 /**
  * A receiver that uses Ktor to send queries and mutations.
@@ -52,7 +53,7 @@ import soil.query.QueryReceiver
  * @see buildKtorInfiniteQueryKey
  * @see buildKtorMutationKey
  */
-interface KtorReceiver : QueryReceiver, MutationReceiver {
+interface KtorReceiver : QueryReceiver, MutationReceiver, SubscriptionReceiver {
     val ktorClient: HttpClient
 }
 

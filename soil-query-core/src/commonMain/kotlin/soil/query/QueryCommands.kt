@@ -20,10 +20,10 @@ object QueryCommands {
      * @param callback The callback to receive the result of the query.
      */
     class Connect<T>(
-        val key: QueryKey<T>,
-        val revision: String? = null,
-        val marker: Marker = Marker.None,
-        val callback: QueryCallback<T>? = null
+        private val key: QueryKey<T>,
+        private val revision: String? = null,
+        private val marker: Marker = Marker.None,
+        private val callback: QueryCallback<T>? = null
     ) : QueryCommand<T> {
 
         override suspend fun handle(ctx: QueryCommand.Context<T>) {
@@ -48,10 +48,10 @@ object QueryCommands {
      * @param callback The callback to receive the result of the query.
      */
     class Invalidate<T>(
-        val key: QueryKey<T>,
-        val revision: String,
-        val marker: Marker = Marker.None,
-        val callback: QueryCallback<T>? = null
+        private val key: QueryKey<T>,
+        private val revision: String,
+        private val marker: Marker = Marker.None,
+        private val callback: QueryCallback<T>? = null
     ) : QueryCommand<T> {
 
         override suspend fun handle(ctx: QueryCommand.Context<T>) {
