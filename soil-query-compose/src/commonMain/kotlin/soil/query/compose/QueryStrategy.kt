@@ -32,9 +32,9 @@ interface QueryStrategy {
  * The default built-in strategy for Query built into the library.
  */
 val QueryStrategy.Companion.Default: QueryStrategy
-    get() = QueryStrategyDefault
+    get() = DefaultQueryStrategy
 
-private object QueryStrategyDefault : QueryStrategy {
+private object DefaultQueryStrategy : QueryStrategy {
     @Composable
     override fun <T> collectAsState(query: QueryRef<T>): QueryState<T> {
         val state by query.state.collectAsState()

@@ -50,7 +50,7 @@ sealed interface SubscriptionObject<out T> : SubscriptionModel<T> {
  * @param T Type of data to receive.
  */
 @Immutable
-data class SubscriptionIdleObject<T> internal constructor(
+data class SubscriptionIdleObject<T>(
     override val reply: Reply<T>,
     override val replyUpdatedAt: Long,
     override val error: Throwable?,
@@ -72,7 +72,7 @@ data class SubscriptionIdleObject<T> internal constructor(
  * @param T Type of data to receive.
  */
 @Immutable
-data class SubscriptionLoadingObject<T> internal constructor(
+data class SubscriptionLoadingObject<T>(
     override val reply: Reply<T>,
     override val replyUpdatedAt: Long,
     override val error: Throwable?,
@@ -95,7 +95,7 @@ data class SubscriptionLoadingObject<T> internal constructor(
  * @param T Type of data to receive.
  */
 @Immutable
-data class SubscriptionErrorObject<T> internal constructor(
+data class SubscriptionErrorObject<T>(
     override val reply: Reply<T>,
     override val replyUpdatedAt: Long,
     override val error: Throwable,
@@ -115,7 +115,7 @@ data class SubscriptionErrorObject<T> internal constructor(
  * @param T Type of data to receive.
  */
 @Immutable
-data class SubscriptionSuccessObject<T> internal constructor(
+data class SubscriptionSuccessObject<T>(
     override val reply: Reply<T>,
     override val replyUpdatedAt: Long,
     override val error: Throwable?,

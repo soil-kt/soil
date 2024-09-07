@@ -33,9 +33,9 @@ interface InfiniteQueryStrategy {
  * The default built-in strategy for Infinite Query built into the library.
  */
 val InfiniteQueryStrategy.Companion.Default: InfiniteQueryStrategy
-    get() = InfiniteQueryStrategyDefault
+    get() = DefaultInfiniteQueryStrategy
 
-private object InfiniteQueryStrategyDefault : InfiniteQueryStrategy {
+private object DefaultInfiniteQueryStrategy : InfiniteQueryStrategy {
     @Composable
     override fun <T, S> collectAsState(query: InfiniteQueryRef<T, S>): QueryState<QueryChunks<T, S>> {
         val state by query.state.collectAsState()

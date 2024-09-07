@@ -8,9 +8,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import soil.query.MutationClient
 import soil.query.MutationKey
-import soil.query.MutationRef
-import soil.query.MutationState
-import soil.query.MutationStatus
 
 /**
  * Remember a [MutationObject] and subscribes to the mutation state of [key].
@@ -30,55 +27,7 @@ fun <T, S> rememberMutation(
 ): MutationObject<T, S> {
     val scope = rememberCoroutineScope()
     val mutation = remember(key) { client.getMutation(key, config.marker).also { it.launchIn(scope) } }
-    return config.strategy.collectAsState(mutation).toObject(mutation = mutation)
-}
-
-private fun <T, S> MutationState<T>.toObject(
-    mutation: MutationRef<T, S>,
-): MutationObject<T, S> {
-    return when (status) {
-        MutationStatus.Idle -> MutationIdleObject(
-            reply = reply,
-            replyUpdatedAt = replyUpdatedAt,
-            error = error,
-            errorUpdatedAt = errorUpdatedAt,
-            mutatedCount = mutatedCount,
-            mutate = mutation::mutate,
-            mutateAsync = mutation::mutateAsync,
-            reset = mutation::reset
-        )
-
-        MutationStatus.Pending -> MutationLoadingObject(
-            reply = reply,
-            replyUpdatedAt = replyUpdatedAt,
-            error = error,
-            errorUpdatedAt = errorUpdatedAt,
-            mutatedCount = mutatedCount,
-            mutate = mutation::mutate,
-            mutateAsync = mutation::mutateAsync,
-            reset = mutation::reset
-        )
-
-        MutationStatus.Success -> MutationSuccessObject(
-            reply = reply,
-            replyUpdatedAt = replyUpdatedAt,
-            error = error,
-            errorUpdatedAt = errorUpdatedAt,
-            mutatedCount = mutatedCount,
-            mutate = mutation::mutate,
-            mutateAsync = mutation::mutateAsync,
-            reset = mutation::reset
-        )
-
-        MutationStatus.Failure -> MutationErrorObject(
-            reply = reply,
-            replyUpdatedAt = replyUpdatedAt,
-            error = checkNotNull(error),
-            errorUpdatedAt = errorUpdatedAt,
-            mutatedCount = mutatedCount,
-            mutate = mutation::mutate,
-            mutateAsync = mutation::mutateAsync,
-            reset = mutation::reset
-        )
+    return with(config.mapper) {
+        config.strategy.collectAsState(mutation).toObject(mutation = mutation)
     }
 }

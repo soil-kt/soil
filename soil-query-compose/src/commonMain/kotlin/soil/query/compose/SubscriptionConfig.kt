@@ -15,15 +15,18 @@ import soil.query.core.Marker
 @Immutable
 data class SubscriptionConfig internal constructor(
     val strategy: SubscriptionStrategy,
+    val mapper: SubscriptionObjectMapper,
     val marker: Marker
 ) {
 
     class Builder {
         var strategy: SubscriptionStrategy = SubscriptionStrategy.Default
+        var mapper: SubscriptionObjectMapper = SubscriptionObjectMapper.Default
         var marker: Marker = Default.marker
 
         fun build() = SubscriptionConfig(
             strategy = strategy,
+            mapper = mapper,
             marker = marker
         )
     }
@@ -31,6 +34,7 @@ data class SubscriptionConfig internal constructor(
     companion object {
         val Default = SubscriptionConfig(
             strategy = SubscriptionStrategy.Default,
+            mapper = SubscriptionObjectMapper.Default,
             marker = Marker.None
         )
     }

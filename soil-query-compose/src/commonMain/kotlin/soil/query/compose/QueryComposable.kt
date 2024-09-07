@@ -8,11 +8,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import soil.query.QueryClient
 import soil.query.QueryKey
-import soil.query.QueryRef
-import soil.query.QueryState
-import soil.query.QueryStatus
-import soil.query.core.isNone
-import soil.query.core.map
 
 /**
  * Remember a [QueryObject] and subscribes to the query state of [key].
@@ -31,7 +26,9 @@ fun <T> rememberQuery(
 ): QueryObject<T> {
     val scope = rememberCoroutineScope()
     val query = remember(key) { client.getQuery(key, config.marker).also { it.launchIn(scope) } }
-    return config.strategy.collectAsState(query).toObject(query = query, select = { it })
+    return with(config.mapper) {
+        config.strategy.collectAsState(query).toObject(query = query, select = { it })
+    }
 }
 
 /**
@@ -54,58 +51,7 @@ fun <T, U> rememberQuery(
 ): QueryObject<U> {
     val scope = rememberCoroutineScope()
     val query = remember(key) { client.getQuery(key, config.marker).also { it.launchIn(scope) } }
-    return config.strategy.collectAsState(query).toObject(query = query, select = select)
-}
-
-private fun <T, U> QueryState<T>.toObject(
-    query: QueryRef<T>,
-    select: (T) -> U
-): QueryObject<U> {
-    return when (status) {
-        QueryStatus.Pending -> QueryLoadingObject(
-            reply = reply.map(select),
-            replyUpdatedAt = replyUpdatedAt,
-            error = error,
-            errorUpdatedAt = errorUpdatedAt,
-            staleAt = staleAt,
-            fetchStatus = fetchStatus,
-            isInvalidated = isInvalidated,
-            refresh = query::invalidate
-        )
-
-        QueryStatus.Success -> QuerySuccessObject(
-            reply = reply.map(select),
-            replyUpdatedAt = replyUpdatedAt,
-            error = error,
-            errorUpdatedAt = errorUpdatedAt,
-            staleAt = staleAt,
-            fetchStatus = fetchStatus,
-            isInvalidated = isInvalidated,
-            refresh = query::invalidate
-        )
-
-        QueryStatus.Failure -> if (reply.isNone) {
-            QueryLoadingErrorObject(
-                reply = reply.map(select),
-                replyUpdatedAt = replyUpdatedAt,
-                error = checkNotNull(error),
-                errorUpdatedAt = errorUpdatedAt,
-                staleAt = staleAt,
-                fetchStatus = fetchStatus,
-                isInvalidated = isInvalidated,
-                refresh = query::invalidate
-            )
-        } else {
-            QueryRefreshErrorObject(
-                reply = reply.map(select),
-                replyUpdatedAt = replyUpdatedAt,
-                error = checkNotNull(error),
-                staleAt = staleAt,
-                errorUpdatedAt = errorUpdatedAt,
-                fetchStatus = fetchStatus,
-                isInvalidated = isInvalidated,
-                refresh = query::invalidate
-            )
-        }
+    return with(config.mapper) {
+        config.strategy.collectAsState(query).toObject(query = query, select = select)
     }
 }

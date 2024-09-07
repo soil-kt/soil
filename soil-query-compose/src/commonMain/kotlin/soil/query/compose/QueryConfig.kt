@@ -15,15 +15,18 @@ import soil.query.core.Marker
 @Immutable
 data class QueryConfig internal constructor(
     val strategy: QueryStrategy,
+    val mapper: QueryObjectMapper,
     val marker: Marker
 ) {
 
     class Builder {
         var strategy: QueryStrategy = Default.strategy
+        var mapper: QueryObjectMapper = Default.mapper
         var marker: Marker = Default.marker
 
         fun build() = QueryConfig(
             strategy = strategy,
+            mapper = mapper,
             marker = marker
         )
     }
@@ -31,6 +34,7 @@ data class QueryConfig internal constructor(
     companion object {
         val Default = QueryConfig(
             strategy = QueryStrategy.Default,
+            mapper = QueryObjectMapper.Default,
             marker = Marker.None
         )
     }

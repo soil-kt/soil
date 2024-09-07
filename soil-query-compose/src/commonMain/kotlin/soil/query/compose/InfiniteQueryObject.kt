@@ -50,7 +50,7 @@ sealed interface InfiniteQueryObject<out T, S> : QueryModel<T> {
  * @constructor Creates a [InfiniteQueryLoadingObject].
  */
 @Immutable
-data class InfiniteQueryLoadingObject<T, S> internal constructor(
+data class InfiniteQueryLoadingObject<T, S>(
     override val reply: Reply<T>,
     override val replyUpdatedAt: Long,
     override val error: Throwable?,
@@ -74,7 +74,7 @@ data class InfiniteQueryLoadingObject<T, S> internal constructor(
  * @constructor Creates a [InfiniteQueryLoadingErrorObject].
  */
 @Immutable
-data class InfiniteQueryLoadingErrorObject<T, S> internal constructor(
+data class InfiniteQueryLoadingErrorObject<T, S>(
     override val reply: Reply<T>,
     override val replyUpdatedAt: Long,
     override val error: Throwable,
@@ -98,7 +98,7 @@ data class InfiniteQueryLoadingErrorObject<T, S> internal constructor(
  * @constructor Creates a [InfiniteQuerySuccessObject].
  */
 @Immutable
-data class InfiniteQuerySuccessObject<T, S> internal constructor(
+data class InfiniteQuerySuccessObject<T, S>(
     override val reply: Reply<T>,
     override val replyUpdatedAt: Long,
     override val error: Throwable?,
@@ -124,7 +124,7 @@ data class InfiniteQuerySuccessObject<T, S> internal constructor(
  * @constructor Creates a [InfiniteQueryRefreshErrorObject].
  */
 @Immutable
-data class InfiniteQueryRefreshErrorObject<T, S> internal constructor(
+data class InfiniteQueryRefreshErrorObject<T, S>(
     override val reply: Reply<T>,
     override val replyUpdatedAt: Long,
     override val error: Throwable,

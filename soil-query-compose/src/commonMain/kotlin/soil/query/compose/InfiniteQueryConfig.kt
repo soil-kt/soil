@@ -15,15 +15,18 @@ import soil.query.core.Marker
 @Immutable
 data class InfiniteQueryConfig internal constructor(
     val strategy: InfiniteQueryStrategy,
+    val mapper: InfiniteQueryObjectMapper,
     val marker: Marker
 ) {
 
     class Builder {
         var strategy: InfiniteQueryStrategy = Default.strategy
+        var mapper: InfiniteQueryObjectMapper = Default.mapper
         var marker: Marker = Default.marker
 
         fun build() = InfiniteQueryConfig(
             strategy = strategy,
+            mapper = mapper,
             marker = marker
         )
     }
@@ -31,6 +34,7 @@ data class InfiniteQueryConfig internal constructor(
     companion object {
         val Default = InfiniteQueryConfig(
             strategy = InfiniteQueryStrategy.Default,
+            mapper = InfiniteQueryObjectMapper.Default,
             marker = Marker.None
         )
     }

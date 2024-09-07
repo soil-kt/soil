@@ -41,6 +41,7 @@ class SubscriptionComposableTest : UnitTest() {
             SwrClientProvider(client) {
                 val subscription = rememberSubscription(key, config = SubscriptionConfig {
                     strategy = SubscriptionStrategy.Default
+                    mapper = SubscriptionObjectMapper.Default
                     marker = Marker.None
                 })
                 when (val reply = subscription.reply) {

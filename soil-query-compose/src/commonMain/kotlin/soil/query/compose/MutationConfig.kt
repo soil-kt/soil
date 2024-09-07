@@ -14,15 +14,18 @@ import soil.query.core.Marker
 @Immutable
 data class MutationConfig internal constructor(
     val strategy: MutationStrategy,
+    val mapper: MutationObjectMapper,
     val marker: Marker
 ) {
 
     class Builder {
         var strategy: MutationStrategy = Default.strategy
+        var mapper: MutationObjectMapper = Default.mapper
         var marker: Marker = Default.marker
 
         fun build() = MutationConfig(
             strategy = strategy,
+            mapper = mapper,
             marker = marker
         )
     }
@@ -30,6 +33,7 @@ data class MutationConfig internal constructor(
     companion object {
         val Default = MutationConfig(
             strategy = MutationStrategy.Default,
+            mapper = MutationObjectMapper.Default,
             marker = Marker.None
         )
     }

@@ -30,9 +30,9 @@ interface SubscriptionStrategy {
  * The default built-in strategy for Subscription built into the library.
  */
 val SubscriptionStrategy.Companion.Default: SubscriptionStrategy
-    get() = SubscriptionStrategyDefault
+    get() = DefaultSubscriptionStrategy
 
-private object SubscriptionStrategyDefault : SubscriptionStrategy {
+private object DefaultSubscriptionStrategy : SubscriptionStrategy {
     @Composable
     override fun <T> collectAsState(subscription: SubscriptionRef<T>): SubscriptionState<T> {
         val state by subscription.state.collectAsState()
@@ -49,9 +49,9 @@ private object SubscriptionStrategyDefault : SubscriptionStrategy {
 //  Android, it works only with Compose UI 1.7.0-alpha05 or above.
 //  Therefore, we will postpone adding this code until a future release.
 //val SubscriptionStrategy.Companion.Lifecycle: SubscriptionStrategy
-//    get() = SubscriptionStrategyLifecycle
+//    get() = LifecycleSubscriptionStrategy
 //
-//private object SubscriptionStrategyLifecycle : SubscriptionStrategy {
+//private object LifecycleSubscriptionStrategy : SubscriptionStrategy {
 //    @Composable
 //    override fun <T> collectAsState(subscription: SubscriptionRef<T>): SubscriptionState<T> {
 //        val state by subscription.state.collectAsStateWithLifecycle()
