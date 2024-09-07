@@ -6,7 +6,11 @@ package soil.query.compose
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.Button
 import androidx.compose.material.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -32,6 +36,7 @@ import soil.query.compose.tooling.QueryPreviewClient
 import soil.query.compose.tooling.SwrPreviewClient
 import soil.query.core.Marker
 import soil.query.core.Reply
+import soil.query.core.orNone
 import soil.testing.UnitTest
 import kotlin.test.Test
 
@@ -248,6 +253,79 @@ class InfiniteQueryComposableTest : UnitTest() {
         waitForIdle()
         onNodeWithTag("query").assertTextEquals("ChunkSize: 1")
     }
+
+    @Test
+    fun testRememberInfiniteQueryIf() = runComposeUiTest {
+        val key = TestInfiniteQueryKey()
+        val client = SwrCache(coroutineScope = SwrCacheScope())
+        setContent {
+            SwrClientProvider(client) {
+                var enabled by remember { mutableStateOf(false) }
+                val query = rememberInfiniteQueryIf(enabled, keyFactory = { if (it) key else null })
+                Column {
+                    Button(onClick = { enabled = !enabled }, modifier = Modifier.testTag("toggle")) {
+                        Text("Toggle")
+                    }
+                    when (val reply = query?.reply.orNone()) {
+                        is Reply.Some -> {
+                            reply.value.forEach { chunk ->
+                                Text(
+                                    "Size: ${chunk.data.size} - Page: ${chunk.param.page}",
+                                    modifier = Modifier.testTag("query")
+                                )
+                            }
+                        }
+
+                        is Reply.None -> Unit
+                    }
+                }
+            }
+        }
+
+        waitForIdle()
+        onNodeWithTag("query").assertDoesNotExist()
+        onNodeWithTag("toggle").performClick()
+
+        waitUntilAtLeastOneExists(hasTestTag("query"))
+        onNodeWithTag("query").assertTextEquals("Size: 10 - Page: 0")
+    }
+
+    @Test
+    fun testRememberInfiniteQueryIf_select() = runComposeUiTest {
+        val key = TestInfiniteQueryKey()
+        val client = SwrCache(coroutineScope = SwrCacheScope())
+        setContent {
+            SwrClientProvider(client) {
+                var enabled by remember { mutableStateOf(false) }
+                val query = rememberInfiniteQueryIf(
+                    value = enabled,
+                    keyFactory = { if (it) key else null },
+                    select = { it.chunkedData })
+                Column {
+                    Button(onClick = { enabled = !enabled }, modifier = Modifier.testTag("toggle")) {
+                        Text("Toggle")
+                    }
+                    when (val reply = query?.reply.orNone()) {
+                        is Reply.Some -> {
+                            reply.value.forEach { data ->
+                                Text(data, modifier = Modifier.testTag("query"))
+                            }
+                        }
+
+                        is Reply.None -> Unit
+                    }
+                }
+            }
+        }
+
+        waitForIdle()
+        onNodeWithTag("query").assertDoesNotExist()
+        onNodeWithTag("toggle").performClick()
+
+        waitUntilAtLeastOneExists(hasTestTag("query"))
+        onAllNodes(hasTestTag("query")).assertCountEquals(10)
+    }
+
 
     private class TestInfiniteQueryKey : InfiniteQueryKey<List<String>, PageParam> by buildInfiniteQueryKey(
         id = Id,

@@ -51,6 +51,11 @@ fun <T> Reply<T>.getOrElse(default: () -> T): T = when (this) {
 }
 
 /**
+ * Returns the value of the [Reply.Some] instance, or the [default] value if there is no reply yet ([Reply.None]).
+ */
+inline fun <T> Reply<T>?.orNone(): Reply<T> = this ?: Reply.none()
+
+/**
  * Transforms the value of the [Reply.Some] instance using the provided [transform] function,
  * or returns [Reply.None] if there is no reply yet ([Reply.None]).
  */
