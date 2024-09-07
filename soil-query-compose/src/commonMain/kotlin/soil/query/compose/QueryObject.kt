@@ -38,7 +38,7 @@ sealed interface QueryObject<out T> : QueryModel<T> {
  * @param T Type of data to retrieve.
  */
 @Immutable
-data class QueryLoadingObject<T> internal constructor(
+data class QueryLoadingObject<T>(
     override val reply: Reply<T>,
     override val replyUpdatedAt: Long,
     override val error: Throwable?,
@@ -58,7 +58,7 @@ data class QueryLoadingObject<T> internal constructor(
  * @param T Type of data to retrieve.
  */
 @Immutable
-data class QueryLoadingErrorObject<T> internal constructor(
+data class QueryLoadingErrorObject<T>(
     override val reply: Reply<T>,
     override val replyUpdatedAt: Long,
     override val error: Throwable,
@@ -78,7 +78,7 @@ data class QueryLoadingErrorObject<T> internal constructor(
  * @param T Type of data to retrieve.
  */
 @Immutable
-data class QuerySuccessObject<T> internal constructor(
+data class QuerySuccessObject<T>(
     override val reply: Reply<T>,
     override val replyUpdatedAt: Long,
     override val error: Throwable?,
@@ -101,7 +101,7 @@ data class QuerySuccessObject<T> internal constructor(
  * @constructor Creates a [QueryRefreshErrorObject].
  */
 @Immutable
-data class QueryRefreshErrorObject<T> internal constructor(
+data class QueryRefreshErrorObject<T>(
     override val reply: Reply<T>,
     override val replyUpdatedAt: Long,
     override val error: Throwable,

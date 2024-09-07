@@ -72,5 +72,31 @@ data class SubscriptionState<T> internal constructor(
                 subscriberStatus = subscriberStatus
             )
         }
+
+        /**
+         * Creates a new [SubscriptionState] with the [SubscriptionStatus.Failure] status.
+         *
+         * @param error The error to be stored in the state.
+         * @param errorUpdatedAt The timestamp when the error was updated. Default is the current epoch.
+         * @param data The data to be stored in the state.
+         * @param dataUpdatedAt The timestamp when the data was updated. Default is the current epoch.
+         * @param subscriberStatus The status of the subscriber.
+         */
+        fun <T> failure(
+            error: Throwable,
+            errorUpdatedAt: Long = epoch(),
+            data: T,
+            dataUpdatedAt: Long = epoch(),
+            subscriberStatus: SubscriberStatus = SubscriberStatus.NoSubscribers
+        ): SubscriptionState<T> {
+            return SubscriptionState(
+                reply = Reply(data),
+                replyUpdatedAt = dataUpdatedAt,
+                error = error,
+                errorUpdatedAt = errorUpdatedAt,
+                status = SubscriptionStatus.Failure,
+                subscriberStatus = subscriberStatus
+            )
+        }
     }
 }

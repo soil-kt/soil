@@ -48,7 +48,7 @@ sealed interface MutationObject<out T, S> : MutationModel<T> {
  * @param S Type of the variable to be mutated.
  */
 @Immutable
-data class MutationIdleObject<T, S> internal constructor(
+data class MutationIdleObject<T, S>(
     override val reply: Reply<T>,
     override val replyUpdatedAt: Long,
     override val error: Throwable?,
@@ -69,7 +69,7 @@ data class MutationIdleObject<T, S> internal constructor(
  * @param S Type of the variable to be mutated.
  */
 @Immutable
-data class MutationLoadingObject<T, S> internal constructor(
+data class MutationLoadingObject<T, S>(
     override val reply: Reply<T>,
     override val replyUpdatedAt: Long,
     override val error: Throwable?,
@@ -90,7 +90,7 @@ data class MutationLoadingObject<T, S> internal constructor(
  * @param S Type of the variable to be mutated.
  */
 @Immutable
-data class MutationErrorObject<T, S> internal constructor(
+data class MutationErrorObject<T, S>(
     override val reply: Reply<T>,
     override val replyUpdatedAt: Long,
     override val error: Throwable,
@@ -111,7 +111,7 @@ data class MutationErrorObject<T, S> internal constructor(
  * @param S Type of the variable to be mutated.
  */
 @Immutable
-data class MutationSuccessObject<T, S> internal constructor(
+data class MutationSuccessObject<T, S>(
     override val reply: Reply<T>,
     override val replyUpdatedAt: Long,
     override val error: Throwable?,

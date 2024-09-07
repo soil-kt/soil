@@ -71,5 +71,31 @@ data class MutationState<T> internal constructor(
                 status = MutationStatus.Failure
             )
         }
+
+        /**
+         * Creates a new [MutationState] with the [MutationStatus.Failure] status.
+         *
+         * @param error The error that occurred.
+         * @param errorUpdatedAt The timestamp when the error occurred. Default is the current epoch.
+         * @param data The data to be stored in the state.
+         * @param dataUpdatedAt The timestamp when the data was updated. Default is the current epoch.
+         * @param mutatedCount The number of times the data was mutated.
+         */
+        fun <T> failure(
+            error: Throwable,
+            errorUpdatedAt: Long = epoch(),
+            data: T,
+            dataUpdatedAt: Long = epoch(),
+            mutatedCount: Int = 1
+        ): MutationState<T> {
+            return MutationState(
+                reply = Reply(data),
+                replyUpdatedAt = dataUpdatedAt,
+                error = error,
+                errorUpdatedAt = errorUpdatedAt,
+                status = MutationStatus.Failure,
+                mutatedCount = mutatedCount
+            )
+        }
     }
 }

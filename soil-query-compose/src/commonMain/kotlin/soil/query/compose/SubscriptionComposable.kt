@@ -6,14 +6,9 @@ package soil.query.compose
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import soil.query.SubscriberStatus
 import soil.query.SubscriptionClient
 import soil.query.SubscriptionKey
-import soil.query.SubscriptionRef
-import soil.query.SubscriptionState
-import soil.query.SubscriptionStatus
 import soil.query.annotation.ExperimentalSoilQueryApi
-import soil.query.core.map
 
 /**
  * Remember a [SubscriptionObject] and subscribes to the subscription state of [key].
@@ -33,7 +28,9 @@ fun <T> rememberSubscription(
 ): SubscriptionObject<T> {
     val scope = rememberCoroutineScope()
     val subscription = remember(key) { client.getSubscription(key, config.marker).also { it.launchIn(scope) } }
-    return config.strategy.collectAsState(subscription).toObject(subscription = subscription, select = { it })
+    return with(config.mapper) {
+        config.strategy.collectAsState(subscription).toObject(subscription = subscription, select = { it })
+    }
 }
 
 /**
@@ -57,56 +54,7 @@ fun <T, U> rememberSubscription(
 ): SubscriptionObject<U> {
     val scope = rememberCoroutineScope()
     val subscription = remember(key) { client.getSubscription(key, config.marker).also { it.launchIn(scope) } }
-    return config.strategy.collectAsState(subscription).toObject(subscription = subscription, select = select)
-}
-
-private fun <T, U> SubscriptionState<T>.toObject(
-    subscription: SubscriptionRef<T>,
-    select: (T) -> U
-): SubscriptionObject<U> {
-    return when (status) {
-        SubscriptionStatus.Pending -> if (subscriberStatus == SubscriberStatus.NoSubscribers) {
-            SubscriptionIdleObject(
-                reply = reply.map(select),
-                replyUpdatedAt = replyUpdatedAt,
-                error = error,
-                errorUpdatedAt = errorUpdatedAt,
-                subscribe = subscription::resume,
-                unsubscribe = subscription::cancel,
-                reset = subscription::reset
-            )
-        } else {
-            SubscriptionLoadingObject(
-                reply = reply.map(select),
-                replyUpdatedAt = replyUpdatedAt,
-                error = error,
-                errorUpdatedAt = errorUpdatedAt,
-                subscribe = subscription::resume,
-                unsubscribe = subscription::cancel,
-                reset = subscription::reset
-            )
-        }
-
-        SubscriptionStatus.Success -> SubscriptionSuccessObject(
-            reply = reply.map(select),
-            replyUpdatedAt = replyUpdatedAt,
-            error = error,
-            errorUpdatedAt = errorUpdatedAt,
-            subscriberStatus = subscriberStatus,
-            subscribe = subscription::resume,
-            unsubscribe = subscription::cancel,
-            reset = subscription::reset
-        )
-
-        SubscriptionStatus.Failure -> SubscriptionErrorObject(
-            reply = reply.map(select),
-            replyUpdatedAt = replyUpdatedAt,
-            error = checkNotNull(error),
-            errorUpdatedAt = errorUpdatedAt,
-            subscriberStatus = subscriberStatus,
-            subscribe = subscription::resume,
-            unsubscribe = subscription::cancel,
-            reset = subscription::reset
-        )
+    return with(config.mapper) {
+        config.strategy.collectAsState(subscription).toObject(subscription = subscription, select = select)
     }
 }

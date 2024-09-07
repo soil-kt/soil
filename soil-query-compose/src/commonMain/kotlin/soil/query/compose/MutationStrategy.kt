@@ -28,9 +28,9 @@ interface MutationStrategy {
  * The default built-in strategy for Mutation built into the library.
  */
 val MutationStrategy.Companion.Default: MutationStrategy
-    get() = MutationStrategyDefault
+    get() = DefaultMutationStrategy
 
-private object MutationStrategyDefault : MutationStrategy {
+private object DefaultMutationStrategy : MutationStrategy {
     @Composable
     override fun <T, S> collectAsState(mutation: MutationRef<T, S>): MutationState<T> {
         return mutation.state.collectAsState().value
