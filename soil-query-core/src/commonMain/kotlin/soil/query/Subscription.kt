@@ -16,11 +16,6 @@ import soil.query.core.Actor
 interface Subscription<T> : Actor {
 
     /**
-     * The SubscriptionOptions configured for the subscription.
-     */
-    val options: SubscriptionOptions
-
-    /**
      * [Shared Flow][SharedFlow] to receive subscription result.
      */
     val source: SharedFlow<Result<T>>

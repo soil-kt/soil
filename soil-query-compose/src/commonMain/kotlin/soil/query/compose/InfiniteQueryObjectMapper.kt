@@ -7,9 +7,10 @@ import soil.query.InfiniteQueryRef
 import soil.query.QueryChunks
 import soil.query.QueryState
 import soil.query.QueryStatus
-import soil.query.core.getOrThrow
+import soil.query.core.getOrElse
 import soil.query.core.isNone
 import soil.query.core.map
+import soil.query.emptyChunks
 
 /**
  * A mapper that converts [QueryState] to [InfiniteQueryObject].
@@ -65,7 +66,7 @@ private object DefaultInfiniteQueryObjectMapper : InfiniteQueryObjectMapper {
             isInvalidated = isInvalidated,
             refresh = query::invalidate,
             loadMore = query::loadMore,
-            loadMoreParam = query.key.loadMoreParam(reply.getOrThrow())
+            loadMoreParam = query.nextParam(reply.getOrElse { emptyChunks() })
         )
 
         QueryStatus.Failure -> if (reply.isNone) {
@@ -92,7 +93,7 @@ private object DefaultInfiniteQueryObjectMapper : InfiniteQueryObjectMapper {
                 isInvalidated = isInvalidated,
                 refresh = query::invalidate,
                 loadMore = query::loadMore,
-                loadMoreParam = query.key.loadMoreParam(reply.getOrThrow())
+                loadMoreParam = query.nextParam(reply.getOrElse { emptyChunks() })
             )
         }
     }

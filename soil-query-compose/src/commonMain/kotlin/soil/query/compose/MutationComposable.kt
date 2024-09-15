@@ -26,7 +26,7 @@ fun <T, S> rememberMutation(
     client: MutationClient = LocalMutationClient.current
 ): MutationObject<T, S> {
     val scope = rememberCoroutineScope()
-    val mutation = remember(key) { client.getMutation(key, config.marker).also { it.launchIn(scope) } }
+    val mutation = remember(key.id) { client.getMutation(key, config.marker).also { it.launchIn(scope) } }
     return with(config.mapper) {
         config.strategy.collectAsState(mutation).toObject(mutation = mutation)
     }

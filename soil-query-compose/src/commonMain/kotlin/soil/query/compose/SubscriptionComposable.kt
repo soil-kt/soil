@@ -27,7 +27,7 @@ fun <T> rememberSubscription(
     client: SubscriptionClient = LocalSubscriptionClient.current
 ): SubscriptionObject<T> {
     val scope = rememberCoroutineScope()
-    val subscription = remember(key) { client.getSubscription(key, config.marker).also { it.launchIn(scope) } }
+    val subscription = remember(key.id) { client.getSubscription(key, config.marker).also { it.launchIn(scope) } }
     return with(config.mapper) {
         config.strategy.collectAsState(subscription).toObject(subscription = subscription, select = { it })
     }
@@ -53,7 +53,7 @@ fun <T, U> rememberSubscription(
     client: SubscriptionClient = LocalSubscriptionClient.current
 ): SubscriptionObject<U> {
     val scope = rememberCoroutineScope()
-    val subscription = remember(key) { client.getSubscription(key, config.marker).also { it.launchIn(scope) } }
+    val subscription = remember(key.id) { client.getSubscription(key, config.marker).also { it.launchIn(scope) } }
     return with(config.mapper) {
         config.strategy.collectAsState(subscription).toObject(subscription = subscription, select = select)
     }

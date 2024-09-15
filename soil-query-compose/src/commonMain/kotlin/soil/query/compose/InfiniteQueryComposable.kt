@@ -27,7 +27,7 @@ fun <T, S> rememberInfiniteQuery(
     client: QueryClient = LocalQueryClient.current
 ): InfiniteQueryObject<QueryChunks<T, S>, S> {
     val scope = rememberCoroutineScope()
-    val query = remember(key) { client.getInfiniteQuery(key, config.marker).also { it.launchIn(scope) } }
+    val query = remember(key.id) { client.getInfiniteQuery(key, config.marker).also { it.launchIn(scope) } }
     return with(config.mapper) {
         config.strategy.collectAsState(query).toObject(query = query, select = { it })
     }
@@ -52,7 +52,7 @@ fun <T, S, U> rememberInfiniteQuery(
     client: QueryClient = LocalQueryClient.current
 ): InfiniteQueryObject<U, S> {
     val scope = rememberCoroutineScope()
-    val query = remember(key) { client.getInfiniteQuery(key, config.marker).also { it.launchIn(scope) } }
+    val query = remember(key.id) { client.getInfiniteQuery(key, config.marker).also { it.launchIn(scope) } }
     return with(config.mapper) {
         config.strategy.collectAsState(query).toObject(query = query, select = select)
     }

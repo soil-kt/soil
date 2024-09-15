@@ -38,7 +38,7 @@ private object DefaultQueryStrategy : QueryStrategy {
     @Composable
     override fun <T> collectAsState(query: QueryRef<T>): QueryState<T> {
         val state by query.state.collectAsState()
-        LaunchedEffect(query.key.id) {
+        LaunchedEffect(query.id) {
             query.resume()
         }
         return state

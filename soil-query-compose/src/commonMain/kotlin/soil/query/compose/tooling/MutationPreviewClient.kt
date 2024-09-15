@@ -9,7 +9,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import soil.query.MutationClient
-import soil.query.MutationCommand
 import soil.query.MutationId
 import soil.query.MutationKey
 import soil.query.MutationOptions
@@ -17,6 +16,7 @@ import soil.query.MutationRef
 import soil.query.MutationState
 import soil.query.core.Marker
 import soil.query.core.UniqueId
+import soil.query.core.getOrThrow
 
 /**
  * Usage:
@@ -39,18 +39,17 @@ class MutationPreviewClient(
         marker: Marker
     ): MutationRef<T, S> {
         val state = previewData[key.id] as? MutationState<T> ?: MutationState.initial()
-        val options = key.onConfigureOptions()?.invoke(defaultMutationOptions) ?: defaultMutationOptions
-        return SnapshotMutation(key, options, marker, MutableStateFlow(state))
+        return SnapshotMutation(key.id, MutableStateFlow(state))
     }
 
     private class SnapshotMutation<T, S>(
-        override val key: MutationKey<T, S>,
-        override val options: MutationOptions,
-        override val marker: Marker,
+        override val id: MutationId<T, S>,
         override val state: StateFlow<MutationState<T>>
     ) : MutationRef<T, S> {
         override fun launchIn(scope: CoroutineScope): Job = Job()
-        override suspend fun send(command: MutationCommand<T>) = Unit
+        override suspend fun reset() = Unit
+        override suspend fun mutate(variable: S): T = state.value.reply.getOrThrow()
+        override suspend fun mutateAsync(variable: S) = Unit
     }
 
     /**

@@ -17,6 +17,18 @@ data class QueryChunk<T, S>(
 typealias QueryChunks<T, S> = List<QueryChunk<T, S>>
 
 /**
+ * Returns an empty list of chunks.
+ */
+fun <T, S> emptyChunks(): QueryChunks<T, S> = emptyList()
+
+/**
+ * Builds a list of chunks using the provided [builderAction].
+ */
+inline fun <T, S> buildChunks(
+    builderAction: MutableList<QueryChunk<T, S>>.() -> Unit
+): QueryChunks<T, S> = buildList(builderAction)
+
+/**
  * Returns the data of all chunks.
  */
 val <T, S> QueryChunks<List<T>, S>.chunkedData: List<T>

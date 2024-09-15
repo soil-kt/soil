@@ -39,7 +39,7 @@ private object DefaultInfiniteQueryStrategy : InfiniteQueryStrategy {
     @Composable
     override fun <T, S> collectAsState(query: InfiniteQueryRef<T, S>): QueryState<QueryChunks<T, S>> {
         val state by query.state.collectAsState()
-        LaunchedEffect(query.key.id) {
+        LaunchedEffect(query.id) {
             query.resume()
         }
         return state
