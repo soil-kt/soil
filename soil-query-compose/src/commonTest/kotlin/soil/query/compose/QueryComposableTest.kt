@@ -95,6 +95,77 @@ class QueryComposableTest : UnitTest() {
     }
 
     @Test
+    fun testRememberQuery_combineTwo() = runComposeUiTest {
+        val key1 = TestQueryKey(number = 1)
+        val key2 = TestQueryKey(number = 2)
+        val client = SwrCache(coroutineScope = SwrCacheScope()).test {
+            on(key1.id) { "Hello, Compose!" }
+            on(key2.id) { "Hello, Soil!" }
+        }
+        setContent {
+            SwrClientProvider(client) {
+                val query = rememberQuery(key1 = key1, key2 = key2, transform = { a, b -> a + b })
+                when (val reply = query.reply) {
+                    is Reply.Some -> Text(reply.value, modifier = Modifier.testTag("query"))
+                    is Reply.None -> Unit
+                }
+            }
+        }
+
+        waitUntilExactlyOneExists(hasTestTag("query"))
+        onNodeWithTag("query").assertTextEquals("Hello, Compose!Hello, Soil!")
+    }
+
+    @Test
+    fun testRememberQuery_combineThree() = runComposeUiTest {
+        val key1 = TestQueryKey(number = 1)
+        val key2 = TestQueryKey(number = 2)
+        val key3 = TestQueryKey(number = 3)
+        val client = SwrCache(coroutineScope = SwrCacheScope()).test {
+            on(key1.id) { "Hello, Compose!" }
+            on(key2.id) { "Hello, Soil!" }
+            on(key3.id) { "Hello, Kotlin!" }
+        }
+        setContent {
+            SwrClientProvider(client) {
+                val query = rememberQuery(key1 = key1, key2 = key2, key3 = key3, transform = { a, b, c -> a + b + c })
+                when (val reply = query.reply) {
+                    is Reply.Some -> Text(reply.value, modifier = Modifier.testTag("query"))
+                    is Reply.None -> Unit
+                }
+            }
+        }
+
+        waitUntilExactlyOneExists(hasTestTag("query"))
+        onNodeWithTag("query").assertTextEquals("Hello, Compose!Hello, Soil!Hello, Kotlin!")
+    }
+
+    @Test
+    fun testRememberQuery_combineN() = runComposeUiTest {
+        val key1 = TestQueryKey(number = 1)
+        val key2 = TestQueryKey(number = 2)
+        val key3 = TestQueryKey(number = 3)
+        val client = SwrCache(coroutineScope = SwrCacheScope()).test {
+            on(key1.id) { "Hello, Compose!" }
+            on(key2.id) { "Hello, Soil!" }
+            on(key3.id) { "Hello, Kotlin!" }
+        }
+        setContent {
+            SwrClientProvider(client) {
+                val query = rememberQuery(listOf(key1, key2, key3), transform = { it.joinToString("|") })
+                when (val reply = query.reply) {
+                    is Reply.Some -> Text(reply.value, modifier = Modifier.testTag("query"))
+                    is Reply.None -> Unit
+                }
+            }
+        }
+
+        waitUntilExactlyOneExists(hasTestTag("query"))
+        onNodeWithTag("query").assertTextEquals("Hello, Compose!|Hello, Soil!|Hello, Kotlin!")
+    }
+
+
+    @Test
     fun testRememberQuery_loadingPreview() = runComposeUiTest {
         val key = TestQueryKey()
         val client = SwrPreviewClient(
@@ -178,10 +249,12 @@ class QueryComposableTest : UnitTest() {
         onNodeWithTag("query").assertTextEquals("Hello, Query!")
     }
 
-    private class TestQueryKey : QueryKey<String> by buildQueryKey(
-        id = Id,
+    private class TestQueryKey(
+        number: Int = 1
+    ) : QueryKey<String> by buildQueryKey(
+        id = Id(number),
         fetch = { "Hello, Soil!" }
     ) {
-        object Id : QueryId<String>("test/query")
+        class Id(number: Int) : QueryId<String>("test/query/$number")
     }
 }

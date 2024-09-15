@@ -36,12 +36,23 @@ private object DefaultSubscriptionStrategy : SubscriptionStrategy {
     @Composable
     override fun <T> collectAsState(subscription: SubscriptionRef<T>): SubscriptionState<T> {
         val state by subscription.state.collectAsState()
-        LaunchedEffect(subscription.key.id) {
-            if (subscription.options.subscribeOnMount) {
-                subscription.resume()
-            }
+        LaunchedEffect(subscription.id) {
+            subscription.resume()
         }
         return state
+    }
+}
+
+/**
+ * Strategy for manually starting the Subscription without automatic subscription.
+ */
+val SubscriptionStrategy.Companion.Lazy: SubscriptionStrategy
+    get() = LazySubscriptionStrategy
+
+private object LazySubscriptionStrategy : SubscriptionStrategy {
+    @Composable
+    override fun <T> collectAsState(subscription: SubscriptionRef<T>): SubscriptionState<T> {
+        return subscription.state.collectAsState().value
     }
 }
 
@@ -55,10 +66,8 @@ private object DefaultSubscriptionStrategy : SubscriptionStrategy {
 //    @Composable
 //    override fun <T> collectAsState(subscription: SubscriptionRef<T>): SubscriptionState<T> {
 //        val state by subscription.state.collectAsStateWithLifecycle()
-//        LifecycleStartEffect(subscription.key.id) {
-//            if (subscription.options.subscribeOnMount) {
-//                lifecycleScope.launch { subscription.resume() }
-//            }
+//        LifecycleStartEffect(subscription.id) {
+//            lifecycleScope.launch { subscription.resume() }
 //            onStopOrDispose { subscription.cancel() }
 //        }
 //        return state

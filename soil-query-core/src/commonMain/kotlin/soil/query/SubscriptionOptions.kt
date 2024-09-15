@@ -26,11 +26,6 @@ interface SubscriptionOptions : ActorOptions, LoggingOptions, RetryOptions {
     val gcTime: Duration
 
     /**
-     * Determines whether to subscribe automatically to the subscription when mounted.
-     */
-    val subscribeOnMount: Boolean
-
-    /**
      * This callback function will be called if some mutation encounters an error.
      */
     val onError: ((ErrorRecord, SubscriptionModel<*>) -> Unit)?
@@ -43,7 +38,6 @@ interface SubscriptionOptions : ActorOptions, LoggingOptions, RetryOptions {
 
     companion object Default : SubscriptionOptions {
         override val gcTime: Duration = 5.minutes
-        override val subscribeOnMount: Boolean = true
         override val onError: ((ErrorRecord, SubscriptionModel<*>) -> Unit)? = null
         override val shouldSuppressErrorRelay: ((ErrorRecord, SubscriptionModel<*>) -> Boolean)? = null
 
@@ -70,7 +64,6 @@ interface SubscriptionOptions : ActorOptions, LoggingOptions, RetryOptions {
  * Creates a new [SubscriptionOptions] with the specified settings.
  *
  * @param gcTime The period during which the Key's return value, if not referenced anywhere, is temporarily cached in memory.
- * @param subscribeOnMount Determines whether to subscribe automatically to the subscription when mounted.
  * @param onError This callback function will be called if some subscription encounters an error.
  * @param shouldSuppressErrorRelay Determines whether to suppress error information when relaying it using [soil.query.core.ErrorRelay].
  * @param keepAliveTime The duration to keep the actor alive after the last command is executed.
@@ -85,7 +78,6 @@ interface SubscriptionOptions : ActorOptions, LoggingOptions, RetryOptions {
  */
 fun SubscriptionOptions(
     gcTime: Duration = SubscriptionOptions.gcTime,
-    subscribeOnMount: Boolean = SubscriptionOptions.subscribeOnMount,
     onError: ((ErrorRecord, SubscriptionModel<*>) -> Unit)? = SubscriptionOptions.onError,
     shouldSuppressErrorRelay: ((ErrorRecord, SubscriptionModel<*>) -> Boolean)? = SubscriptionOptions.shouldSuppressErrorRelay,
     keepAliveTime: Duration = SubscriptionOptions.keepAliveTime,
@@ -100,7 +92,6 @@ fun SubscriptionOptions(
 ): SubscriptionOptions {
     return object : SubscriptionOptions {
         override val gcTime: Duration = gcTime
-        override val subscribeOnMount: Boolean = subscribeOnMount
         override val onError: ((ErrorRecord, SubscriptionModel<*>) -> Unit)? = onError
         override val shouldSuppressErrorRelay: ((ErrorRecord, SubscriptionModel<*>) -> Boolean)? =
             shouldSuppressErrorRelay
@@ -121,7 +112,6 @@ fun SubscriptionOptions(
  */
 fun SubscriptionOptions.copy(
     gcTime: Duration = this.gcTime,
-    subscribeOnMount: Boolean = this.subscribeOnMount,
     onError: ((ErrorRecord, SubscriptionModel<*>) -> Unit)? = this.onError,
     shouldSuppressErrorRelay: ((ErrorRecord, SubscriptionModel<*>) -> Boolean)? = this.shouldSuppressErrorRelay,
     keepAliveTime: Duration = this.keepAliveTime,
@@ -136,7 +126,6 @@ fun SubscriptionOptions.copy(
 ): SubscriptionOptions {
     return SubscriptionOptions(
         gcTime = gcTime,
-        subscribeOnMount = subscribeOnMount,
         onError = onError,
         shouldSuppressErrorRelay = shouldSuppressErrorRelay,
         keepAliveTime = keepAliveTime,

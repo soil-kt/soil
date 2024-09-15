@@ -25,6 +25,7 @@ import soil.query.QueryChunk
 import soil.query.QueryState
 import soil.query.SwrCache
 import soil.query.SwrCacheScope
+import soil.query.buildChunks
 import soil.query.buildInfiniteQueryKey
 import soil.query.chunkedData
 import soil.query.compose.tooling.QueryPreviewClient
@@ -166,7 +167,7 @@ class InfiniteQueryComposableTest : UnitTest() {
         val client = SwrPreviewClient(
             query = QueryPreviewClient {
                 on(key.id) {
-                    QueryState.success(buildList {
+                    QueryState.success(buildChunks {
                         add(QueryChunk((0 until 10).map { "Item $it" }, PageParam(0, 10)))
                         add(QueryChunk((10 until 20).map { "Item $it" }, PageParam(1, 10)))
                         add(QueryChunk((20 until 30).map { "Item $it" }, PageParam(2, 10)))

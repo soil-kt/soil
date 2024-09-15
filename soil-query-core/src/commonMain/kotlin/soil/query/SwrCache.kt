@@ -378,7 +378,8 @@ open class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutabl
         val query = getQuery(key, marker).also { it.launchIn(scope) }
         return coroutineScope.launch {
             try {
-                withTimeoutOrNull(query.options.prefetchWindowTime) {
+                val options = key.onConfigureOptions()?.invoke(defaultQueryOptions) ?: defaultQueryOptions
+                withTimeoutOrNull(options.prefetchWindowTime) {
                     query.resume()
                 }
             } finally {
@@ -395,7 +396,8 @@ open class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutabl
         val query = getInfiniteQuery(key, marker).also { it.launchIn(scope) }
         return coroutineScope.launch {
             try {
-                withTimeoutOrNull(query.options.prefetchWindowTime) {
+                val options = key.onConfigureOptions()?.invoke(defaultQueryOptions) ?: defaultQueryOptions
+                withTimeoutOrNull(options.prefetchWindowTime) {
                     query.resume()
                 }
             } finally {
@@ -578,7 +580,7 @@ open class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutabl
     internal class ManagedMutation<T>(
         val scope: CoroutineScope,
         val id: UniqueId,
-        override val options: MutationOptions,
+        val options: MutationOptions,
         override val state: StateFlow<MutationState<T>>,
         override val command: SendChannel<MutationCommand<T>>,
         internal val actor: ActorBlockRunner,
@@ -606,7 +608,7 @@ open class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutabl
     internal class ManagedQuery<T>(
         val scope: CoroutineScope,
         val id: UniqueId,
-        override val options: QueryOptions,
+        val options: QueryOptions,
         override val event: MutableSharedFlow<QueryEvent>,
         override val state: StateFlow<QueryState<T>>,
         override val command: SendChannel<QueryCommand<T>>,

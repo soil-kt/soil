@@ -170,7 +170,7 @@ class SwrCachePlus(private val policy: SwrCachePlusPolicy) : SwrCache(policy), S
     internal class ManagedSubscription<T>(
         val scope: CoroutineScope,
         val id: UniqueId,
-        override val options: SubscriptionOptions,
+        val options: SubscriptionOptions,
         override val source: SharedFlow<Result<T>>,
         override val state: StateFlow<SubscriptionState<T>>,
         override val command: SendChannel<SubscriptionCommand<T>>,

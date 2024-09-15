@@ -19,19 +19,9 @@ import soil.query.core.Marker
 interface SubscriptionRef<T> : Actor {
 
     /**
-     * The [SubscriptionKey] for the Subscription.
+     * A unique identifier used for managing [SubscriptionKey].
      */
-    val key: SubscriptionKey<T>
-
-    /**
-     * The SubscriptionOptions configured for the subscription.
-     */
-    val options: SubscriptionOptions
-
-    /**
-     * The Marker specified in [SubscriptionClient.getSubscription].
-     */
-    val marker: Marker
+    val id: SubscriptionId<T>
 
     /**
      * [State Flow][StateFlow] to receive the current state of the subscription.
@@ -39,9 +29,9 @@ interface SubscriptionRef<T> : Actor {
     val state: StateFlow<SubscriptionState<T>>
 
     /**
-     * Sends a [SubscriptionCommand] to the Actor.
+     * Resets the Subscription.
      */
-    suspend fun send(command: SubscriptionCommand<T>)
+    suspend fun reset()
 
     /**
      * Resumes the Subscription.
@@ -52,13 +42,6 @@ interface SubscriptionRef<T> : Actor {
      * Cancels the Subscription.
      */
     fun cancel()
-
-    /**
-     * Resets the Subscription.
-     */
-    suspend fun reset() {
-        send(SubscriptionCommands.Reset(key, state.value.revision))
-    }
 }
 
 /**
@@ -77,25 +60,21 @@ fun <T> SubscriptionRef(
 }
 
 private class SubscriptionRefImpl<T>(
-    override val key: SubscriptionKey<T>,
-    override val marker: Marker,
+    private val key: SubscriptionKey<T>,
+    private val marker: Marker,
     private val subscription: Subscription<T>
 ) : SubscriptionRef<T> {
 
     private var job: Job? = null
 
-    override val options: SubscriptionOptions
-        get() = subscription.options
+    override val id: SubscriptionId<T>
+        get() = key.id
 
     override val state: StateFlow<SubscriptionState<T>>
         get() = subscription.state
 
     override fun launchIn(scope: CoroutineScope): Job {
         return subscription.launchIn(scope)
-    }
-
-    override suspend fun send(command: SubscriptionCommand<T>) {
-        subscription.command.send(command)
     }
 
     override suspend fun resume() {
@@ -110,6 +89,14 @@ private class SubscriptionRefImpl<T>(
     override fun cancel() {
         job?.cancel()
         job = null
+    }
+
+    override suspend fun reset() {
+        send(SubscriptionCommands.Reset(key, state.value.revision))
+    }
+
+    private suspend fun send(command: SubscriptionCommand<T>) {
+        subscription.command.send(command)
     }
 
     private suspend fun receive(result: Result<T>) {

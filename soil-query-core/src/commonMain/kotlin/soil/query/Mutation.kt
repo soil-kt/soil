@@ -15,11 +15,6 @@ import soil.query.core.Actor
 interface Mutation<T> : Actor {
 
     /**
-     * The MutationOptions configured for the mutation.
-     */
-    val options: MutationOptions
-
-    /**
      * [State Flow][StateFlow] to receive the current state of the mutation.
      */
     val state: StateFlow<MutationState<T>>

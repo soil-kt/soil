@@ -16,11 +16,6 @@ import soil.query.core.Actor
 interface Query<T> : Actor {
 
     /**
-     * The QueryOptions configured for the query.
-     */
-    val options: QueryOptions
-
-    /**
      * [Shared Flow][SharedFlow] to receive query [events][QueryEvent].
      */
     val event: SharedFlow<QueryEvent>

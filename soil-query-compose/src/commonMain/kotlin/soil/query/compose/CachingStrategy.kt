@@ -51,12 +51,12 @@ sealed interface CachingStrategy {
     data object CacheFirst : CachingStrategy, QueryStrategy, InfiniteQueryStrategy {
         @Composable
         override fun <T> collectAsState(query: QueryRef<T>): QueryState<T> {
-            return collectAsState(query.key.id, query.state, query::resume)
+            return collectAsState(query.id, query.state, query::resume)
         }
 
         @Composable
         override fun <T, S> collectAsState(query: InfiniteQueryRef<T, S>): QueryState<QueryChunks<T, S>> {
-            return collectAsState(query.key.id, query.state, query::resume)
+            return collectAsState(query.id, query.state, query::resume)
         }
 
         @Composable
@@ -81,12 +81,12 @@ sealed interface CachingStrategy {
     data object NetworkFirst : CachingStrategy, QueryStrategy, InfiniteQueryStrategy {
         @Composable
         override fun <T> collectAsState(query: QueryRef<T>): QueryState<T> {
-            return collectAsState(query.key.id, query.state, query::resume)
+            return collectAsState(query.id, query.state, query::resume)
         }
 
         @Composable
         override fun <T, S> collectAsState(query: InfiniteQueryRef<T, S>): QueryState<QueryChunks<T, S>> {
-            return collectAsState(query.key.id, query.state, query::resume)
+            return collectAsState(query.id, query.state, query::resume)
         }
 
         @Composable

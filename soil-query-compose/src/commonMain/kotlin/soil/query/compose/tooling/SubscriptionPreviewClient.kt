@@ -9,7 +9,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import soil.query.SubscriptionClient
-import soil.query.SubscriptionCommand
 import soil.query.SubscriptionId
 import soil.query.SubscriptionKey
 import soil.query.SubscriptionOptions
@@ -41,18 +40,15 @@ class SubscriptionPreviewClient(
         marker: Marker
     ): SubscriptionRef<T> {
         val state = previewData[key.id] as? SubscriptionState<T> ?: SubscriptionState.initial()
-        val options = key.onConfigureOptions()?.invoke(defaultSubscriptionOptions) ?: defaultSubscriptionOptions
-        return SnapshotSubscription(key, options, marker, MutableStateFlow(state))
+        return SnapshotSubscription(key.id, MutableStateFlow(state))
     }
 
     private class SnapshotSubscription<T>(
-        override val key: SubscriptionKey<T>,
-        override val options: SubscriptionOptions,
-        override val marker: Marker,
+        override val id: SubscriptionId<T>,
         override val state: StateFlow<SubscriptionState<T>>
     ) : SubscriptionRef<T> {
         override fun launchIn(scope: CoroutineScope): Job = Job()
-        override suspend fun send(command: SubscriptionCommand<T>) = Unit
+        override suspend fun reset() = Unit
         override suspend fun resume() = Unit
         override fun cancel() = Unit
     }

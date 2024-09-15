@@ -21,19 +21,9 @@ import soil.query.core.awaitOrNull
 interface QueryRef<T> : Actor {
 
     /**
-     * The [QueryKey] for the Query.
+     * A unique identifier used for managing [QueryKey].
      */
-    val key: QueryKey<T>
-
-    /**
-     * The QueryOptions configured for the query.
-     */
-    val options: QueryOptions
-
-    /**
-     * The Marker specified in [QueryClient.getQuery].
-     */
-    val marker: Marker
+    val id: QueryId<T>
 
     /**
      * [State Flow][StateFlow] to receive the current state of the query.
@@ -41,18 +31,9 @@ interface QueryRef<T> : Actor {
     val state: StateFlow<QueryState<T>>
 
     /**
-     * Sends a [QueryCommand] to the Actor.
-     */
-    suspend fun send(command: QueryCommand<T>)
-
-    /**
      * Resumes the Query.
      */
-    suspend fun resume() {
-        val deferred = CompletableDeferred<T>()
-        send(QueryCommands.Connect(key, state.value.revision, marker, deferred::completeWith))
-        deferred.awaitOrNull()
-    }
+    suspend fun resume()
 
     /**
      * Invalidates the Query.
@@ -60,11 +41,7 @@ interface QueryRef<T> : Actor {
      * Calling this function will invalidate the retrieved data of the Query,
      * setting [QueryModel.isInvalidated] to `true` until revalidation is completed.
      */
-    suspend fun invalidate() {
-        val deferred = CompletableDeferred<T>()
-        send(QueryCommands.Invalidate(key, state.value.revision, marker, deferred::completeWith))
-        deferred.awaitOrNull()
-    }
+    suspend fun invalidate()
 }
 
 /**
@@ -83,13 +60,13 @@ fun <T> QueryRef(
 }
 
 private class QueryRefImpl<T>(
-    override val key: QueryKey<T>,
-    override val marker: Marker,
+    private val key: QueryKey<T>,
+    private val marker: Marker,
     private val query: Query<T>
 ) : QueryRef<T> {
 
-    override val options: QueryOptions
-        get() = query.options
+    override val id: QueryId<T>
+        get() = key.id
 
     override val state: StateFlow<QueryState<T>>
         get() = query.state
@@ -101,9 +78,22 @@ private class QueryRefImpl<T>(
         }
     }
 
-    override suspend fun send(command: QueryCommand<T>) {
+    override suspend fun resume() {
+        val deferred = CompletableDeferred<T>()
+        send(QueryCommands.Connect(key, state.value.revision, marker, deferred::completeWith))
+        deferred.awaitOrNull()
+    }
+
+    override suspend fun invalidate() {
+        val deferred = CompletableDeferred<T>()
+        send(QueryCommands.Invalidate(key, state.value.revision, marker, deferred::completeWith))
+        deferred.awaitOrNull()
+    }
+
+    private suspend fun send(command: QueryCommand<T>) {
         query.command.send(command)
     }
+
 
     private suspend fun handleEvent(e: QueryEvent) {
         when (e) {

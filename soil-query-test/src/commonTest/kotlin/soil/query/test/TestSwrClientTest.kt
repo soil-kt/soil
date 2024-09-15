@@ -3,28 +3,20 @@
 
 package soil.query.test
 
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
-import soil.query.InfiniteQueryCommands
 import soil.query.InfiniteQueryId
 import soil.query.InfiniteQueryKey
-import soil.query.InfiniteQueryRef
 import soil.query.MutationId
 import soil.query.MutationKey
-import soil.query.QueryChunks
-import soil.query.QueryCommands
 import soil.query.QueryId
 import soil.query.QueryKey
-import soil.query.QueryRef
 import soil.query.SwrCache
 import soil.query.SwrCachePolicy
 import soil.query.buildInfiniteQueryKey
 import soil.query.buildMutationKey
 import soil.query.buildQueryKey
-import soil.query.core.Marker
 import soil.query.core.getOrThrow
 import soil.testing.UnitTest
 import kotlin.test.Test
@@ -63,7 +55,7 @@ class TestSwrClientTest : UnitTest() {
         }
         val key = ExampleQueryKey()
         val query = testClient.getQuery(key).also { it.launchIn(backgroundScope) }
-        query.test()
+        query.resume()
         assertEquals("Hello, World!", query.state.value.reply.getOrThrow())
     }
 
@@ -80,7 +72,7 @@ class TestSwrClientTest : UnitTest() {
         }
         val key = ExampleInfiniteQueryKey()
         val query = testClient.getInfiniteQuery(key).also { it.launchIn(backgroundScope) }
-        query.test()
+        query.resume()
         assertEquals("Hello, World!", query.state.value.reply.getOrThrow().first().data)
     }
 }
@@ -118,16 +110,4 @@ private class ExampleInfiniteQueryKey : InfiniteQueryKey<String, Int> by buildIn
     object Id : InfiniteQueryId<String, Int>(
         namespace = "infinite-query/example"
     )
-}
-
-private suspend fun <T> QueryRef<T>.test(): T {
-    val deferred = CompletableDeferred<T>()
-    send(QueryCommands.Connect(key, marker = Marker.None, callback = deferred::completeWith))
-    return deferred.await()
-}
-
-private suspend fun <T, S> InfiniteQueryRef<T, S>.test(): QueryChunks<T, S> {
-    val deferred = CompletableDeferred<QueryChunks<T, S>>()
-    send(InfiniteQueryCommands.Connect(key, marker = Marker.None, callback = deferred::completeWith))
-    return deferred.await()
 }

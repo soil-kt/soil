@@ -23,19 +23,9 @@ import soil.query.core.awaitOrNull
 interface InfiniteQueryRef<T, S> : Actor {
 
     /**
-     * The [InfiniteQueryKey] for the Query.
+     * A unique identifier used for managing [InfiniteQueryKey].
      */
-    val key: InfiniteQueryKey<T, S>
-
-    /**
-     * The QueryOptions configured for the query.
-     */
-    val options: QueryOptions
-
-    /**
-     * The Marker specified in [QueryClient.getInfiniteQuery].
-     */
-    val marker: Marker
+    val id: InfiniteQueryId<T, S>
 
     /**
      * [State Flow][StateFlow] to receive the current state of the query.
@@ -43,27 +33,25 @@ interface InfiniteQueryRef<T, S> : Actor {
     val state: StateFlow<QueryState<QueryChunks<T, S>>>
 
     /**
-     * Sends a [QueryCommand] to the Actor.
+     * Function returning the parameter for additional fetching.
+     *
+     * @param data The data to be used to determine the next parameter.
+     * @return `null` if there is no more data to fetch.
+     * @see loadMore
      */
-    suspend fun send(command: InfiniteQueryCommand<T, S>)
+    fun nextParam(data: QueryChunks<T, S>): S?
 
     /**
      * Resumes the Query.
      */
-    suspend fun resume() {
-        val deferred = CompletableDeferred<QueryChunks<T, S>>()
-        send(InfiniteQueryCommands.Connect(key, state.value.revision, marker, deferred::completeWith))
-        deferred.awaitOrNull()
-    }
+    suspend fun resume()
 
     /**
      * Fetches data for the [InfiniteQueryKey] using the value of [param].
+     *
+     * @see nextParam
      */
-    suspend fun loadMore(param: S) {
-        val deferred = CompletableDeferred<QueryChunks<T, S>>()
-        send(InfiniteQueryCommands.LoadMore(key, param, marker, deferred::completeWith))
-        deferred.awaitOrNull()
-    }
+    suspend fun loadMore(param: S)
 
     /**
      * Invalidates the Query.
@@ -71,11 +59,7 @@ interface InfiniteQueryRef<T, S> : Actor {
      * Calling this function will invalidate the retrieved data of the Query,
      * setting [QueryModel.isInvalidated] to `true` until revalidation is completed.
      */
-    suspend fun invalidate() {
-        val deferred = CompletableDeferred<QueryChunks<T, S>>()
-        send(InfiniteQueryCommands.Invalidate(key, state.value.revision, marker, deferred::completeWith))
-        deferred.awaitOrNull()
-    }
+    suspend fun invalidate()
 }
 
 /**
@@ -94,13 +78,13 @@ fun <T, S> InfiniteQueryRef(
 }
 
 private class InfiniteQueryRefImpl<T, S>(
-    override val key: InfiniteQueryKey<T, S>,
-    override val marker: Marker,
+    private val key: InfiniteQueryKey<T, S>,
+    private val marker: Marker,
     private val query: Query<QueryChunks<T, S>>
 ) : InfiniteQueryRef<T, S> {
 
-    override val options: QueryOptions
-        get() = query.options
+    override val id: InfiniteQueryId<T, S>
+        get() = key.id
 
     override val state: StateFlow<QueryState<QueryChunks<T, S>>>
         get() = query.state
@@ -112,7 +96,29 @@ private class InfiniteQueryRefImpl<T, S>(
         }
     }
 
-    override suspend fun send(command: InfiniteQueryCommand<T, S>) {
+    override fun nextParam(data: QueryChunks<T, S>): S? {
+        return key.loadMoreParam(data)
+    }
+
+    override suspend fun resume() {
+        val deferred = CompletableDeferred<QueryChunks<T, S>>()
+        send(InfiniteQueryCommands.Connect(key, state.value.revision, marker, deferred::completeWith))
+        deferred.awaitOrNull()
+    }
+
+    override suspend fun loadMore(param: S) {
+        val deferred = CompletableDeferred<QueryChunks<T, S>>()
+        send(InfiniteQueryCommands.LoadMore(key, param, marker, deferred::completeWith))
+        deferred.awaitOrNull()
+    }
+
+    override suspend fun invalidate() {
+        val deferred = CompletableDeferred<QueryChunks<T, S>>()
+        send(InfiniteQueryCommands.Invalidate(key, state.value.revision, marker, deferred::completeWith))
+        deferred.awaitOrNull()
+    }
+
+    private suspend fun send(command: InfiniteQueryCommand<T, S>) {
         query.command.send(command)
     }
 

@@ -21,19 +21,9 @@ import soil.query.core.Marker
 interface MutationRef<T, S> : Actor {
 
     /**
-     * The [MutationKey] for the Mutation.
+     * A unique identifier used for managing [MutationKey].
      */
-    val key: MutationKey<T, S>
-
-    /**
-     * The MutationOptions configured for the mutation.
-     */
-    val options: MutationOptions
-
-    /**
-     * The Marker specified in [MutationClient.getMutation].
-     */
-    val marker: Marker
+    val id: MutationId<T, S>
 
     /**
      * [State Flow][StateFlow] to receive the current state of the mutation.
@@ -41,37 +31,24 @@ interface MutationRef<T, S> : Actor {
     val state: StateFlow<MutationState<T>>
 
     /**
-     * Sends a [MutationCommand] to the Actor.
-     */
-    suspend fun send(command: MutationCommand<T>)
-
-    /**
      * Mutates the variable.
      *
      * @param variable The variable to be mutated.
      * @return The result of the mutation.
      */
-    suspend fun mutate(variable: S): T {
-        val deferred = CompletableDeferred<T>()
-        send(MutationCommands.Mutate(key, variable, state.value.revision, marker, deferred::completeWith))
-        return deferred.await()
-    }
+    suspend fun mutate(variable: S): T
 
     /**
      * Mutates the variable asynchronously.
      *
      * @param variable The variable to be mutated.
      */
-    suspend fun mutateAsync(variable: S) {
-        send(MutationCommands.Mutate(key, variable, state.value.revision, marker))
-    }
+    suspend fun mutateAsync(variable: S)
 
     /**
      * Resets the mutation state.
      */
-    suspend fun reset() {
-        send(MutationCommands.Reset())
-    }
+    suspend fun reset()
 }
 
 /**
@@ -90,13 +67,13 @@ fun <T, S> MutationRef(
 }
 
 private class MutationRefImpl<T, S>(
-    override val key: MutationKey<T, S>,
-    override val marker: Marker,
+    private val key: MutationKey<T, S>,
+    private val marker: Marker,
     private val mutation: Mutation<T>
 ) : MutationRef<T, S> {
 
-    override val options: MutationOptions
-        get() = mutation.options
+    override val id: MutationId<T, S>
+        get() = key.id
 
     override val state: StateFlow<MutationState<T>>
         get() = mutation.state
@@ -105,7 +82,21 @@ private class MutationRefImpl<T, S>(
         return mutation.launchIn(scope)
     }
 
-    override suspend fun send(command: MutationCommand<T>) {
+    override suspend fun mutate(variable: S): T {
+        val deferred = CompletableDeferred<T>()
+        send(MutationCommands.Mutate(key, variable, state.value.revision, marker, deferred::completeWith))
+        return deferred.await()
+    }
+
+    override suspend fun mutateAsync(variable: S) {
+        send(MutationCommands.Mutate(key, variable, state.value.revision, marker))
+    }
+
+    override suspend fun reset() {
+        send(MutationCommands.Reset())
+    }
+
+    private suspend fun send(command: MutationCommand<T>) {
         mutation.command.send(command)
     }
 }
