@@ -26,6 +26,7 @@ import soil.query.SwrCache
 import soil.query.SwrCacheScope
 import soil.query.buildInfiniteQueryKey
 import soil.query.buildQueryKey
+import soil.query.compose.QueryObject
 import soil.query.compose.SwrClientProvider
 import soil.query.compose.rememberInfiniteQuery
 import soil.query.compose.rememberQuery
@@ -225,6 +226,42 @@ class AwaitTest : UnitTest() {
         deferred2.complete("Hello, Compose!")
         waitUntilDoesNotExist(hasTestTag("fallback"))
         onNodeWithTag("await").assertTextEquals("Hello, Compose!")
+    }
+
+    @Test
+    fun testAwait_orNone() = runComposeUiTest {
+        setContent {
+            val query: QueryObject<String>? = null /* rememberQueryIf(..) */
+            Suspense(
+                fallback = { Text("Loading...", modifier = Modifier.testTag("fallback")) },
+                contentThreshold = Duration.ZERO
+            ) {
+                Await(query.orNone()) { data ->
+                    Text(data, modifier = Modifier.testTag("await"))
+                }
+            }
+        }
+        waitForIdle()
+        onNodeWithTag("await").assertDoesNotExist()
+        onNodeWithTag("fallback").assertDoesNotExist()
+    }
+
+    @Test
+    fun testAwait_orPending() = runComposeUiTest {
+        setContent {
+            val query: QueryObject<String>? = null /* rememberQueryIf(..) */
+            Suspense(
+                fallback = { Text("Loading...", modifier = Modifier.testTag("fallback")) },
+                contentThreshold = Duration.ZERO
+            ) {
+                Await(query.orPending()) { data ->
+                    Text(data, modifier = Modifier.testTag("await"))
+                }
+            }
+        }
+        waitForIdle()
+        onNodeWithTag("await").assertDoesNotExist()
+        onNodeWithTag("fallback").assertExists()
     }
 
     private class TestQueryKey(val variant: String) : QueryKey<String> by buildQueryKey(

@@ -286,6 +286,7 @@ class InfiniteQueryComposableTest : UnitTest() {
         onNodeWithTag("query").assertDoesNotExist()
         onNodeWithTag("toggle").performClick()
 
+        waitForIdle()
         waitUntilAtLeastOneExists(hasTestTag("query"))
         onNodeWithTag("query").assertTextEquals("Size: 10 - Page: 0")
     }
@@ -322,6 +323,7 @@ class InfiniteQueryComposableTest : UnitTest() {
         onNodeWithTag("query").assertDoesNotExist()
         onNodeWithTag("toggle").performClick()
 
+        waitForIdle()
         waitUntilAtLeastOneExists(hasTestTag("query"))
         onAllNodes(hasTestTag("query")).assertCountEquals(10)
     }
