@@ -3,9 +3,14 @@
 
 package soil.query.compose
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material.Button
 import androidx.compose.material.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -25,6 +30,7 @@ import soil.query.compose.tooling.MutationPreviewClient
 import soil.query.compose.tooling.SwrPreviewClient
 import soil.query.core.Marker
 import soil.query.core.Reply
+import soil.query.core.orNone
 import soil.query.test.test
 import soil.testing.UnitTest
 import kotlin.test.Test
@@ -61,10 +67,10 @@ class MutationComposableTest : UnitTest() {
             }
         }
 
-        // TODO: I don't know why but it's broken.
-        //  Related issue: https://github.com/JetBrains/compose-multiplatform-core/blob/46232e6533a71625f7599c206594fca5e2e28e09/compose/ui/ui-test/src/skikoMain/kotlin/androidx/compose/ui/test/Assertions.skikoMain.kt#L26
-        // onNodeWithTag("result").assertIsNotDisplayed()
+        waitForIdle()
+        onNodeWithTag("result").assertDoesNotExist()
         onNodeWithTag("mutation").performClick()
+
         waitUntilExactlyOneExists(hasTestTag("result"))
         onNodeWithTag("result").assertTextEquals("Soil - 1")
     }
@@ -225,6 +231,51 @@ class MutationComposableTest : UnitTest() {
 
         waitForIdle()
         onNodeWithTag("mutation").assertTextEquals("Error")
+    }
+
+    @Test
+    fun testRememberMutationIf() = runComposeUiTest {
+        val key = TestMutationKey()
+        val client = SwrCache(coroutineScope = SwrCacheScope())
+        setContent {
+            SwrClientProvider(client) {
+                var enabled by remember { mutableStateOf(false) }
+                val mutation = rememberMutationIf(enabled, { if (it) key else null })
+                Column {
+                    Button(onClick = { enabled = !enabled }, modifier = Modifier.testTag("toggle")) {
+                        Text("Toggle")
+                    }
+                    when (val reply = mutation?.reply.orNone()) {
+                        is Reply.Some -> Text(reply.value, modifier = Modifier.testTag("result"))
+                        is Reply.None -> Unit
+                    }
+                    val scope = rememberCoroutineScope()
+                    if (mutation != null) {
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    mutation.mutate(TestForm("Soil", 1))
+                                }
+                            },
+                            modifier = Modifier.testTag("mutation")
+                        ) {
+                            Text("Mutate")
+                        }
+                    }
+                }
+            }
+        }
+
+        waitForIdle()
+        onNodeWithTag("mutation").assertDoesNotExist()
+        onNodeWithTag("toggle").performClick()
+
+        waitForIdle()
+        onNodeWithTag("result").assertDoesNotExist()
+        onNodeWithTag("mutation").performClick()
+
+        waitUntilExactlyOneExists(hasTestTag("result"))
+        onNodeWithTag("result").assertTextEquals("Soil - 1")
     }
 
     private class TestMutationKey : MutationKey<String, TestForm> by buildMutationKey(
