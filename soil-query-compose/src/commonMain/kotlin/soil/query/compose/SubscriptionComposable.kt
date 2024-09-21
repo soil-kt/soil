@@ -9,6 +9,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import soil.query.SubscriptionClient
 import soil.query.SubscriptionKey
 import soil.query.annotation.ExperimentalSoilQueryApi
+import soil.query.compose.internal.newSubscription
 
 /**
  * Remember a [SubscriptionObject] and subscribes to the subscription state of [key].
@@ -27,7 +28,7 @@ fun <T> rememberSubscription(
     client: SubscriptionClient = LocalSubscriptionClient.current
 ): SubscriptionObject<T> {
     val scope = rememberCoroutineScope()
-    val subscription = remember(key.id) { client.getSubscription(key, config.marker).also { it.launchIn(scope) } }
+    val subscription = remember(key.id) { newSubscription(key, config, client, scope) }
     return with(config.mapper) {
         config.strategy.collectAsState(subscription).toObject(subscription = subscription, select = { it })
     }
@@ -53,7 +54,7 @@ fun <T, U> rememberSubscription(
     client: SubscriptionClient = LocalSubscriptionClient.current
 ): SubscriptionObject<U> {
     val scope = rememberCoroutineScope()
-    val subscription = remember(key.id) { client.getSubscription(key, config.marker).also { it.launchIn(scope) } }
+    val subscription = remember(key.id) { newSubscription(key, config, client, scope) }
     return with(config.mapper) {
         config.strategy.collectAsState(subscription).toObject(subscription = subscription, select = select)
     }

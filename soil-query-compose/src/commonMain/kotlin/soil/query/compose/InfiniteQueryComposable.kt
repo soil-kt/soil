@@ -9,6 +9,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import soil.query.InfiniteQueryKey
 import soil.query.QueryChunks
 import soil.query.QueryClient
+import soil.query.compose.internal.newInfiniteQuery
 
 /**
  * Remember a [InfiniteQueryObject] and subscribes to the query state of [key].
@@ -27,7 +28,7 @@ fun <T, S> rememberInfiniteQuery(
     client: QueryClient = LocalQueryClient.current
 ): InfiniteQueryObject<QueryChunks<T, S>, S> {
     val scope = rememberCoroutineScope()
-    val query = remember(key.id) { client.getInfiniteQuery(key, config.marker).also { it.launchIn(scope) } }
+    val query = remember(key.id) { newInfiniteQuery(key, config, client, scope) }
     return with(config.mapper) {
         config.strategy.collectAsState(query).toObject(query = query, select = { it })
     }
@@ -52,7 +53,7 @@ fun <T, S, U> rememberInfiniteQuery(
     client: QueryClient = LocalQueryClient.current
 ): InfiniteQueryObject<U, S> {
     val scope = rememberCoroutineScope()
-    val query = remember(key.id) { client.getInfiniteQuery(key, config.marker).also { it.launchIn(scope) } }
+    val query = remember(key.id) { newInfiniteQuery(key, config, client, scope) }
     return with(config.mapper) {
         config.strategy.collectAsState(query).toObject(query = query, select = select)
     }

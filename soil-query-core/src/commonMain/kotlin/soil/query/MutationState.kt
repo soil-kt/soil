@@ -5,6 +5,7 @@ package soil.query
 
 import soil.query.core.Reply
 import soil.query.core.epoch
+import kotlin.jvm.JvmInline
 
 /**
  * State for managing the execution result of [Mutation].
@@ -17,6 +18,30 @@ data class MutationState<T> internal constructor(
     override val status: MutationStatus = MutationStatus.Idle,
     override val mutatedCount: Int = 0
 ) : MutationModel<T> {
+
+    /**
+     * Returns a new [MutationState] with the items included in [keys] omitted from the current [MutationState].
+     *
+     * NOTE: This function is provided to optimize recomposition for Compose APIs.
+     */
+    fun omit(keys: Set<OmitKey>): MutationState<T> {
+        if (keys.isEmpty()) return this
+        return copy(
+            replyUpdatedAt = if (keys.contains(OmitKey.replyUpdatedAt)) 0 else replyUpdatedAt,
+            errorUpdatedAt = if (keys.contains(OmitKey.errorUpdatedAt)) 0 else errorUpdatedAt,
+            mutatedCount = if (keys.contains(OmitKey.mutatedCount)) 0 else mutatedCount
+        )
+    }
+
+    @JvmInline
+    value class OmitKey(val name: String) {
+        companion object {
+            val replyUpdatedAt = OmitKey("replyUpdatedAt")
+            val errorUpdatedAt = OmitKey("errorUpdatedAt")
+            val mutatedCount = OmitKey("mutatedCount")
+        }
+    }
+
     companion object {
 
         /**
@@ -94,6 +119,29 @@ data class MutationState<T> internal constructor(
                 error = error,
                 errorUpdatedAt = errorUpdatedAt,
                 status = MutationStatus.Failure,
+                mutatedCount = mutatedCount
+            )
+        }
+
+        /**
+         * Creates a new [MutationState] for Testing.
+         *
+         * NOTE: **This method is for testing purposes only.**
+         */
+        fun <T> test(
+            reply: Reply<T> = Reply.None,
+            replyUpdatedAt: Long = 0,
+            error: Throwable? = null,
+            errorUpdatedAt: Long = 0,
+            status: MutationStatus = MutationStatus.Idle,
+            mutatedCount: Int = 0
+        ): MutationState<T> {
+            return MutationState(
+                reply = reply,
+                replyUpdatedAt = replyUpdatedAt,
+                error = error,
+                errorUpdatedAt = errorUpdatedAt,
+                status = status,
                 mutatedCount = mutatedCount
             )
         }
