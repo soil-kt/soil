@@ -18,6 +18,7 @@ class QueryOptionsTest : UnitTest() {
         assertEquals(QueryOptions.Default.staleTime, actual.staleTime)
         assertEquals(QueryOptions.Default.gcTime, actual.gcTime)
         assertEquals(QueryOptions.Default.prefetchWindowTime, actual.prefetchWindowTime)
+        assertEquals(QueryOptions.Default.errorEquals, actual.errorEquals)
         assertEquals(QueryOptions.Default.pauseDurationAfter, actual.pauseDurationAfter)
         assertEquals(QueryOptions.Default.revalidateOnReconnect, actual.revalidateOnReconnect)
         assertEquals(QueryOptions.Default.revalidateOnFocus, actual.revalidateOnFocus)
@@ -40,6 +41,7 @@ class QueryOptionsTest : UnitTest() {
             staleTime = 1000.seconds,
             gcTime = 2000.seconds,
             prefetchWindowTime = 3000.seconds,
+            errorEquals = { _, _ -> true },
             pauseDurationAfter = { null },
             revalidateOnReconnect = false,
             revalidateOnFocus = false,
@@ -58,6 +60,7 @@ class QueryOptionsTest : UnitTest() {
         assertNotEquals(QueryOptions.Default.staleTime, actual.staleTime)
         assertNotEquals(QueryOptions.Default.gcTime, actual.gcTime)
         assertNotEquals(QueryOptions.Default.prefetchWindowTime, actual.prefetchWindowTime)
+        assertNotEquals(QueryOptions.Default.errorEquals, actual.errorEquals)
         assertNotEquals(QueryOptions.Default.pauseDurationAfter, actual.pauseDurationAfter)
         assertNotEquals(QueryOptions.Default.revalidateOnReconnect, actual.revalidateOnReconnect)
         assertNotEquals(QueryOptions.Default.revalidateOnFocus, actual.revalidateOnFocus)
@@ -80,6 +83,7 @@ class QueryOptionsTest : UnitTest() {
         assertEquals(QueryOptions.Default.staleTime, actual.staleTime)
         assertEquals(QueryOptions.Default.gcTime, actual.gcTime)
         assertEquals(QueryOptions.Default.prefetchWindowTime, actual.prefetchWindowTime)
+        assertEquals(QueryOptions.Default.errorEquals, actual.errorEquals)
         assertEquals(QueryOptions.Default.pauseDurationAfter, actual.pauseDurationAfter)
         assertEquals(QueryOptions.Default.revalidateOnReconnect, actual.revalidateOnReconnect)
         assertEquals(QueryOptions.Default.revalidateOnFocus, actual.revalidateOnFocus)
@@ -102,6 +106,7 @@ class QueryOptionsTest : UnitTest() {
             staleTime = 1000.seconds,
             gcTime = 2000.seconds,
             prefetchWindowTime = 3000.seconds,
+            errorEquals = { _, _ -> true },
             pauseDurationAfter = { null },
             revalidateOnReconnect = false,
             revalidateOnFocus = false,
@@ -120,6 +125,7 @@ class QueryOptionsTest : UnitTest() {
         assertNotEquals(QueryOptions.Default.staleTime, actual.staleTime)
         assertNotEquals(QueryOptions.Default.gcTime, actual.gcTime)
         assertNotEquals(QueryOptions.Default.prefetchWindowTime, actual.prefetchWindowTime)
+        assertNotEquals(QueryOptions.Default.errorEquals, actual.errorEquals)
         assertNotEquals(QueryOptions.Default.pauseDurationAfter, actual.pauseDurationAfter)
         assertNotEquals(QueryOptions.Default.revalidateOnReconnect, actual.revalidateOnReconnect)
         assertNotEquals(QueryOptions.Default.revalidateOnFocus, actual.revalidateOnFocus)

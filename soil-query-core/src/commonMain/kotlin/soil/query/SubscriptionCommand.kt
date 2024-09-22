@@ -5,6 +5,7 @@ package soil.query
 
 import soil.query.core.ErrorRecord
 import soil.query.core.Marker
+import soil.query.core.Reply
 import soil.query.core.UniqueId
 import soil.query.core.epoch
 
@@ -51,7 +52,7 @@ fun <T> SubscriptionCommand.Context<T>.dispatchResult(
 ) {
     result
         .run { key.onRecoverData()?.let(::recoverCatching) ?: this }
-        .onSuccess(::dispatchReceiveSuccess)
+        .onSuccess { dispatchReceiveSuccess(it, key.contentEquals) }
         .onFailure(::dispatchReceiveFailure)
         .onFailure { reportSubscriptionError(it, key.id, marker) }
 }
@@ -61,12 +62,23 @@ fun <T> SubscriptionCommand.Context<T>.dispatchResult(
  *
  * @param data The data of the subscription.
  */
-fun <T> SubscriptionCommand.Context<T>.dispatchReceiveSuccess(data: T) {
+fun <T> SubscriptionCommand.Context<T>.dispatchReceiveSuccess(
+    data: T,
+    contentEquals: SubscriptionContentEquals<T>? = null
+) {
     val currentAt = epoch()
-    val action = SubscriptionAction.ReceiveSuccess(
-        data = data,
-        dataUpdatedAt = currentAt
-    )
+    val currentReply = state.reply
+    val action = if (currentReply is Reply.Some && contentEquals?.invoke(currentReply.value, data) == true) {
+        SubscriptionAction.ReceiveSuccess(
+            data = currentReply.value,
+            dataUpdatedAt = state.replyUpdatedAt
+        )
+    } else {
+        SubscriptionAction.ReceiveSuccess(
+            data = data,
+            dataUpdatedAt = currentAt
+        )
+    }
     dispatch(action)
 }
 
@@ -77,10 +89,18 @@ fun <T> SubscriptionCommand.Context<T>.dispatchReceiveSuccess(data: T) {
  */
 fun <T> SubscriptionCommand.Context<T>.dispatchReceiveFailure(error: Throwable) {
     val currentAt = epoch()
-    val action = SubscriptionAction.ReceiveFailure(
-        error = error,
-        errorUpdatedAt = currentAt
-    )
+    val currentError = state.error
+    val action = if (currentError != null && options.errorEquals?.invoke(currentError, error) == true) {
+        SubscriptionAction.ReceiveFailure(
+            error = currentError,
+            errorUpdatedAt = state.errorUpdatedAt
+        )
+    } else {
+        SubscriptionAction.ReceiveFailure(
+            error = error,
+            errorUpdatedAt = currentAt
+        )
+    }
     dispatch(action)
 }
 

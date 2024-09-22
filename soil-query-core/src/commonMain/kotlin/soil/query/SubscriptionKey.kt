@@ -28,6 +28,20 @@ interface SubscriptionKey<T> {
     val subscribe: SubscriptionReceiver.() -> Flow<T>
 
     /**
+     * Function to compare the content of the data.
+     *
+     * This function is used to determine whether the data is identical to the previous data via [SubscriptionCommand].
+     * If the data is considered the same, [SubscriptionState.replyUpdatedAt] is not updated, and the existing reply state is maintained.
+     * This can be useful when strict update management is needed, such as when special comparison is necessary,
+     * although it is generally not that important.
+     *
+     * ```kotlin
+     * override val contentEquals: SubscriptionContentEquals<SomeType> = { a, b -> a.xx == b.xx }
+     * ```
+     */
+    val contentEquals: SubscriptionContentEquals<T>? get() = null
+
+    /**
      * Function to configure the [SubscriptionOptions].
      *
      * If unspecified, the default value of [SubscriptionOptions] is used.

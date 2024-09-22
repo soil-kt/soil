@@ -41,9 +41,23 @@ interface InfiniteQueryKey<T, S> {
     val loadMoreParam: (chunks: QueryChunks<T, S>) -> S?
 
     /**
+     * Function to compare the content of the data.
+     *
+     * This function is used to determine whether the data is identical to the previous data via [InfiniteQueryCommand].
+     * If the data is considered the same, only [QueryState.staleAt] is updated.
+     * This can be useful when strict update management is needed, such as when special comparison is necessary,
+     * although it is generally not that important.
+     *
+     * @see QueryKey.contentEquals
+     */
+    val contentEquals: QueryContentEquals<QueryChunks<T, S>>? get() = null
+
+    /**
      * Function to configure the [QueryOptions].
      *
      * If unspecified, the default value of [SwrCachePolicy] is used.
+     *
+     * @see QueryKey.onConfigureOptions
      */
     fun onConfigureOptions(): QueryOptionsOverride? = null
 
@@ -52,7 +66,7 @@ interface InfiniteQueryKey<T, S> {
      *
      * Depending on the type of exception that occurred during data retrieval, it is possible to recover it as normal data.
      *
-     * @see QueryRecoverData
+     * @see QueryKey.onRecoverData
      */
     fun onRecoverData(): QueryRecoverData<QueryChunks<T, S>>? = null
 }

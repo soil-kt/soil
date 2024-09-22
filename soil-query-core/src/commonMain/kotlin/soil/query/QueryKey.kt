@@ -26,6 +26,20 @@ interface QueryKey<T> {
     val fetch: suspend QueryReceiver.() -> T
 
     /**
+     * Function to compare the content of the data.
+     *
+     * This function is used to determine whether the data is identical to the previous data via [QueryCommand].
+     * If the data is considered the same, only [QueryState.staleAt] is updated.
+     * This can be useful when strict update management is needed, such as when special comparison is necessary,
+     * although it is generally not that important.
+     *
+     * ```kotlin
+     * override val contentEquals: QueryContentEquals<SomeType> = { a, b -> a.xx == b.xx }
+     * ```
+     */
+    val contentEquals: QueryContentEquals<T>? get() = null
+
+    /**
      * Function to configure the [QueryOptions].
      *
      * If unspecified, the default value of [SwrCachePolicy] is used.

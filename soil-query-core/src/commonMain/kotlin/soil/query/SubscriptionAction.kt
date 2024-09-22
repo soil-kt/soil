@@ -73,7 +73,7 @@ fun <T> createSubscriptionReducer(): SubscriptionReducer<T> = { state, action ->
                 reply = Reply(action.data),
                 replyUpdatedAt = action.dataUpdatedAt,
                 error = null,
-                errorUpdatedAt = action.dataUpdatedAt
+                errorUpdatedAt = if (state.error != null) action.dataUpdatedAt else state.errorUpdatedAt
             )
         }
 

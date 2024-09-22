@@ -97,7 +97,7 @@ suspend inline fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.dispatchFetchC
         .map { QueryChunk(it, variable) }
         .map { chunk -> state.reply.getOrElse { emptyList() } + chunk }
         .run { key.onRecoverData()?.let(::recoverCatching) ?: this }
-        .onSuccess(::dispatchFetchSuccess)
+        .onSuccess { dispatchFetchSuccess(it, key.contentEquals) }
         .onFailure(::dispatchFetchFailure)
         .onFailure { reportQueryError(it, key.id, marker) }
         .also { callback?.invoke(it) }
@@ -122,7 +122,7 @@ suspend inline fun <T, S> QueryCommand.Context<QueryChunks<T, S>>.dispatchRevali
 ) {
     revalidate(key, chunks)
         .run { key.onRecoverData()?.let(::recoverCatching) ?: this }
-        .onSuccess(::dispatchFetchSuccess)
+        .onSuccess { dispatchFetchSuccess(it, key.contentEquals) }
         .onFailure(::dispatchFetchFailure)
         .onFailure { reportQueryError(it, key.id, marker) }
         .also { callback?.invoke(it) }
