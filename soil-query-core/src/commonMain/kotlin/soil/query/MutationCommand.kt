@@ -7,6 +7,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import soil.query.core.ErrorRecord
 import soil.query.core.Marker
+import soil.query.core.Reply
 import soil.query.core.RetryCallback
 import soil.query.core.RetryFn
 import soil.query.core.UniqueId
@@ -103,7 +104,7 @@ suspend inline fun <T, S> MutationCommand.Context<T>.dispatchMutateResult(
                 if (job != null && options.shouldExecuteEffectSynchronously) {
                     job.join()
                 }
-                dispatchMutateSuccess(data)
+                dispatchMutateSuccess(data, key.contentEquals)
             }
         }
         .onFailure(::dispatchMutateFailure)
@@ -116,12 +117,23 @@ suspend inline fun <T, S> MutationCommand.Context<T>.dispatchMutateResult(
  *
  * @param data The mutation returned data.
  */
-fun <T> MutationCommand.Context<T>.dispatchMutateSuccess(data: T) {
+fun <T> MutationCommand.Context<T>.dispatchMutateSuccess(
+    data: T,
+    contentEquals: MutationContentEquals<T>? = null
+) {
     val currentAt = epoch()
-    val action = MutationAction.MutateSuccess(
-        data = data,
-        dataUpdatedAt = currentAt
-    )
+    val currentReply = state.reply
+    val action = if (currentReply is Reply.Some && contentEquals?.invoke(currentReply.value, data) == true) {
+        MutationAction.MutateSuccess(
+            data = currentReply.value,
+            dataUpdatedAt = state.replyUpdatedAt
+        )
+    } else {
+        MutationAction.MutateSuccess(
+            data = data,
+            dataUpdatedAt = currentAt
+        )
+    }
     dispatch(action)
 }
 
@@ -132,10 +144,18 @@ fun <T> MutationCommand.Context<T>.dispatchMutateSuccess(data: T) {
  */
 fun <T> MutationCommand.Context<T>.dispatchMutateFailure(error: Throwable) {
     val currentAt = epoch()
-    val action = MutationAction.MutateFailure(
-        error = error,
-        errorUpdatedAt = currentAt
-    )
+    val currentError = state.error
+    val action = if (currentError != null && options.errorEquals?.invoke(currentError, error) == true) {
+        MutationAction.MutateFailure(
+            error = currentError,
+            errorUpdatedAt = state.errorUpdatedAt
+        )
+    } else {
+        MutationAction.MutateFailure(
+            error = error,
+            errorUpdatedAt = currentAt
+        )
+    }
     dispatch(action)
 }
 

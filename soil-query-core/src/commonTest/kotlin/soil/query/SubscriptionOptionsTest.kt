@@ -16,6 +16,7 @@ class SubscriptionOptionsTest : UnitTest() {
     fun factory_default() {
         val actual = SubscriptionOptions()
         assertEquals(SubscriptionOptions.Default.gcTime, actual.gcTime)
+        assertEquals(SubscriptionOptions.Default.errorEquals, actual.errorEquals)
         assertEquals(SubscriptionOptions.Default.onError, actual.onError)
         assertEquals(SubscriptionOptions.Default.shouldSuppressErrorRelay, actual.shouldSuppressErrorRelay)
         assertEquals(SubscriptionOptions.Default.keepAliveTime, actual.keepAliveTime)
@@ -33,6 +34,7 @@ class SubscriptionOptionsTest : UnitTest() {
     fun factory_factory_specifyingArguments() {
         val actual = SubscriptionOptions(
             gcTime = 1000.seconds,
+            errorEquals = { _, _ -> true },
             onError = { _, _ -> },
             shouldSuppressErrorRelay = { _, _ -> true },
             keepAliveTime = 4000.seconds,
@@ -46,6 +48,7 @@ class SubscriptionOptionsTest : UnitTest() {
             retryRandomizer = Random(999)
         )
         assertNotEquals(SubscriptionOptions.Default.gcTime, actual.gcTime)
+        assertNotEquals(SubscriptionOptions.Default.errorEquals, actual.errorEquals)
         assertNotEquals(SubscriptionOptions.Default.onError, actual.onError)
         assertNotEquals(SubscriptionOptions.Default.shouldSuppressErrorRelay, actual.shouldSuppressErrorRelay)
         assertNotEquals(SubscriptionOptions.Default.keepAliveTime, actual.keepAliveTime)
@@ -63,6 +66,7 @@ class SubscriptionOptionsTest : UnitTest() {
     fun copy_default() {
         val actual = SubscriptionOptions.copy()
         assertEquals(SubscriptionOptions.Default.gcTime, actual.gcTime)
+        assertEquals(SubscriptionOptions.Default.errorEquals, actual.errorEquals)
         assertEquals(SubscriptionOptions.Default.onError, actual.onError)
         assertEquals(SubscriptionOptions.Default.shouldSuppressErrorRelay, actual.shouldSuppressErrorRelay)
         assertEquals(SubscriptionOptions.Default.keepAliveTime, actual.keepAliveTime)
@@ -80,6 +84,7 @@ class SubscriptionOptionsTest : UnitTest() {
     fun copy_override() {
         val actual = SubscriptionOptions.copy(
             gcTime = 1000.seconds,
+            errorEquals = { _, _ -> true },
             onError = { _, _ -> },
             shouldSuppressErrorRelay = { _, _ -> true },
             keepAliveTime = 4000.seconds,
@@ -94,6 +99,7 @@ class SubscriptionOptionsTest : UnitTest() {
         )
 
         assertNotEquals(SubscriptionOptions.Default.gcTime, actual.gcTime)
+        assertNotEquals(SubscriptionOptions.Default.errorEquals, actual.errorEquals)
         assertNotEquals(SubscriptionOptions.Default.onError, actual.onError)
         assertNotEquals(SubscriptionOptions.Default.shouldSuppressErrorRelay, actual.shouldSuppressErrorRelay)
         assertNotEquals(SubscriptionOptions.Default.keepAliveTime, actual.keepAliveTime)

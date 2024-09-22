@@ -5,6 +5,7 @@ package soil.query
 
 import soil.query.core.ErrorRecord
 import soil.query.core.Marker
+import soil.query.core.Reply
 import soil.query.core.RetryCallback
 import soil.query.core.RetryFn
 import soil.query.core.UniqueId
@@ -111,7 +112,7 @@ suspend inline fun <T> QueryCommand.Context<T>.dispatchFetchResult(
 ) {
     fetch(key)
         .run { key.onRecoverData()?.let(::recoverCatching) ?: this }
-        .onSuccess(::dispatchFetchSuccess)
+        .onSuccess { dispatchFetchSuccess(it, key.contentEquals) }
         .onFailure(::dispatchFetchFailure)
         .onFailure { reportQueryError(it, key.id, marker) }
         .also { callback?.invoke(it) }
@@ -122,13 +123,25 @@ suspend inline fun <T> QueryCommand.Context<T>.dispatchFetchResult(
  *
  * @param data The fetched data.
  */
-fun <T> QueryCommand.Context<T>.dispatchFetchSuccess(data: T) {
+fun <T> QueryCommand.Context<T>.dispatchFetchSuccess(
+    data: T,
+    contentEquals: QueryContentEquals<T>? = null
+) {
     val currentAt = epoch()
-    val action = QueryAction.FetchSuccess(
-        data = data,
-        dataUpdatedAt = currentAt,
-        dataStaleAt = options.staleTime.toEpoch(currentAt)
-    )
+    val currentReply = state.reply
+    val action = if (currentReply is Reply.Some && contentEquals?.invoke(currentReply.value, data) == true) {
+        QueryAction.FetchSuccess(
+            data = currentReply.value,
+            dataUpdatedAt = state.replyUpdatedAt,
+            dataStaleAt = options.staleTime.toEpoch(currentAt)
+        )
+    } else {
+        QueryAction.FetchSuccess(
+            data = data,
+            dataUpdatedAt = currentAt,
+            dataStaleAt = options.staleTime.toEpoch(currentAt)
+        )
+    }
     dispatch(action)
 }
 
@@ -139,11 +152,20 @@ fun <T> QueryCommand.Context<T>.dispatchFetchSuccess(data: T) {
  */
 fun <T> QueryCommand.Context<T>.dispatchFetchFailure(error: Throwable) {
     val currentAt = epoch()
-    val action = QueryAction.FetchFailure(
-        error = error,
-        errorUpdatedAt = currentAt,
-        paused = shouldPause(error)
-    )
+    val currentError = state.error
+    val action = if (currentError != null && options.errorEquals?.invoke(currentError, error) == true) {
+        QueryAction.FetchFailure(
+            error = currentError,
+            errorUpdatedAt = state.errorUpdatedAt,
+            paused = shouldPause(currentError)
+        )
+    } else {
+        QueryAction.FetchFailure(
+            error = error,
+            errorUpdatedAt = currentAt,
+            paused = shouldPause(error)
+        )
+    }
     dispatch(action)
 }
 

@@ -39,6 +39,14 @@ interface QueryOptions : ActorOptions, LoggingOptions, RetryOptions {
     val prefetchWindowTime: Duration
 
     /**
+     * Determines whether two errors are equal.
+     *
+     * This function is used to determine whether a new error is identical to an existing error via [QueryCommand].
+     * If the errors are considered identical, [QueryState.errorUpdatedAt] is not updated, and the existing error state is maintained.
+     */
+    val errorEquals: ((Throwable, Throwable) -> Boolean)?
+
+    /**
      * Determines whether query processing needs to be paused based on error.
      *
      * @see [shouldPause]
@@ -75,6 +83,7 @@ interface QueryOptions : ActorOptions, LoggingOptions, RetryOptions {
         override val staleTime: Duration = Duration.ZERO
         override val gcTime: Duration = 5.minutes
         override val prefetchWindowTime: Duration = 1.seconds
+        override val errorEquals: ((Throwable, Throwable) -> Boolean)? = null
         override val pauseDurationAfter: ((Throwable) -> Duration?)? = null
         override val revalidateOnReconnect: Boolean = true
         override val revalidateOnFocus: Boolean = true
@@ -106,6 +115,7 @@ interface QueryOptions : ActorOptions, LoggingOptions, RetryOptions {
  * @param staleTime The duration after which the returned value of the fetch function block is considered stale.
  * @param gcTime The period during which the Key's return value, if not referenced anywhere, is temporarily cached in memory.
  * @param prefetchWindowTime Maximum window time on prefetch processing.
+ * @param errorEquals Determines whether two errors are equal.
  * @param pauseDurationAfter Determines whether query processing needs to be paused based on error.
  * @param revalidateOnReconnect Automatically revalidate active [Query] when the network reconnects.
  * @param revalidateOnFocus Automatically revalidate active [Query] when the window is refocused.
@@ -125,6 +135,7 @@ fun QueryOptions(
     staleTime: Duration = QueryOptions.staleTime,
     gcTime: Duration = QueryOptions.gcTime,
     prefetchWindowTime: Duration = QueryOptions.prefetchWindowTime,
+    errorEquals: ((Throwable, Throwable) -> Boolean)? = QueryOptions.errorEquals,
     pauseDurationAfter: ((Throwable) -> Duration?)? = QueryOptions.pauseDurationAfter,
     revalidateOnReconnect: Boolean = QueryOptions.revalidateOnReconnect,
     revalidateOnFocus: Boolean = QueryOptions.revalidateOnFocus,
@@ -144,6 +155,7 @@ fun QueryOptions(
         override val staleTime: Duration = staleTime
         override val gcTime: Duration = gcTime
         override val prefetchWindowTime: Duration = prefetchWindowTime
+        override val errorEquals: ((Throwable, Throwable) -> Boolean)? = errorEquals
         override val pauseDurationAfter: ((Throwable) -> Duration?)? = pauseDurationAfter
         override val revalidateOnReconnect: Boolean = revalidateOnReconnect
         override val revalidateOnFocus: Boolean = revalidateOnFocus
@@ -168,6 +180,7 @@ fun QueryOptions.copy(
     staleTime: Duration = this.staleTime,
     gcTime: Duration = this.gcTime,
     prefetchWindowTime: Duration = this.prefetchWindowTime,
+    errorEquals: ((Throwable, Throwable) -> Boolean)? = this.errorEquals,
     pauseDurationAfter: ((Throwable) -> Duration?)? = this.pauseDurationAfter,
     revalidateOnReconnect: Boolean = this.revalidateOnReconnect,
     revalidateOnFocus: Boolean = this.revalidateOnFocus,
@@ -187,6 +200,7 @@ fun QueryOptions.copy(
         staleTime = staleTime,
         gcTime = gcTime,
         prefetchWindowTime = prefetchWindowTime,
+        errorEquals = errorEquals,
         pauseDurationAfter = pauseDurationAfter,
         revalidateOnReconnect = revalidateOnReconnect,
         revalidateOnFocus = revalidateOnFocus,

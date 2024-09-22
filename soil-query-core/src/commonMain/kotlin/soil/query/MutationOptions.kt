@@ -29,6 +29,14 @@ interface MutationOptions : ActorOptions, LoggingOptions, RetryOptions {
     val isStrictMode: Boolean
 
     /**
+     * Determines whether two errors are equal.
+     *
+     * This function is used to determine whether a new error is identical to an existing error via [MutationCommand].
+     * If the errors are considered identical, [MutationState.errorUpdatedAt] is not updated, and the existing error state is maintained.
+     */
+    val errorEquals: ((Throwable, Throwable) -> Boolean)?
+
+    /**
      * This callback function will be called if some mutation encounters an error.
      */
     val onError: ((ErrorRecord, MutationModel<*>) -> Unit)?
@@ -46,6 +54,7 @@ interface MutationOptions : ActorOptions, LoggingOptions, RetryOptions {
     companion object Default : MutationOptions {
         override val isOneShot: Boolean = false
         override val isStrictMode: Boolean = false
+        override val errorEquals: ((Throwable, Throwable) -> Boolean)? = null
         override val onError: ((ErrorRecord, MutationModel<*>) -> Unit)? = null
         override val shouldSuppressErrorRelay: ((ErrorRecord, MutationModel<*>) -> Boolean)? = null
         override val shouldExecuteEffectSynchronously: Boolean = false
@@ -72,6 +81,7 @@ interface MutationOptions : ActorOptions, LoggingOptions, RetryOptions {
  *
  * @param isOneShot Only allows mutate to execute once while active (until reset).
  * @param isStrictMode Requires revision match as a precondition for executing mutate.
+ * @param errorEquals Determines whether two errors are equal.
  * @param onError This callback function will be called if some mutation encounters an error.
  * @param shouldSuppressErrorRelay Determines whether to suppress error information when relaying it using [soil.query.core.ErrorRelay].
  * @param shouldExecuteEffectSynchronously Whether the query side effect should be synchronous.
@@ -88,6 +98,7 @@ interface MutationOptions : ActorOptions, LoggingOptions, RetryOptions {
 fun MutationOptions(
     isOneShot: Boolean = MutationOptions.isOneShot,
     isStrictMode: Boolean = MutationOptions.isStrictMode,
+    errorEquals: ((Throwable, Throwable) -> Boolean)? = MutationOptions.errorEquals,
     onError: ((ErrorRecord, MutationModel<*>) -> Unit)? = MutationOptions.onError,
     shouldSuppressErrorRelay: ((ErrorRecord, MutationModel<*>) -> Boolean)? = MutationOptions.shouldSuppressErrorRelay,
     shouldExecuteEffectSynchronously: Boolean = MutationOptions.shouldExecuteEffectSynchronously,
@@ -104,6 +115,7 @@ fun MutationOptions(
     return object : MutationOptions {
         override val isOneShot: Boolean = isOneShot
         override val isStrictMode: Boolean = isStrictMode
+        override val errorEquals: ((Throwable, Throwable) -> Boolean)? = errorEquals
         override val onError: ((ErrorRecord, MutationModel<*>) -> Unit)? = onError
         override val shouldSuppressErrorRelay: ((ErrorRecord, MutationModel<*>) -> Boolean)? = shouldSuppressErrorRelay
         override val shouldExecuteEffectSynchronously: Boolean = shouldExecuteEffectSynchronously
@@ -125,6 +137,7 @@ fun MutationOptions(
 fun MutationOptions.copy(
     isOneShot: Boolean = this.isOneShot,
     isStrictMode: Boolean = this.isStrictMode,
+    errorEquals: ((Throwable, Throwable) -> Boolean)? = this.errorEquals,
     onError: ((ErrorRecord, MutationModel<*>) -> Unit)? = this.onError,
     shouldSuppressErrorRelay: ((ErrorRecord, MutationModel<*>) -> Boolean)? = this.shouldSuppressErrorRelay,
     shouldExecuteEffectSynchronously: Boolean = this.shouldExecuteEffectSynchronously,
@@ -141,6 +154,7 @@ fun MutationOptions.copy(
     return MutationOptions(
         isOneShot = isOneShot,
         isStrictMode = isStrictMode,
+        errorEquals = errorEquals,
         onError = onError,
         shouldSuppressErrorRelay = shouldSuppressErrorRelay,
         shouldExecuteEffectSynchronously = shouldExecuteEffectSynchronously,

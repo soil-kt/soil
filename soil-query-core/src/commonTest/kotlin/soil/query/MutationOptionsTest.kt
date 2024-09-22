@@ -17,6 +17,7 @@ class MutationOptionsTest : UnitTest() {
         val actual = MutationOptions()
         assertEquals(MutationOptions.Default.isOneShot, actual.isOneShot)
         assertEquals(MutationOptions.Default.isStrictMode, actual.isStrictMode)
+        assertEquals(MutationOptions.Default.errorEquals, actual.errorEquals)
         assertEquals(MutationOptions.Default.onError, actual.onError)
         assertEquals(MutationOptions.Default.shouldSuppressErrorRelay, actual.shouldSuppressErrorRelay)
         assertEquals(MutationOptions.Default.shouldExecuteEffectSynchronously, actual.shouldExecuteEffectSynchronously)
@@ -36,6 +37,7 @@ class MutationOptionsTest : UnitTest() {
         val actual = MutationOptions(
             isOneShot = true,
             isStrictMode = true,
+            errorEquals = { _, _ -> true },
             onError = { _, _ -> },
             shouldSuppressErrorRelay = { _, _ -> true },
             shouldExecuteEffectSynchronously = true,
@@ -51,6 +53,7 @@ class MutationOptionsTest : UnitTest() {
         )
         assertNotEquals(MutationOptions.Default.isOneShot, actual.isOneShot)
         assertNotEquals(MutationOptions.Default.isStrictMode, actual.isStrictMode)
+        assertNotEquals(MutationOptions.Default.errorEquals, actual.errorEquals)
         assertNotEquals(MutationOptions.Default.onError, actual.onError)
         assertNotEquals(MutationOptions.Default.shouldSuppressErrorRelay, actual.shouldSuppressErrorRelay)
         assertNotEquals(MutationOptions.Default.shouldExecuteEffectSynchronously, actual.shouldExecuteEffectSynchronously)
@@ -70,6 +73,7 @@ class MutationOptionsTest : UnitTest() {
         val actual = MutationOptions.Default.copy()
         assertEquals(MutationOptions.Default.isOneShot, actual.isOneShot)
         assertEquals(MutationOptions.Default.isStrictMode, actual.isStrictMode)
+        assertEquals(MutationOptions.Default.errorEquals, actual.errorEquals)
         assertEquals(MutationOptions.Default.onError, actual.onError)
         assertEquals(MutationOptions.Default.shouldSuppressErrorRelay, actual.shouldSuppressErrorRelay)
         assertEquals(MutationOptions.Default.shouldExecuteEffectSynchronously, actual.shouldExecuteEffectSynchronously)
@@ -89,6 +93,7 @@ class MutationOptionsTest : UnitTest() {
         val actual = MutationOptions.Default.copy(
             isOneShot = true,
             isStrictMode = true,
+            errorEquals = { _, _ -> true },
             onError = { _, _ -> },
             shouldSuppressErrorRelay = { _, _ -> true },
             shouldExecuteEffectSynchronously = true,
@@ -104,6 +109,7 @@ class MutationOptionsTest : UnitTest() {
         )
         assertNotEquals(MutationOptions.Default.isOneShot, actual.isOneShot)
         assertNotEquals(MutationOptions.Default.isStrictMode, actual.isStrictMode)
+        assertNotEquals(MutationOptions.Default.errorEquals, actual.errorEquals)
         assertNotEquals(MutationOptions.Default.onError, actual.onError)
         assertNotEquals(MutationOptions.Default.shouldSuppressErrorRelay, actual.shouldSuppressErrorRelay)
         assertNotEquals(MutationOptions.Default.shouldExecuteEffectSynchronously, actual.shouldExecuteEffectSynchronously)

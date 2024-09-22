@@ -30,6 +30,20 @@ interface MutationKey<T, S> {
     val mutate: suspend MutationReceiver.(variable: S) -> T
 
     /**
+     * Function to compare the content of the data.
+     *
+     * This function is used to determine whether the data is identical to the previous data via [MutationCommand].
+     * If the data is considered the same, [MutationState.replyUpdatedAt] is not updated, and the existing reply state is maintained.
+     * This can be useful when strict update management is needed, such as when special comparison is necessary,
+     * although it is generally not that important.
+     *
+     * ```kotlin
+     * override val contentEquals: MutationContentEquals<SomeType> = { a, b -> a.xx == b.xx }
+     * ```
+     */
+    val contentEquals: MutationContentEquals<T>? get() = null
+
+    /**
      * Function to configure the [MutationOptions].
      *
      * If unspecified, the default value of [SwrCachePolicy] is used.

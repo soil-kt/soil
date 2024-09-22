@@ -24,5 +24,6 @@ interface MutationClient {
     ): MutationRef<T, S>
 }
 
+typealias MutationContentEquals<T> = (oldData: T, newData: T) -> Boolean
 typealias MutationOptionsOverride = (MutationOptions) -> MutationOptions
 typealias MutationCallback<T> = (Result<T>) -> Unit
