@@ -5,6 +5,7 @@ package soil.query
 
 import soil.query.core.Reply
 import soil.query.core.epoch
+import kotlin.jvm.JvmInline
 
 /**
  * State for managing the execution result of [Query].
@@ -33,6 +34,31 @@ data class QueryState<T> internal constructor(
         reply = Reply(data),
         replyUpdatedAt = dataUpdatedAt
     )
+
+    /**
+     * Returns a new [QueryState] with the items included in [keys] omitted from the current [QueryState].
+     *
+     * NOTE: This function is provided to optimize recomposition for Compose APIs.
+     */
+    fun omit(keys: Set<OmitKey>): QueryState<T> {
+        if (keys.isEmpty()) return this
+        return copy(
+            replyUpdatedAt = if (keys.contains(OmitKey.replyUpdatedAt)) 0 else replyUpdatedAt,
+            errorUpdatedAt = if (keys.contains(OmitKey.errorUpdatedAt)) 0 else errorUpdatedAt,
+            staleAt = if (keys.contains(OmitKey.staleAt)) 0 else staleAt,
+            fetchStatus = if (keys.contains(OmitKey.fetchStatus)) QueryFetchStatus.Idle else fetchStatus
+        )
+    }
+
+    @JvmInline
+    value class OmitKey(val name: String) {
+        companion object {
+            val replyUpdatedAt = OmitKey("replyUpdatedAt")
+            val errorUpdatedAt = OmitKey("errorUpdatedAt")
+            val staleAt = OmitKey("staleAt")
+            val fetchStatus = OmitKey("fetchStatus")
+        }
+    }
 
     companion object {
 
@@ -103,6 +129,33 @@ data class QueryState<T> internal constructor(
                 reply = Reply(data),
                 replyUpdatedAt = dataUpdatedAt,
                 staleAt = dataStaleAt
+            )
+        }
+
+        /**
+         * Creates a new [QueryState] for Testing.
+         *
+         * NOTE: **This method is for testing purposes only.**
+         */
+        fun <T> test(
+            reply: Reply<T> = Reply.None,
+            replyUpdatedAt: Long = 0,
+            error: Throwable? = null,
+            errorUpdatedAt: Long = 0,
+            staleAt: Long = 0,
+            status: QueryStatus = QueryStatus.Pending,
+            fetchStatus: QueryFetchStatus = QueryFetchStatus.Idle,
+            isInvalidated: Boolean = false
+        ): QueryState<T> {
+            return QueryState(
+                reply = reply,
+                replyUpdatedAt = replyUpdatedAt,
+                error = error,
+                errorUpdatedAt = errorUpdatedAt,
+                staleAt = staleAt,
+                status = status,
+                fetchStatus = fetchStatus,
+                isInvalidated = isInvalidated
             )
         }
     }

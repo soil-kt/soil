@@ -4,12 +4,12 @@
 package soil.query.compose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import soil.query.QueryClient
 import soil.query.QueryKey
-import soil.query.compose.internal.combineQuery
+import soil.query.compose.internal.newCombinedQuery
+import soil.query.compose.internal.newQuery
 
 /**
  * Remember a [QueryObject] and subscribes to the query state of [key].
@@ -27,7 +27,7 @@ fun <T> rememberQuery(
     client: QueryClient = LocalQueryClient.current
 ): QueryObject<T> {
     val scope = rememberCoroutineScope()
-    val query = remember(key) { client.getQuery(key, config.marker).also { it.launchIn(scope) } }
+    val query = remember(key.id) { newQuery(key, config, client, scope) }
     return with(config.mapper) {
         config.strategy.collectAsState(query).toObject(query = query, select = { it })
     }
@@ -52,7 +52,7 @@ fun <T, U> rememberQuery(
     client: QueryClient = LocalQueryClient.current
 ): QueryObject<U> {
     val scope = rememberCoroutineScope()
-    val query = remember(key) { client.getQuery(key, config.marker).also { it.launchIn(scope) } }
+    val query = remember(key.id) { newQuery(key, config, client, scope) }
     return with(config.mapper) {
         config.strategy.collectAsState(query).toObject(query = query, select = select)
     }
@@ -80,17 +80,11 @@ fun <T1, T2, R> rememberQuery(
     client: QueryClient = LocalQueryClient.current,
 ): QueryObject<R> {
     val scope = rememberCoroutineScope()
-    val query1 = remember(key1.id) { client.getQuery(key1, config.marker).also { it.launchIn(scope) } }
-    val query2 = remember(key2.id) { client.getQuery(key2, config.marker).also { it.launchIn(scope) } }
-    val combinedQuery = remember(query1, query2) {
-        combineQuery(query1, query2, transform)
-    }
-    DisposableEffect(combinedQuery.id) {
-        val job = combinedQuery.launchIn(scope)
-        onDispose { job.cancel() }
+    val query = remember(key1.id, key2.id) {
+        newCombinedQuery(key1, key2, transform, config, client, scope)
     }
     return with(config.mapper) {
-        config.strategy.collectAsState(combinedQuery).toObject(query = combinedQuery, select = { it })
+        config.strategy.collectAsState(query).toObject(query = query, select = { it })
     }
 }
 
@@ -119,18 +113,11 @@ fun <T1, T2, T3, R> rememberQuery(
     client: QueryClient = LocalQueryClient.current,
 ): QueryObject<R> {
     val scope = rememberCoroutineScope()
-    val query1 = remember(key1.id) { client.getQuery(key1, config.marker).also { it.launchIn(scope) } }
-    val query2 = remember(key2.id) { client.getQuery(key2, config.marker).also { it.launchIn(scope) } }
-    val query3 = remember(key3.id) { client.getQuery(key3, config.marker).also { it.launchIn(scope) } }
-    val combinedQuery = remember(query1, query2, query3) {
-        combineQuery(query1, query2, query3, transform)
-    }
-    DisposableEffect(combinedQuery.id) {
-        val job = combinedQuery.launchIn(scope)
-        onDispose { job.cancel() }
+    val query = remember(key1.id, key2.id, key3.id) {
+        newCombinedQuery(key1, key2, key3, transform, config, client, scope)
     }
     return with(config.mapper) {
-        config.strategy.collectAsState(combinedQuery).toObject(query = combinedQuery, select = { it })
+        config.strategy.collectAsState(query).toObject(query = query, select = { it })
     }
 }
 
@@ -153,17 +140,10 @@ fun <T, R> rememberQuery(
     client: QueryClient = LocalQueryClient.current
 ): QueryObject<R> {
     val scope = rememberCoroutineScope()
-    val queries = remember(keys) {
-        keys.map { key -> client.getQuery(key, config.marker).also { it.launchIn(scope) } }
-    }
-    val combinedQuery = remember(queries) {
-        combineQuery(queries.toTypedArray(), transform)
-    }
-    DisposableEffect(combinedQuery.id) {
-        val job = combinedQuery.launchIn(scope)
-        onDispose { job.cancel() }
+    val query = remember(*keys.map { it.id }.toTypedArray()) {
+        newCombinedQuery(keys, transform, config, client, scope)
     }
     return with(config.mapper) {
-        config.strategy.collectAsState(combinedQuery).toObject(query = combinedQuery, select = { it })
+        config.strategy.collectAsState(query).toObject(query = query, select = { it })
     }
 }

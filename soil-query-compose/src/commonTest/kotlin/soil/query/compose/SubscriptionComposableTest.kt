@@ -48,8 +48,9 @@ class SubscriptionComposableTest : UnitTest() {
         setContent {
             SwrClientProvider(client) {
                 val subscription = rememberSubscription(key, config = SubscriptionConfig {
-                    strategy = SubscriptionStrategy.Default
                     mapper = SubscriptionObjectMapper.Default
+                    optimizer = SubscriptionRecompositionOptimizer.Default
+                    strategy = SubscriptionStrategy.Default
                     marker = Marker.None
                 })
                 when (val reply = subscription.reply) {
@@ -116,7 +117,7 @@ class SubscriptionComposableTest : UnitTest() {
         )
         setContent {
             SwrClientProvider(client) {
-                when (rememberSubscription(key)) {
+                when (rememberSubscription(key, config = SubscriptionConfig.Lazy)) {
                     is SubscriptionIdleObject -> Text("idle", modifier = Modifier.testTag("subscription"))
                     else -> Unit
                 }

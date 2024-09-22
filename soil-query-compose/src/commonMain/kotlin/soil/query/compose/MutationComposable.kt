@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import soil.query.MutationClient
 import soil.query.MutationKey
+import soil.query.compose.internal.newMutation
 
 /**
  * Remember a [MutationObject] and subscribes to the mutation state of [key].
@@ -26,7 +27,7 @@ fun <T, S> rememberMutation(
     client: MutationClient = LocalMutationClient.current
 ): MutationObject<T, S> {
     val scope = rememberCoroutineScope()
-    val mutation = remember(key.id) { client.getMutation(key, config.marker).also { it.launchIn(scope) } }
+    val mutation = remember(key.id) { newMutation(key, config, client, scope) }
     return with(config.mapper) {
         config.strategy.collectAsState(mutation).toObject(mutation = mutation)
     }
