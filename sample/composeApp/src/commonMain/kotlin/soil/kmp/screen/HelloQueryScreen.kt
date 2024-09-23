@@ -17,7 +17,6 @@ import io.ktor.client.plugins.ResponseException
 import soil.playground.Alert
 import soil.playground.query.compose.ContentLoading
 import soil.playground.query.compose.ContentUnavailable
-import soil.playground.query.compose.LoadMoreEffect
 import soil.playground.query.compose.PostListItem
 import soil.playground.query.compose.rememberGetPostsQuery
 import soil.playground.query.data.PageParam
@@ -28,6 +27,7 @@ import soil.query.compose.rememberQueriesErrorReset
 import soil.query.compose.runtime.Await
 import soil.query.compose.runtime.Catch
 import soil.query.compose.runtime.ErrorBoundary
+import soil.query.compose.runtime.LazyLoadEffect
 import soil.query.compose.runtime.Suspense
 
 @Composable
@@ -84,7 +84,7 @@ private fun HelloQueryContent(
             }
             val pageParam = state.loadMoreParam
             if (state.posts.isNotEmpty() && pageParam != null) {
-                item(pageParam, contentType = "loading") {
+                item(true, contentType = "loading") {
                     ContentLoading(
                         modifier = Modifier.fillMaxWidth(),
                         size = 20.dp
@@ -92,10 +92,11 @@ private fun HelloQueryContent(
                 }
             }
         }
-        LoadMoreEffect(
+        LazyLoadEffect(
             state = lazyListState,
             loadMore = state.loadMore,
-            loadMoreParam = state.loadMoreParam
+            loadMoreParam = state.loadMoreParam,
+            totalItemsCount = state.posts.size
         )
     }
 }
