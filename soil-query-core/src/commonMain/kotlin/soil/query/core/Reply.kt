@@ -1,6 +1,8 @@
 // Copyright 2024 Soil Contributors
 // SPDX-License-Identifier: Apache-2.0
 
+@file:Suppress("NOTHING_TO_INLINE", "KotlinRedundantDiagnosticSuppress")
+
 package soil.query.core
 
 /**
@@ -13,7 +15,6 @@ sealed interface Reply<out T> {
     data class Some<out T> internal constructor(val value: T) : Reply<T>
 
     companion object {
-        @Suppress("NOTHING_TO_INLINE")
         internal inline operator fun <T> invoke(value: T): Reply<T> = Some(value)
 
         fun <T> none(): Reply<T> = None
