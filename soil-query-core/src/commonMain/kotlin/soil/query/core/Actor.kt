@@ -31,37 +31,39 @@ interface Actor {
     fun launchIn(scope: CoroutineScope): Job
 }
 
-internal typealias ActorSequenceNumber = Int
+internal typealias ActorSequenceNumber = String
 
 internal class ActorBlockRunner(
+    private val id: String = uuid(),
     private val scope: CoroutineScope,
     private val options: ActorOptions,
     private val onTimeout: (ActorSequenceNumber) -> Unit,
     private val block: suspend () -> Unit
 ) : Actor {
 
-    var seq: ActorSequenceNumber = 0
-        private set
+    val seq: ActorSequenceNumber
+        get() = "$id#$versionCounter"
 
-    private var launchedCount: Int = 0
+    private var versionCounter: Int = 0
+    private var activeCounter: Int = 0
     private var hasActiveScope: Boolean = false
     private var runningJob: Job? = null
     private var cancellationJob: Job? = null
 
     override fun launchIn(scope: CoroutineScope): Job {
-        seq++
+        versionCounter++
         return scope.launch(start = CoroutineStart.UNDISPATCHED) {
             cancellationJob?.cancelAndJoin()
             cancellationJob = null
             suspendCancellableCoroutine { continuation ->
-                launchedCount++
-                if (!hasActiveScope && launchedCount > 0) {
+                activeCounter++
+                if (!hasActiveScope && activeCounter > 0) {
                     hasActiveScope = true
                     start()
                 }
                 continuation.invokeOnCancellation {
-                    launchedCount--
-                    if (hasActiveScope && launchedCount <= 0) {
+                    activeCounter--
+                    if (hasActiveScope && activeCounter <= 0) {
                         hasActiveScope = false
                         stop()
                     }

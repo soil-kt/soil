@@ -29,6 +29,15 @@ interface SwrClient : MutationClient, QueryClient {
     fun gc(level: MemoryPressureLevel = MemoryPressureLevel.Low)
 
     /**
+     * Removes all queries and mutations from the in-memory stored data.
+     *
+     * **Note:**
+     * If there are any active queries or mutations, they will be stopped as well.
+     * This method should only be used for full resets, such as during sign-out.
+     */
+    fun purgeAll()
+
+    /**
      * Executes side effects for queries.
      */
     fun perform(sideEffects: QueryEffect): Job
