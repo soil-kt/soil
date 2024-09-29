@@ -16,6 +16,7 @@ import kotlinx.coroutines.yield
 import soil.testing.UnitTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -29,31 +30,32 @@ class ActorTest : UnitTest() {
         val blockHandler = TestBlockHandler()
         val timeoutHandler = TestTimeoutHandler()
         val actor = ActorBlockRunner(
+            id = "test",
             scope = backgroundScope,
             options = TestActorOptions(),
             onTimeout = timeoutHandler::onTimeout,
             block = blockHandler::handle
         )
 
-        assertEquals(0, actor.seq)
+        assertEquals("test#0", actor.seq)
         assertEquals(0, blockHandler.count)
-        assertEquals(-1, timeoutHandler.seq)
+        assertNull(timeoutHandler.seq)
 
         val scope1 = CoroutineScope(uiDispatcher)
         val job1 = actor.launchIn(scope1)
         yield()
 
-        assertEquals(1, actor.seq)
+        assertEquals("test#1", actor.seq)
         assertEquals(1, blockHandler.count)
-        assertEquals(-1, timeoutHandler.seq)
+        assertNull(timeoutHandler.seq)
 
         job1.cancel()
         // Wait for the actor to be canceled. (keepAliveTime = 5.seconds)
         advanceTimeBy(6.seconds)
 
-        assertEquals(1, actor.seq)
+        assertEquals("test#1", actor.seq)
         assertEquals(1, blockHandler.count)
-        assertEquals(1, timeoutHandler.seq)
+        assertEquals("test#1", timeoutHandler.seq)
     }
 
     @Test
@@ -63,46 +65,47 @@ class ActorTest : UnitTest() {
         val blockHandler = TestBlockHandler()
         val timeoutHandler = TestTimeoutHandler()
         val actor = ActorBlockRunner(
+            id = "test",
             scope = backgroundScope,
             options = TestActorOptions(),
             onTimeout = timeoutHandler::onTimeout,
             block = blockHandler::handle
         )
 
-        assertEquals(0, actor.seq)
+        assertEquals("test#0", actor.seq)
         assertEquals(0, blockHandler.count)
-        assertEquals(-1, timeoutHandler.seq)
+        assertNull(timeoutHandler.seq)
 
         val scope1 = CoroutineScope(uiDispatcher)
         val job1 = actor.launchIn(scope1)
         yield()
 
-        assertEquals(1, actor.seq)
+        assertEquals("test#1", actor.seq)
         assertEquals(1, blockHandler.count)
-        assertEquals(-1, timeoutHandler.seq)
+        assertNull(timeoutHandler.seq)
 
         val scope2 = CoroutineScope(uiDispatcher)
         val job2 = actor.launchIn(scope2)
         yield()
 
-        assertEquals(2, actor.seq)
+        assertEquals("test#2", actor.seq)
         assertEquals(1, blockHandler.count)
-        assertEquals(-1, timeoutHandler.seq)
+        assertNull(timeoutHandler.seq)
 
         job1.cancel()
         yield()
 
-        assertEquals(2, actor.seq)
+        assertEquals("test#2", actor.seq)
         assertEquals(1, blockHandler.count)
-        assertEquals(-1, timeoutHandler.seq)
+        assertNull(timeoutHandler.seq)
 
         job2.cancel()
 
         // Wait for the actor to be canceled. (keepAliveTime = 5.seconds)
         advanceTimeBy(6.seconds)
-        assertEquals(2, actor.seq)
+        assertEquals("test#2", actor.seq)
         assertEquals(1, blockHandler.count)
-        assertEquals(2, timeoutHandler.seq)
+        assertEquals("test#2", timeoutHandler.seq)
     }
 
     @Test
@@ -113,31 +116,32 @@ class ActorTest : UnitTest() {
         val blockHandler = TestBlockHandler()
         val timeoutHandler = TestTimeoutHandler()
         val actor = ActorBlockRunner(
+            id = "test",
             scope = actorScope,
             options = TestActorOptions(),
             onTimeout = timeoutHandler::onTimeout,
             block = blockHandler::handle
         )
 
-        assertEquals(0, actor.seq)
+        assertEquals("test#0", actor.seq)
         assertEquals(0, blockHandler.count)
-        assertEquals(-1, timeoutHandler.seq)
+        assertNull(timeoutHandler.seq)
 
         val scope1 = CoroutineScope(uiDispatcher)
         val job1 = actor.launchIn(scope1)
         yield()
 
-        assertEquals(1, actor.seq)
+        assertEquals("test#1", actor.seq)
         assertEquals(1, blockHandler.count)
-        assertEquals(-1, timeoutHandler.seq)
+        assertNull(timeoutHandler.seq)
 
         job1.cancel()
 
         // Wait for the actor to be canceled. (keepAliveTime = 5.seconds)
         advanceTimeBy(6.seconds)
-        assertEquals(1, actor.seq)
+        assertEquals("test#1", actor.seq)
         assertEquals(1, blockHandler.count)
-        assertEquals(1, timeoutHandler.seq)
+        assertEquals("test#1", timeoutHandler.seq)
 
         actorScope.cancel()
         advanceUntilIdle()
@@ -146,17 +150,17 @@ class ActorTest : UnitTest() {
         val job2 = actor.launchIn(scope2)
         yield()
 
-        assertEquals(2, actor.seq)
+        assertEquals("test#2", actor.seq)
         // Unchanged (already canceled)
         assertEquals(1, blockHandler.count)
-        assertEquals(1, timeoutHandler.seq)
+        assertEquals("test#1", timeoutHandler.seq)
 
         job2.cancel()
 
         advanceTimeBy(6.seconds)
-        assertEquals(2, actor.seq)
+        assertEquals("test#2", actor.seq)
         assertEquals(1, blockHandler.count)
-        assertEquals(1, timeoutHandler.seq)
+        assertEquals("test#1", timeoutHandler.seq)
     }
 
     private class TestBlockHandler {
@@ -173,7 +177,7 @@ class ActorTest : UnitTest() {
     }
 
     private class TestTimeoutHandler {
-        var seq: ActorSequenceNumber = -1
+        var seq: ActorSequenceNumber? = null
             private set
 
         fun onTimeout(seq: ActorSequenceNumber) {

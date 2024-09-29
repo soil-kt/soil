@@ -34,6 +34,7 @@ class SwrPreviewClient(
     override val errorRelay: Flow<ErrorRecord> = flow { }
 ) : SwrClient, SwrClientPlus, QueryClient by query, MutationClient by mutation, SubscriptionClient by subscription {
     override fun gc(level: MemoryPressureLevel) = Unit
+    override fun purgeAll() = Unit
     override fun perform(sideEffects: QueryEffect): Job = Job()
     override fun onMount(id: String) = Unit
     override fun onUnmount(id: String) = Unit

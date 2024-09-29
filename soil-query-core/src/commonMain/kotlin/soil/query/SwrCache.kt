@@ -95,6 +95,24 @@ open class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutabl
         }
     }
 
+    override fun purgeAll() {
+        purgeAllQueries()
+        purgeAllMutations()
+    }
+
+    private fun purgeAllQueries() {
+        val queryStoreCopy = queryStore.toMap()
+        queryStore.clear()
+        queryCache.clear()
+        queryStoreCopy.values.forEach { it.close() }
+    }
+
+    private fun purgeAllMutations() {
+        val mutationStoreCopy = mutationStore.toMap()
+        mutationStore.clear()
+        mutationStoreCopy.values.forEach { it.close() }
+    }
+
     override fun perform(sideEffects: QueryEffect): Job {
         return coroutineScope.launch {
             with(this@SwrCache) { sideEffects() }
@@ -576,6 +594,7 @@ open class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutabl
         }
         return model?.let(predicate) ?: false
     }
+
 
     internal class ManagedMutation<T>(
         val scope: CoroutineScope,

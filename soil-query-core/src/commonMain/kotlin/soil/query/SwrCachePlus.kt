@@ -48,6 +48,9 @@ class SwrCachePlus(private val policy: SwrCachePlusPolicy) : SwrCache(policy), S
     )
     private val batchScheduler: BatchScheduler = policy.batchSchedulerFactory.create(coroutineScope)
 
+
+    // ----- SwrClientPlus ----- //
+
     override val defaultSubscriptionOptions: SubscriptionOptions = policy.subscriptionOptions
 
     override fun gc(level: MemoryPressureLevel) {
@@ -56,6 +59,18 @@ class SwrCachePlus(private val policy: SwrCachePlusPolicy) : SwrCache(policy), S
             MemoryPressureLevel.Low -> subscriptionCache.evict()
             MemoryPressureLevel.High -> subscriptionCache.clear()
         }
+    }
+
+    override fun purgeAll() {
+        super.purgeAll()
+        purgeAllSubscriptions()
+    }
+
+    private fun purgeAllSubscriptions() {
+        val subscriptionStoreCopy = subscriptionStore.toMap()
+        subscriptionStore.clear()
+        subscriptionCache.clear()
+        subscriptionStoreCopy.values.forEach { it.close() }
     }
 
     @Suppress("UNCHECKED_CAST")
