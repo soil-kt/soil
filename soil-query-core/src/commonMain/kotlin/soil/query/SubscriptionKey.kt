@@ -42,6 +42,20 @@ interface SubscriptionKey<T> {
     val contentEquals: SubscriptionContentEquals<T>? get() = null
 
     /**
+     * Function to determine if the data should be cached.
+     *
+     * This function evaluates the provided data to decide whether it is suitable for caching.
+     * If the function returns `true`, the data is considered cacheable; otherwise, it is not.
+     * This can be useful in cases where caching is conditional based on specific data attributes
+     * or properties that indicate the content should be stored temporarily.
+     *
+     * ```kotlin
+     * override val contentCacheable: SubscriptionContentCacheable<SomeType> = { data -> data.isNotEmpty() }
+     * ```
+     */
+    val contentCacheable: SubscriptionContentCacheable<T>? get() = null
+
+    /**
      * Function to configure the [SubscriptionOptions].
      *
      * If unspecified, the default value of [SubscriptionOptions] is used.

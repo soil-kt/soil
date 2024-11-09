@@ -23,6 +23,7 @@ import soil.query.core.ActorSequenceNumber
 import soil.query.core.BatchScheduler
 import soil.query.core.Marker
 import soil.query.core.MemoryPressureLevel
+import soil.query.core.Reply
 import soil.query.core.UniqueId
 import soil.query.core.WhileSubscribedAlt
 import soil.query.core.epoch
@@ -85,7 +86,8 @@ class SwrCachePlus(private val policy: SwrCachePlusPolicy) : SwrCache(policy), S
                 id = id,
                 options = key.onConfigureOptions()?.invoke(defaultSubscriptionOptions) ?: defaultSubscriptionOptions,
                 initialValue = subscriptionCache[key.id] as? SubscriptionState<T> ?: SubscriptionState(),
-                subscribe = key.subscribe
+                subscribe = key.subscribe,
+                contentCacheable = key.contentCacheable
             ).also { subscriptionStore[id] = it }
         }
         return SubscriptionRef(
@@ -100,7 +102,8 @@ class SwrCachePlus(private val policy: SwrCachePlusPolicy) : SwrCache(policy), S
         id: UniqueId,
         options: SubscriptionOptions,
         initialValue: SubscriptionState<T>,
-        subscribe: SubscriptionReceiver.() -> Flow<T>
+        subscribe: SubscriptionReceiver.() -> Flow<T>,
+        contentCacheable: SubscriptionContentCacheable<T>?
     ): ManagedSubscription<T> {
         val scope = CoroutineScope(newCoroutineContext(coroutineScope))
         val state = MutableStateFlow(initialValue)
@@ -159,7 +162,8 @@ class SwrCachePlus(private val policy: SwrCachePlusPolicy) : SwrCache(policy), S
             source = source,
             state = state,
             command = command,
-            actor = actor
+            actor = actor,
+            cacheable = contentCacheable
         )
     }
 
@@ -176,7 +180,8 @@ class SwrCachePlus(private val policy: SwrCachePlusPolicy) : SwrCache(policy), S
     private fun <T> saveToCache(subscription: ManagedSubscription<T>) {
         val lastValue = subscription.state.value
         val ttl = subscription.options.gcTime
-        if (lastValue.isSuccess && ttl.isPositive()) {
+        val saveable = lastValue.isSuccess && ttl.isPositive()
+        if (saveable && subscription.isCacheable(lastValue.reply)) {
             subscriptionCache.set(subscription.id, lastValue, ttl)
             subscription.options.vvv(subscription.id) { "cached(ttl=$ttl)" }
         }
@@ -189,7 +194,8 @@ class SwrCachePlus(private val policy: SwrCachePlusPolicy) : SwrCache(policy), S
         override val source: SharedFlow<Result<T>>,
         override val state: StateFlow<SubscriptionState<T>>,
         override val command: SendChannel<SubscriptionCommand<T>>,
-        internal val actor: ActorBlockRunner
+        internal val actor: ActorBlockRunner,
+        private val cacheable: SubscriptionContentCacheable<T>?
     ) : Subscription<T> {
 
         override fun launchIn(scope: CoroutineScope): Job {
@@ -199,6 +205,15 @@ class SwrCachePlus(private val policy: SwrCachePlusPolicy) : SwrCache(policy), S
         fun close() {
             scope.cancel()
             command.close()
+        }
+
+        fun isCacheable(reply: Reply<T>): Boolean {
+            return when (reply) {
+                is Reply.None -> false
+                is Reply.Some<T> -> {
+                    cacheable?.invoke(reply.value) ?: true
+                }
+            }
         }
     }
 
