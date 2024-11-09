@@ -140,6 +140,7 @@ typealias QueryInitialData<T> = QueryReadonlyClient.() -> T?
 typealias QueryEffect = QueryMutableClient.() -> Unit
 
 typealias QueryContentEquals<T> = (oldData: T, newData: T) -> Boolean
+typealias QueryContentCacheable<T> = (currentData: T) -> Boolean
 typealias QueryRecoverData<T> = (error: Throwable) -> T
 typealias QueryOptionsOverride = (QueryOptions) -> QueryOptions
 typealias QueryCallback<T> = (Result<T>) -> Unit

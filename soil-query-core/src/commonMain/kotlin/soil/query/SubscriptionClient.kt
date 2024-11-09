@@ -27,5 +27,6 @@ interface SubscriptionClient {
 }
 
 typealias SubscriptionContentEquals<T> = (oldData: T, newData: T) -> Boolean
+typealias SubscriptionContentCacheable<T> = (currentData: T) -> Boolean
 typealias SubscriptionRecoverData<T> = (error: Throwable) -> T
 typealias SubscriptionOptionsOverride = (SubscriptionOptions) -> SubscriptionOptions
