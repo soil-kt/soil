@@ -30,6 +30,7 @@ import soil.query.core.MemoryPressure
 import soil.query.core.MemoryPressureLevel
 import soil.query.core.NetworkConnectivity
 import soil.query.core.NetworkConnectivityEvent
+import soil.query.core.Reply
 import soil.query.core.SurrogateKey
 import soil.query.core.TimeBasedCache
 import soil.query.core.UniqueId
@@ -270,7 +271,8 @@ open class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutabl
             query = newQuery(
                 id = id,
                 options = key.onConfigureOptions()?.invoke(defaultQueryOptions) ?: defaultQueryOptions,
-                initialValue = queryCache[key.id] as? QueryState<T> ?: newQueryState(key)
+                initialValue = queryCache[key.id] as? QueryState<T> ?: newQueryState(key),
+                contentCacheable = key.contentCacheable
             ).also { queryStore[id] = it }
         }
         return QueryRef(
@@ -283,7 +285,8 @@ open class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutabl
     private fun <T> newQuery(
         id: UniqueId,
         options: QueryOptions,
-        initialValue: QueryState<T>
+        initialValue: QueryState<T>,
+        contentCacheable: QueryContentCacheable<T>?
     ): ManagedQuery<T> {
         val scope = CoroutineScope(newCoroutineContext(coroutineScope))
         val event = MutableSharedFlow<QueryEvent>(
@@ -326,7 +329,8 @@ open class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutabl
             state = state,
             command = command,
             actor = actor,
-            dispatch = dispatch
+            dispatch = dispatch,
+            cacheable = contentCacheable
         )
     }
 
@@ -349,7 +353,8 @@ open class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutabl
     private fun <T> saveToCache(query: ManagedQuery<T>) {
         val lastValue = query.state.value
         val ttl = query.options.gcTime
-        if (lastValue.isSuccess && ttl.isPositive()) {
+        val saveable = lastValue.isSuccess && ttl.isPositive()
+        if (saveable && query.isCacheable(lastValue.reply)) {
             queryCache.set(query.id, lastValue, ttl)
             query.options.vvv(query.id) { "cached(ttl=$ttl)" }
         }
@@ -366,7 +371,8 @@ open class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutabl
             query = newInfiniteQuery(
                 id = id,
                 options = key.onConfigureOptions()?.invoke(defaultQueryOptions) ?: defaultQueryOptions,
-                initialValue = queryCache[id] as? QueryState<QueryChunks<T, S>> ?: QueryState()
+                initialValue = queryCache[id] as? QueryState<QueryChunks<T, S>> ?: QueryState(),
+                contentCacheable = key.contentCacheable
             ).also { queryStore[id] = it }
         }
         return InfiniteQueryRef(
@@ -379,12 +385,14 @@ open class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutabl
     private fun <T, S> newInfiniteQuery(
         id: UniqueId,
         options: QueryOptions,
-        initialValue: QueryState<QueryChunks<T, S>>
+        initialValue: QueryState<QueryChunks<T, S>>,
+        contentCacheable: QueryContentCacheable<QueryChunks<T, S>>?
     ): ManagedQuery<QueryChunks<T, S>> {
         return newQuery(
             id = id,
             options = options,
-            initialValue = initialValue
+            initialValue = initialValue,
+            contentCacheable = contentCacheable
         )
     }
 
@@ -632,7 +640,8 @@ open class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutabl
         override val state: StateFlow<QueryState<T>>,
         override val command: SendChannel<QueryCommand<T>>,
         internal val actor: ActorBlockRunner,
-        private val dispatch: QueryDispatch<T>
+        private val dispatch: QueryDispatch<T>,
+        private val cacheable: QueryContentCacheable<T>?,
     ) : Query<T> {
 
         override fun launchIn(scope: CoroutineScope): Job {
@@ -655,6 +664,15 @@ open class SwrCache(private val policy: SwrCachePolicy) : SwrClient, QueryMutabl
 
         fun forceUpdate(data: T) {
             dispatch(QueryAction.ForceUpdate(data = data, dataUpdatedAt = epoch()))
+        }
+
+        fun isCacheable(reply: Reply<T>): Boolean {
+            return when (reply) {
+                is Reply.None -> false
+                is Reply.Some<T> -> {
+                    cacheable?.invoke(reply.value) ?: true
+                }
+            }
         }
     }
 
