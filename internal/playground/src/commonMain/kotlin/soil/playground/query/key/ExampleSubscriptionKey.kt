@@ -5,9 +5,10 @@ import kotlinx.coroutines.flow.flow
 import soil.query.SubscriptionId
 import soil.query.SubscriptionKey
 import soil.query.buildSubscriptionKey
+import soil.query.core.Auto
 
-class ExampleSubscriptionKey : SubscriptionKey<String> by buildSubscriptionKey(
-    id = SubscriptionId("test/id"),
+class ExampleSubscriptionKey(auto: Auto) : SubscriptionKey<String> by buildSubscriptionKey(
+    id = SubscriptionId(auto.namespace),
     subscribe = {
         flow {
             delay(1000)
