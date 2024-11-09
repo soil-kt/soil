@@ -103,6 +103,13 @@ open class SubscriptionId<T>(
     }
 
     companion object {
+        @Deprecated(
+            """
+            This function is deprecated because it does not retain automatically generated values when used within Compose.
+            As a result, values are regenerated after configuration changes, leading to different values.
+            Consider using an alternative approach that preserves state across recompositions.
+        """, ReplaceWith("SubscriptionId(namespace, *tags)", "soil.query.SubscriptionId")
+        )
         fun <T> auto(
             namespace: String = "auto/${uuid()}",
             vararg tags: SurrogateKey

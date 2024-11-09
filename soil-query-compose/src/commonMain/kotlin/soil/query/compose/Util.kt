@@ -6,6 +6,8 @@ package soil.query.compose
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import soil.query.InfiniteQueryKey
 import soil.query.MutationClient
 import soil.query.MutationKey
@@ -13,6 +15,8 @@ import soil.query.QueryClient
 import soil.query.QueryKey
 import soil.query.ResumeQueriesFilter
 import soil.query.SwrClient
+import soil.query.core.Auto
+
 
 typealias QueriesErrorReset = () -> Unit
 
@@ -86,3 +90,18 @@ fun KeepAlive(
     val scope = rememberCoroutineScope()
     remember(key) { client.getMutation(key).also { it.launchIn(scope) } }
 }
+
+
+/**
+ * Automatically generated value for mutationId and subscriptionId.
+ *
+ * @see Auto
+ */
+@Composable
+fun auto(): Auto = rememberSaveable(saver = Auto.Saver) { Auto() }
+
+internal val Auto.Companion.Saver
+    get() = Saver<Auto, String>(
+        save = { it.value },
+        restore = { Auto(it) }
+    )
