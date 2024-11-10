@@ -6,11 +6,11 @@ import soil.query.MutationId
 import soil.query.MutationKey
 import soil.query.QueryEffect
 import soil.query.QueryId
-import soil.query.core.Auto
+import soil.query.core.Namespace
 import soil.query.receivers.ktor.buildKtorMutationKey
 
-class DeletePostKey(auto: Auto) : MutationKey<Unit, Int> by buildKtorMutationKey(
-    id = MutationId(auto.namespace),
+class DeletePostKey(auto: Namespace) : MutationKey<Unit, Int> by buildKtorMutationKey(
+    id = MutationId(auto.value),
     mutate = { postId ->
         delete("https://jsonplaceholder.typicode.com/posts/$postId")
     }

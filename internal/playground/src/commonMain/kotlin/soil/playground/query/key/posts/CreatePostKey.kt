@@ -5,12 +5,14 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import soil.playground.query.data.Post
 import soil.query.InfiniteQueryId
+import soil.query.MutationId
 import soil.query.MutationKey
 import soil.query.QueryEffect
+import soil.query.core.Namespace
 import soil.query.receivers.ktor.buildKtorMutationKey
 
-class CreatePostKey : MutationKey<Post, PostForm> by buildKtorMutationKey(
-    /* id = MutationId.auto(), */
+class CreatePostKey(auto: Namespace) : MutationKey<Post, PostForm> by buildKtorMutationKey(
+    id = MutationId(auto.value),
     mutate = { body ->
         post("https://jsonplaceholder.typicode.com/posts") {
             setBody(body)

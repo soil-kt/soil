@@ -3,6 +3,8 @@
 
 package soil.query.core
 
+import kotlin.jvm.JvmInline
+
 /**
  * Interface for unique identifiers.
  *
@@ -49,28 +51,8 @@ typealias SurrogateKey = Any
  *
  * This class is useful for generating a unique namespace when a key, such as MutationKey or SubscriptionKey, is used in a single Composable function.
  */
-class Auto(val value: String = uuid()) {
-
-    val namespace: String
-        get() = "auto/$value"
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
-
-        other as Auto
-
-        return value == other.value
-    }
-
-    override fun hashCode(): Int {
-        return value.hashCode()
-    }
-
-    override fun toString(): String {
-        return namespace
-    }
-
+@JvmInline
+value class Namespace(val value: String) {
     // For Compose saver extension, to be extended by query.compose module
     companion object
 }
