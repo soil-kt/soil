@@ -21,11 +21,11 @@ import soil.playground.query.compose.rememberGetUserQuery
 import soil.playground.query.data.Post
 import soil.playground.query.data.Posts
 import soil.playground.query.data.User
-import soil.query.compose.rememberQueriesErrorReset
 import soil.query.compose.runtime.Await
 import soil.query.compose.runtime.Catch
 import soil.query.compose.runtime.ErrorBoundary
 import soil.query.compose.runtime.Suspense
+import soil.query.compose.util.rememberQueriesErrorReset
 import soil.query.core.getOrElse
 
 @Composable

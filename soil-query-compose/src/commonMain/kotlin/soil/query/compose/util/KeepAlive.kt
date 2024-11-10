@@ -1,43 +1,18 @@
 // Copyright 2024 Soil Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-package soil.query.compose
+package soil.query.compose.util
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.rememberSaveable
 import soil.query.InfiniteQueryKey
 import soil.query.MutationClient
 import soil.query.MutationKey
 import soil.query.QueryClient
 import soil.query.QueryKey
-import soil.query.ResumeQueriesFilter
-import soil.query.SwrClient
-import soil.query.core.Namespace
-import soil.query.core.uuid
-
-
-typealias QueriesErrorReset = () -> Unit
-
-/**
- * Remember a [QueriesErrorReset] to resume all queries with [filter] matched.
- *
- * @param filter The filter to match queries.
- * @param client The [SwrClient] to resume queries. By default, it uses the [LocalSwrClient].
- * @return A [QueriesErrorReset] to resume queries.
- */
-@Composable
-fun rememberQueriesErrorReset(
-    filter: ResumeQueriesFilter = remember { ResumeQueriesFilter(predicate = { it.isFailure }) },
-    client: SwrClient = LocalSwrClient.current
-): QueriesErrorReset {
-    val reset = remember<() -> Unit>(client) {
-        { client.perform { resumeQueries(filter) } }
-    }
-    return reset
-}
+import soil.query.compose.LocalMutationClient
+import soil.query.compose.LocalQueryClient
 
 /**
  * Keep the query alive.
@@ -91,22 +66,3 @@ fun KeepAlive(
     val scope = rememberCoroutineScope()
     remember(key) { client.getMutation(key).also { it.launchIn(scope) } }
 }
-
-
-/**
- * Automatically generated value for mutationId and subscriptionId.
- *
- * This function is useful for generating a unique namespace when a key, such as MutationKey or SubscriptionKey, is used in a single Composable function.
- *
- * @see Namespace
- */
-@Composable
-fun Namespace.Companion.auto(): Namespace {
-    return rememberSaveable(saver = Namespace.Saver) { Namespace("auto/${uuid()}") }
-}
-
-internal val Namespace.Companion.Saver
-    get() = Saver<Namespace, String>(
-        save = { it.value },
-        restore = { Namespace(it) }
-    )

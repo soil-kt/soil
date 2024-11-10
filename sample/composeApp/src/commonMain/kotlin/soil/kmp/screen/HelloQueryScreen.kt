@@ -23,12 +23,12 @@ import soil.playground.query.data.PageParam
 import soil.playground.query.data.Posts
 import soil.playground.router.NavLink
 import soil.playground.style.withAppTheme
-import soil.query.compose.rememberQueriesErrorReset
 import soil.query.compose.runtime.Await
 import soil.query.compose.runtime.Catch
 import soil.query.compose.runtime.ErrorBoundary
 import soil.query.compose.runtime.LazyLoadEffect
 import soil.query.compose.runtime.Suspense
+import soil.query.compose.util.rememberQueriesErrorReset
 
 @Composable
 fun HelloQueryScreen() {
