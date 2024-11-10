@@ -9,12 +9,12 @@ import soil.query.MutationId
 import soil.query.MutationKey
 import soil.query.QueryEffect
 import soil.query.QueryId
-import soil.query.core.Auto
+import soil.query.core.Namespace
 import soil.query.modifyData
 import soil.query.receivers.ktor.buildKtorMutationKey
 
-class UpdatePostKey(auto: Auto) : MutationKey<Post, Post> by buildKtorMutationKey(
-    id = MutationId(auto.namespace),
+class UpdatePostKey(auto: Namespace) : MutationKey<Post, Post> by buildKtorMutationKey(
+    id = MutationId(auto.value),
     mutate = { body ->
         put("https://jsonplaceholder.typicode.com/posts/${body.id}") {
             setBody(body)

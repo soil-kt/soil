@@ -15,7 +15,8 @@ import soil.query.QueryClient
 import soil.query.QueryKey
 import soil.query.ResumeQueriesFilter
 import soil.query.SwrClient
-import soil.query.core.Auto
+import soil.query.core.Namespace
+import soil.query.core.uuid
 
 
 typealias QueriesErrorReset = () -> Unit
@@ -95,13 +96,17 @@ fun KeepAlive(
 /**
  * Automatically generated value for mutationId and subscriptionId.
  *
- * @see Auto
+ * This function is useful for generating a unique namespace when a key, such as MutationKey or SubscriptionKey, is used in a single Composable function.
+ *
+ * @see Namespace
  */
 @Composable
-fun auto(): Auto = rememberSaveable(saver = Auto.Saver) { Auto() }
+fun Namespace.Companion.auto(): Namespace {
+    return rememberSaveable(saver = Namespace.Saver) { Namespace("auto/${uuid()}") }
+}
 
-internal val Auto.Companion.Saver
-    get() = Saver<Auto, String>(
+internal val Namespace.Companion.Saver
+    get() = Saver<Namespace, String>(
         save = { it.value },
-        restore = { Auto(it) }
+        restore = { Namespace(it) }
     )
