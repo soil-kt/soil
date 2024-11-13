@@ -104,6 +104,72 @@ fun SwrCachePlusPolicy(
     windowResumeQueriesFilter = windowResumeQueriesFilter
 )
 
+/**
+ * Create a new [SwrCachePlusPolicy] instance with a receiver builder.
+ *
+ * @param coroutineScope [CoroutineScope] for coroutines executed on the [SwrCachePlus].
+ * @param mainDispatcher [CoroutineDispatcher] for the main thread.
+ * @param mutationOptions Default [MutationOptions] applied to [Mutation].
+ * @param queryOptions Default [QueryOptions] applied to [Query].
+ * @param queryCache Management of cached data for inactive [Query] instances.
+ * @param subscriptionOptions Default [SubscriptionOptions] applied to [Subscription].
+ * @param subscriptionCache Management of cached data for inactive [Subscription] instances.
+ * @param batchSchedulerFactory Factory for creating a [soil.query.core.BatchScheduler].
+ * @param errorRelay Relay for error handling.
+ * @param memoryPressure Management of memory pressure.
+ * @param networkConnectivity Management of network connectivity.
+ * @param networkResumeAfterDelay Duration after which the network resumes.
+ * @param networkResumeQueriesFilter Filter for resuming queries after a network error.
+ * @param windowVisibility Management of window visibility.
+ * @param windowResumeQueriesFilter Filter for resuming queries after a window focus.
+ * @param receiverBuilder Receiver builder for [MutationReceiver], [QueryReceiver] and [SubscriptionReceiver].
+ */
+@ExperimentalSoilQueryApi
+fun SwrCachePlusPolicy(
+    coroutineScope: CoroutineScope,
+    mainDispatcher: CoroutineDispatcher = Dispatchers.Main,
+    mutationOptions: MutationOptions = MutationOptions,
+    queryOptions: QueryOptions = QueryOptions,
+    queryCache: QueryCache = QueryCache(),
+    subscriptionOptions: SubscriptionOptions = SubscriptionOptions,
+    subscriptionCache: SubscriptionCache = SubscriptionCache(),
+    batchSchedulerFactory: BatchSchedulerFactory = BatchSchedulerFactory.default(mainDispatcher),
+    errorRelay: ErrorRelay? = null,
+    memoryPressure: MemoryPressure = MemoryPressure,
+    networkConnectivity: NetworkConnectivity = NetworkConnectivity,
+    networkResumeAfterDelay: Duration = 2.seconds,
+    networkResumeQueriesFilter: ResumeQueriesFilter = ResumeQueriesFilter(
+        predicate = { it.isFailure }
+    ),
+    windowVisibility: WindowVisibility = WindowVisibility,
+    windowResumeQueriesFilter: ResumeQueriesFilter = ResumeQueriesFilter(
+        predicate = { it.isStaled() }
+    ),
+    receiverBuilder: SwrReceiverBuilderPlus.() -> Unit
+): SwrCachePlusPolicy {
+    val commonReceiver = SwrReceiverBuilderPlusImpl().apply(receiverBuilder).build()
+    return SwrCachePlusPolicyImpl(
+        coroutineScope = coroutineScope,
+        mainDispatcher = mainDispatcher,
+        mutationOptions = mutationOptions,
+        mutationReceiver = commonReceiver,
+        queryOptions = queryOptions,
+        queryReceiver = commonReceiver,
+        queryCache = queryCache,
+        subscriptionOptions = subscriptionOptions,
+        subscriptionReceiver = commonReceiver,
+        subscriptionCache = subscriptionCache,
+        batchSchedulerFactory = batchSchedulerFactory,
+        errorRelay = errorRelay,
+        memoryPressure = memoryPressure,
+        networkConnectivity = networkConnectivity,
+        networkResumeAfterDelay = networkResumeAfterDelay,
+        networkResumeQueriesFilter = networkResumeQueriesFilter,
+        windowVisibility = windowVisibility,
+        windowResumeQueriesFilter = windowResumeQueriesFilter
+    )
+}
+
 @ExperimentalSoilQueryApi
 internal class SwrCachePlusPolicyImpl(
     override val coroutineScope: CoroutineScope,

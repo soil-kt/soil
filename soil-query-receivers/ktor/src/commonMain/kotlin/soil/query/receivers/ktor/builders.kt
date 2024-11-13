@@ -33,7 +33,7 @@ import soil.query.buildSubscriptionKey
  * ```
  *
  * **Note:**
- * [KtorReceiver] is required to use the builder functions designed for [KtorReceiver].
+ * [httpClient] is required to use the builder functions designed for [soil.query.core.ContextReceiver].
  *
  * @param id The identifier of the mutation key.
  * @param mutate The mutation function that sends a request to the server.
@@ -44,8 +44,8 @@ inline fun <T, S> buildKtorMutationKey(
 ): MutationKey<T, S> = buildMutationKey(
     id = id,
     mutate = {
-        check(this is KtorReceiver) { "KtorReceiver isn't available. Did you forget to set it up?" }
-        with(ktorClient) { mutate(it) }
+        val client = checkNotNull(httpClient) { "httpClient isn't available. Did you forget to set it up?" }
+        with(client) { mutate(it) }
     }
 )
 
@@ -62,7 +62,7 @@ inline fun <T, S> buildKtorMutationKey(
  * ```
  *
  * **Note:**
- * [KtorReceiver] is required to use the builder functions designed for [KtorReceiver].
+ * [httpClient] is required to use the builder functions designed for [soil.query.core.ContextReceiver].
  *
  * @param id The identifier of the query key.
  * @param fetch The query function that sends a request to the server.
@@ -73,8 +73,8 @@ inline fun <T> buildKtorQueryKey(
 ): QueryKey<T> = buildQueryKey(
     id = id,
     fetch = {
-        check(this is KtorReceiver) { "KtorReceiver isn't available. Did you forget to set it up?" }
-        with(ktorClient) { fetch() }
+        val client = checkNotNull(httpClient) { "httpClient isn't available. Did you forget to set it up?" }
+        with(client) { fetch() }
     }
 )
 
@@ -95,7 +95,7 @@ inline fun <T> buildKtorQueryKey(
  * ```
  *
  * **Note:**
- * [KtorReceiver] is required to use the builder functions designed for [KtorReceiver].
+ * [httpClient] is required to use the builder functions designed for [soil.query.core.ContextReceiver].
  *
  * @param id The identifier of the infinite query key.
  * @param fetch The query function that sends a request to the server.
@@ -108,8 +108,8 @@ inline fun <T, S> buildKtorInfiniteQueryKey(
 ): InfiniteQueryKey<T, S> = buildInfiniteQueryKey(
     id = id,
     fetch = { param ->
-        check(this is KtorReceiver) { "KtorReceiver isn't available. Did you forget to set it up?" }
-        with(ktorClient) { fetch(param) }
+        val client = checkNotNull(httpClient) { "httpClient isn't available. Did you forget to set it up?" }
+        with(client) { fetch(param) }
     },
     initialParam = initialParam,
     loadMoreParam = loadMoreParam
@@ -118,8 +118,17 @@ inline fun <T, S> buildKtorInfiniteQueryKey(
 /**
  * A delegation function to build a [SubscriptionKey] for Ktor.
  *
+ * ```kotlin
+ * class ExampleSubscriptionKey(auto: Namespace) : SubscriptionKey<String> by buildKtorSubscriptionKey(
+ *     id = SubscriptionId(auto.value),
+ *     subscribe = { // HttpClient.() -> Flow<String>
+ *         doSomethingFlow()
+ *     }
+ * )
+ * ```
+ *
  * **Note:**
- * [KtorReceiver] is required to use the builder functions designed for [KtorReceiver].
+ * [httpClient] is required to use the builder functions designed for [soil.query.core.ContextReceiver].
  *
  * @param id The identifier of the subscription key.
  * @param subscribe The subscription function for receiving data, such as from a server.
@@ -130,7 +139,7 @@ inline fun <T> buildKtorSubscriptionKey(
 ): SubscriptionKey<T> = buildSubscriptionKey(
     id = id,
     subscribe = {
-        check(this is KtorReceiver) { "KtorReceiver isn't available. Did you forget to set it up?" }
-        with(ktorClient) { subscribe() }
+        val client = checkNotNull(httpClient) { "httpClient isn't available. Did you forget to set it up?" }
+        with(client) { subscribe() }
     }
 )
