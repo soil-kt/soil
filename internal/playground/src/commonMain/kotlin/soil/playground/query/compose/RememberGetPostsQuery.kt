@@ -1,7 +1,6 @@
 package soil.playground.query.compose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import soil.playground.query.data.PageParam
 import soil.playground.query.data.Posts
 import soil.playground.query.key.posts.GetPostsKey
@@ -17,6 +16,9 @@ fun rememberGetPostsQuery(
     userId: Int? = null,
     builderBlock: InfiniteQueryConfig.Builder.() -> Unit = {}
 ): GetPostsQueryObject {
-    val key = remember(userId) { GetPostsKey(userId) }
-    return rememberInfiniteQuery(key, select = { it.chunkedData }, config = InfiniteQueryConfig(builderBlock))
+    return rememberInfiniteQuery(
+        key = GetPostsKey(userId),
+        select = { it.chunkedData },
+        config = InfiniteQueryConfig(builderBlock)
+    )
 }

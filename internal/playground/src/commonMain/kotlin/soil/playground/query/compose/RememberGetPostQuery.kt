@@ -1,7 +1,6 @@
 package soil.playground.query.compose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import soil.playground.query.data.Post
 import soil.playground.query.key.posts.GetPostKey
 import soil.query.compose.QueryConfig
@@ -15,6 +14,8 @@ fun rememberGetPostQuery(
     postId: Int,
     builderBlock: QueryConfig.Builder.() -> Unit = {}
 ): GetPostQueryObject {
-    val key = remember(postId) { GetPostKey(postId) }
-    return rememberQuery(key, QueryConfig(builderBlock))
+    return rememberQuery(
+        key = GetPostKey(postId),
+        config = QueryConfig(builderBlock)
+    )
 }

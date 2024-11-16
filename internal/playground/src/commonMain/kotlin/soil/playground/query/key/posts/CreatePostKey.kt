@@ -1,5 +1,6 @@
 package soil.playground.query.key.posts
 
+import androidx.compose.runtime.Stable
 import io.ktor.client.call.body
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -8,10 +9,12 @@ import soil.query.InfiniteQueryId
 import soil.query.MutationId
 import soil.query.MutationKey
 import soil.query.QueryEffect
+import soil.query.core.KeyEquals
 import soil.query.core.Namespace
 import soil.query.receivers.ktor.buildKtorMutationKey
 
-class CreatePostKey(auto: Namespace) : MutationKey<Post, PostForm> by buildKtorMutationKey(
+@Stable
+class CreatePostKey(auto: Namespace) : KeyEquals(), MutationKey<Post, PostForm> by buildKtorMutationKey(
     id = MutationId(auto.value),
     mutate = { body ->
         post("https://jsonplaceholder.typicode.com/posts") {
