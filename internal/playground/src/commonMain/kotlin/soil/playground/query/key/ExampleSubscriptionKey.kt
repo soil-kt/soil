@@ -1,13 +1,16 @@
 package soil.playground.query.key
 
+import androidx.compose.runtime.Stable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import soil.query.SubscriptionId
 import soil.query.SubscriptionKey
 import soil.query.buildSubscriptionKey
+import soil.query.core.KeyEquals
 import soil.query.core.Namespace
 
-class ExampleSubscriptionKey(auto: Namespace) : SubscriptionKey<String> by buildSubscriptionKey(
+@Stable
+class ExampleSubscriptionKey(auto: Namespace) : KeyEquals(), SubscriptionKey<String> by buildSubscriptionKey(
     id = SubscriptionId(auto.value),
     subscribe = {
         flow {

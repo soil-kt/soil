@@ -1,5 +1,6 @@
 package soil.playground.query.key.users
 
+import androidx.compose.runtime.Stable
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
@@ -7,9 +8,11 @@ import soil.playground.query.data.Albums
 import soil.playground.query.data.PageParam
 import soil.query.InfiniteQueryId
 import soil.query.InfiniteQueryKey
+import soil.query.core.KeyEquals
 import soil.query.receivers.ktor.buildKtorInfiniteQueryKey
 
-class GetUserAlbumsKey(userId: Int) : InfiniteQueryKey<Albums, PageParam> by buildKtorInfiniteQueryKey(
+@Stable
+class GetUserAlbumsKey(userId: Int) : KeyEquals(), InfiniteQueryKey<Albums, PageParam> by buildKtorInfiniteQueryKey(
     id = InfiniteQueryId.forGetUserAlbums(userId),
     fetch = { param ->
         get("https://jsonplaceholder.typicode.com/users/$userId/albums") {

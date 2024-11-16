@@ -1,5 +1,6 @@
 package soil.playground.query.key.posts
 
+import androidx.compose.runtime.Stable
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
@@ -7,12 +8,16 @@ import soil.playground.query.data.PageParam
 import soil.playground.query.data.Posts
 import soil.query.InfiniteQueryId
 import soil.query.InfiniteQueryKey
+import soil.query.core.KeyEquals
 import soil.query.receivers.ktor.buildKtorInfiniteQueryKey
 
 // NOTE: userId
 // Filtering resources
 // ref. https://jsonplaceholder.typicode.com/guide/
-class GetPostsKey(val userId: Int? = null) : InfiniteQueryKey<Posts, PageParam> by buildKtorInfiniteQueryKey(
+@Stable
+class GetPostsKey(
+    val userId: Int? = null
+) : KeyEquals(), InfiniteQueryKey<Posts, PageParam> by buildKtorInfiniteQueryKey(
     id = InfiniteQueryId.forGetPosts(userId),
     fetch = { param ->
         get("https://jsonplaceholder.typicode.com/posts") {

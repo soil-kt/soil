@@ -1,5 +1,6 @@
 package soil.playground.query.key.users
 
+import androidx.compose.runtime.Stable
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
@@ -7,9 +8,11 @@ import soil.playground.query.data.PageParam
 import soil.playground.query.data.Todos
 import soil.query.InfiniteQueryId
 import soil.query.InfiniteQueryKey
+import soil.query.core.KeyEquals
 import soil.query.receivers.ktor.buildKtorInfiniteQueryKey
 
-class GetUserTodosKey(userId: Int) : InfiniteQueryKey<Todos, PageParam> by buildKtorInfiniteQueryKey(
+@Stable
+class GetUserTodosKey(userId: Int) : KeyEquals(), InfiniteQueryKey<Todos, PageParam> by buildKtorInfiniteQueryKey(
     id = InfiniteQueryId.forGetUserTodos(userId),
     fetch = { param ->
         get("https://jsonplaceholder.typicode.com/users/$userId/todos") {
