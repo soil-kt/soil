@@ -170,6 +170,64 @@ fun SwrCachePolicy(
     windowResumeQueriesFilter = windowResumeQueriesFilter
 )
 
+/**
+ * Create a new [SwrCachePolicy] instance with a receiver builder.
+ *
+ * @param coroutineScope [CoroutineScope] for coroutines executed on the [SwrCache].
+ * @param mainDispatcher [CoroutineDispatcher] for the main thread.
+ * @param mutationOptions Default [MutationOptions] applied to [Mutation].
+ * @param queryOptions Default [QueryOptions] applied to [Query].
+ * @param queryCache Management of cached data for inactive [Query] instances.
+ * @param batchSchedulerFactory Factory for creating a [soil.query.core.BatchScheduler].
+ * @param errorRelay Specify the mechanism of [ErrorRelay] when using [SwrClient.errorRelay].
+ * @param memoryPressure Receiving events of memory pressure.
+ * @param networkConnectivity Receiving events of network connectivity.
+ * @param networkResumeAfterDelay The delay time to resume queries after network connectivity is reconnected.
+ * @param networkResumeQueriesFilter The specified filter to resume queries after network connectivity is reconnected.
+ * @param windowVisibility Receiving events of window visibility.
+ * @param windowResumeQueriesFilter The specified filter to resume queries after window visibility is refocused.
+ * @param receiverBuilder Receiver builder for [MutationReceiver] and [QueryReceiver].
+ */
+fun SwrCachePolicy(
+    coroutineScope: CoroutineScope,
+    mainDispatcher: CoroutineDispatcher = Dispatchers.Main,
+    mutationOptions: MutationOptions = MutationOptions,
+    queryOptions: QueryOptions = QueryOptions,
+    queryCache: QueryCache = QueryCache(),
+    batchSchedulerFactory: BatchSchedulerFactory = BatchSchedulerFactory.default(mainDispatcher),
+    errorRelay: ErrorRelay? = null,
+    memoryPressure: MemoryPressure = MemoryPressure,
+    networkConnectivity: NetworkConnectivity = NetworkConnectivity,
+    networkResumeAfterDelay: Duration = 2.seconds,
+    networkResumeQueriesFilter: ResumeQueriesFilter = ResumeQueriesFilter(
+        predicate = { it.isFailure }
+    ),
+    windowVisibility: WindowVisibility = WindowVisibility,
+    windowResumeQueriesFilter: ResumeQueriesFilter = ResumeQueriesFilter(
+        predicate = { it.isStaled() }
+    ),
+    receiverBuilder: SwrReceiverBuilder.() -> Unit
+): SwrCachePolicy {
+    val commonReceiver = SwrReceiverBuilderImpl().apply(receiverBuilder).build()
+    return SwrCachePolicyImpl(
+        coroutineScope = coroutineScope,
+        mainDispatcher = mainDispatcher,
+        mutationOptions = mutationOptions,
+        mutationReceiver = commonReceiver,
+        queryOptions = queryOptions,
+        queryReceiver = commonReceiver,
+        queryCache = queryCache,
+        batchSchedulerFactory = batchSchedulerFactory,
+        errorRelay = errorRelay,
+        memoryPressure = memoryPressure,
+        networkConnectivity = networkConnectivity,
+        networkResumeAfterDelay = networkResumeAfterDelay,
+        networkResumeQueriesFilter = networkResumeQueriesFilter,
+        windowVisibility = windowVisibility,
+        windowResumeQueriesFilter = windowResumeQueriesFilter
+    )
+}
+
 internal class SwrCachePolicyImpl(
     override val coroutineScope: CoroutineScope,
     override val mainDispatcher: CoroutineDispatcher,

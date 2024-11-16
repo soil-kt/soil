@@ -7,6 +7,9 @@ import io.ktor.client.HttpClient
 import soil.query.MutationReceiver
 import soil.query.QueryReceiver
 import soil.query.SubscriptionReceiver
+import soil.query.core.ContextPropertyKey
+import soil.query.core.ContextReceiver
+import soil.query.core.ContextReceiverBuilder
 
 /**
  * A receiver that uses Ktor to send queries and mutations.
@@ -53,6 +56,7 @@ import soil.query.SubscriptionReceiver
  * @see buildKtorInfiniteQueryKey
  * @see buildKtorMutationKey
  */
+@Deprecated("Use standard receiver instead.", ReplaceWith(""))
 interface KtorReceiver : QueryReceiver, MutationReceiver, SubscriptionReceiver {
     val ktorClient: HttpClient
 }
@@ -62,10 +66,40 @@ interface KtorReceiver : QueryReceiver, MutationReceiver, SubscriptionReceiver {
  *
  * @param client The Ktor client to use.
  */
+@Deprecated("Use standard receiver instead.", ReplaceWith(""))
 fun KtorReceiver(client: HttpClient): KtorReceiver {
     return KtorReceiverImpl(client)
 }
 
 internal class KtorReceiverImpl(
+    ktorClient: HttpClient
+) : KtorReceiver {
+
+    private val context: Map<ContextPropertyKey<*>, Any> = mapOf(httpClientKey to ktorClient)
+
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : Any> get(key: ContextPropertyKey<T>): T? = context[key] as T?
+
     override val ktorClient: HttpClient
-) : KtorReceiver
+        get() = checkNotNull(httpClient)
+}
+
+/**
+ * Extension receiver for referencing the [HttpClient] instance needed when executing query, mutation and subscription.
+ *
+ * @see ContextReceiver
+ * @see buildKtorQueryKey
+ * @see buildKtorInfiniteQueryKey
+ * @see buildKtorMutationKey
+ */
+val ContextReceiver.httpClient: HttpClient?
+    get() = get(httpClientKey)
+
+/**
+ * Extension receiver for setting the [HttpClient] instance needed when executing query, mutation and subscription.
+ */
+var ContextReceiverBuilder.httpClient: HttpClient
+    get() = error("You cannot retrieve a builder property directly")
+    set(value) = set(httpClientKey, value)
+
+internal val httpClientKey = ContextPropertyKey<HttpClient>()
