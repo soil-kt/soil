@@ -138,13 +138,16 @@ class SwrCachePlus(private val policy: SwrCachePlusPolicy) : SwrCache(policy), S
                 )
             }
         }
+
         val subscribeFlow = subscriptionReceiver.subscribe()
         val source = refresh
-            .flatMapLatest { subscribeFlow }
-            .retryWithExponentialBackoff(options) { err, count, nextBackOff ->
-                options.vvv(id) { "retry(count=$count next=$nextBackOff error=${err.message})" }
+            .flatMapLatest {
+                subscribeFlow
+                    .retryWithExponentialBackoff(options) { err, count, nextBackOff ->
+                        options.vvv(id) { "retry(count=$count next=$nextBackOff error=${err.message})" }
+                    }
+                    .toResultFlow()
             }
-            .toResultFlow()
             .shareIn(
                 scope = scope,
                 started = SharingStarted.WhileSubscribedAlt(
