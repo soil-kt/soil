@@ -3,7 +3,6 @@
 
 package soil.query.compose
 
-import soil.query.SubscriberStatus
 import soil.query.SubscriptionRef
 import soil.query.SubscriptionState
 import soil.query.SubscriptionStatus
@@ -40,36 +39,19 @@ private object DefaultSubscriptionObjectMapper : SubscriptionObjectMapper {
         subscription: SubscriptionRef<T>,
         select: (T) -> U
     ): SubscriptionObject<U> = when (status) {
-        SubscriptionStatus.Pending -> if (subscriberStatus == SubscriberStatus.NoSubscribers) {
-            SubscriptionIdleObject(
-                reply = reply.map(select),
-                replyUpdatedAt = replyUpdatedAt,
-                error = error,
-                errorUpdatedAt = errorUpdatedAt,
-                subscribe = subscription::resume,
-                unsubscribe = subscription::cancel,
-                reset = subscription::reset
-            )
-        } else {
-            SubscriptionLoadingObject(
-                reply = reply.map(select),
-                replyUpdatedAt = replyUpdatedAt,
-                error = error,
-                errorUpdatedAt = errorUpdatedAt,
-                subscribe = subscription::resume,
-                unsubscribe = subscription::cancel,
-                reset = subscription::reset
-            )
-        }
+        SubscriptionStatus.Pending -> SubscriptionLoadingObject(
+            reply = reply.map(select),
+            replyUpdatedAt = replyUpdatedAt,
+            error = error,
+            errorUpdatedAt = errorUpdatedAt,
+            reset = subscription::reset
+        )
 
         SubscriptionStatus.Success -> SubscriptionSuccessObject(
             reply = reply.map(select),
             replyUpdatedAt = replyUpdatedAt,
             error = error,
             errorUpdatedAt = errorUpdatedAt,
-            subscriberStatus = subscriberStatus,
-            subscribe = subscription::resume,
-            unsubscribe = subscription::cancel,
             reset = subscription::reset
         )
 
@@ -78,9 +60,6 @@ private object DefaultSubscriptionObjectMapper : SubscriptionObjectMapper {
             replyUpdatedAt = replyUpdatedAt,
             error = checkNotNull(error),
             errorUpdatedAt = errorUpdatedAt,
-            subscriberStatus = subscriberStatus,
-            subscribe = subscription::resume,
-            unsubscribe = subscription::cancel,
             reset = subscription::reset
         )
     }

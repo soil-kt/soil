@@ -43,19 +43,6 @@ private object DefaultSubscriptionStrategy : SubscriptionStrategy {
     }
 }
 
-/**
- * Strategy for manually starting the Subscription without automatic subscription.
- */
-val SubscriptionStrategy.Companion.Lazy: SubscriptionStrategy
-    get() = LazySubscriptionStrategy
-
-private object LazySubscriptionStrategy : SubscriptionStrategy {
-    @Composable
-    override fun <T> collectAsState(subscription: SubscriptionRef<T>): SubscriptionState<T> {
-        return subscription.state.collectAsState().value
-    }
-}
-
 // FIXME: CompositionLocal LocalLifecycleOwner not present
 //  Android, it works only with Compose UI 1.7.0-alpha05 or above.
 //  Therefore, we will postpone adding this code until a future release.

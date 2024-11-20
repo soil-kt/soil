@@ -51,21 +51,4 @@ object SubscriptionCommands {
             ctx.restart()
         }
     }
-
-    /**
-     * Handles changes in the number of subscribers.
-     *
-     * @param subscribers The number of subscribers.
-     */
-    class Count<T>(
-        private val subscribers: Int
-    ) : SubscriptionCommand<T> {
-        override suspend fun handle(ctx: SubscriptionCommand.Context<T>) {
-            val currentStatus = if (subscribers > 0) SubscriberStatus.Active else SubscriberStatus.NoSubscribers
-            if (ctx.state.subscriberStatus == currentStatus) {
-                return
-            }
-            ctx.dispatch(SubscriptionAction.UpdateSubscriberStatus(currentStatus))
-        }
-    }
 }

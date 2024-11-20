@@ -5,7 +5,6 @@ package soil.query.compose
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
-import soil.query.SubscriberStatus
 import soil.query.SubscriptionModel
 import soil.query.SubscriptionStatus
 import soil.query.core.Reply
@@ -26,42 +25,9 @@ sealed interface SubscriptionObject<out T> : SubscriptionModel<T> {
     val data: T?
 
     /**
-     * Starts the subscription if not already subscribed.
-     */
-    val subscribe: suspend () -> Unit
-
-    /**
-     * Cancels the subscription if currently subscribed.
-     */
-    val unsubscribe: () -> Unit
-
-    /**
      * Resets the subscribed data and re-executes the subscription process.
      */
     val reset: suspend () -> Unit
-}
-
-/**
- * A SubscriptionIdleObject represents the initial idle state of the [SubscriptionObject].
- *
- * This means that no data has been received and there are no subscribers.
- * This is the initial state when subscription processing has not been performed automatically.
- *
- * @param T Type of data to receive.
- */
-@Immutable
-data class SubscriptionIdleObject<T>(
-    override val reply: Reply<T>,
-    override val replyUpdatedAt: Long,
-    override val error: Throwable?,
-    override val errorUpdatedAt: Long,
-    override val subscribe: suspend () -> Unit,
-    override val unsubscribe: () -> Unit,
-    override val reset: suspend () -> Unit
-) : SubscriptionObject<T> {
-    override val status: SubscriptionStatus = SubscriptionStatus.Pending
-    override val subscriberStatus: SubscriberStatus = SubscriberStatus.NoSubscribers
-    override val data: T? get() = reply.getOrNull()
 }
 
 /**
@@ -77,12 +43,9 @@ data class SubscriptionLoadingObject<T>(
     override val replyUpdatedAt: Long,
     override val error: Throwable?,
     override val errorUpdatedAt: Long,
-    override val subscribe: suspend () -> Unit,
-    override val unsubscribe: () -> Unit,
     override val reset: suspend () -> Unit
 ) : SubscriptionObject<T> {
     override val status: SubscriptionStatus = SubscriptionStatus.Pending
-    override val subscriberStatus: SubscriberStatus = SubscriberStatus.Active
     override val data: T? get() = reply.getOrNull()
 }
 
@@ -100,9 +63,6 @@ data class SubscriptionErrorObject<T>(
     override val replyUpdatedAt: Long,
     override val error: Throwable,
     override val errorUpdatedAt: Long,
-    override val subscriberStatus: SubscriberStatus,
-    override val subscribe: suspend () -> Unit,
-    override val unsubscribe: () -> Unit,
     override val reset: suspend () -> Unit
 ) : SubscriptionObject<T> {
     override val status: SubscriptionStatus = SubscriptionStatus.Failure
@@ -120,9 +80,6 @@ data class SubscriptionSuccessObject<T>(
     override val replyUpdatedAt: Long,
     override val error: Throwable?,
     override val errorUpdatedAt: Long,
-    override val subscriberStatus: SubscriberStatus,
-    override val subscribe: suspend () -> Unit,
-    override val unsubscribe: () -> Unit,
     override val reset: suspend () -> Unit
 ) : SubscriptionObject<T> {
     override val status: SubscriptionStatus = SubscriptionStatus.Success

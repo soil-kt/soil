@@ -4,7 +4,6 @@
 package soil.query.compose
 
 import kotlinx.coroutines.flow.MutableStateFlow
-import soil.query.SubscriberStatus
 import soil.query.SubscriptionId
 import soil.query.SubscriptionKey
 import soil.query.SubscriptionState
@@ -26,36 +25,11 @@ import kotlin.test.assertTrue
 class SubscriptionObjectMapperTest : UnitTest() {
 
     @Test
-    fun testToObject_idle() {
-        val key = TestSubscriptionKey()
-        val client = SwrPreviewClient(
-            subscription = SubscriptionPreviewClient {
-                on(key.id) { SubscriptionState.initial() }
-            }
-        )
-        val subscription = client.getSubscription(key)
-        val actual = with(SubscriptionObjectMapper.Default) {
-            subscription.state.value.toObject(subscription = subscription, select = { it })
-        }
-        assertTrue(actual is SubscriptionIdleObject)
-        assertTrue(actual.reply.isNone)
-        assertEquals(0, actual.replyUpdatedAt)
-        assertNull(actual.error)
-        assertEquals(0, actual.errorUpdatedAt)
-        assertEquals(subscription::resume, actual.subscribe)
-        assertEquals(subscription::cancel, actual.unsubscribe)
-        assertEquals(subscription::reset, actual.reset)
-        assertEquals(SubscriptionStatus.Pending, actual.status)
-        assertEquals(SubscriberStatus.NoSubscribers, actual.subscriberStatus)
-        assertNull(actual.data)
-    }
-
-    @Test
     fun testToObject_loading() {
         val key = TestSubscriptionKey()
         val client = SwrPreviewClient(
             subscription = SubscriptionPreviewClient {
-                on(key.id) { SubscriptionState.initial(subscriberStatus = SubscriberStatus.Active) }
+                on(key.id) { SubscriptionState.initial() }
             }
         )
         val subscription = client.getSubscription(key)
@@ -67,11 +41,8 @@ class SubscriptionObjectMapperTest : UnitTest() {
         assertEquals(0, actual.replyUpdatedAt)
         assertNull(actual.error)
         assertEquals(0, actual.errorUpdatedAt)
-        assertEquals(subscription::resume, actual.subscribe)
-        assertEquals(subscription::cancel, actual.unsubscribe)
         assertEquals(subscription::reset, actual.reset)
         assertEquals(SubscriptionStatus.Pending, actual.status)
-        assertEquals(SubscriberStatus.Active, actual.subscriberStatus)
         assertNull(actual.data)
     }
 
@@ -83,8 +54,7 @@ class SubscriptionObjectMapperTest : UnitTest() {
                 on(key.id) {
                     SubscriptionState.success(
                         data = "Hello, Subscription!",
-                        dataUpdatedAt = 400,
-                        subscriberStatus = SubscriberStatus.Active
+                        dataUpdatedAt = 400
                     )
                 }
             }
@@ -98,11 +68,8 @@ class SubscriptionObjectMapperTest : UnitTest() {
         assertEquals(400, actual.replyUpdatedAt)
         assertNull(actual.error)
         assertEquals(0, actual.errorUpdatedAt)
-        assertEquals(subscription::resume, actual.subscribe)
-        assertEquals(subscription::cancel, actual.unsubscribe)
         assertEquals(subscription::reset, actual.reset)
         assertEquals(SubscriptionStatus.Success, actual.status)
-        assertEquals(SubscriberStatus.Active, actual.subscriberStatus)
         assertNotNull(actual.data)
     }
 
@@ -114,8 +81,7 @@ class SubscriptionObjectMapperTest : UnitTest() {
                 on(key.id) {
                     SubscriptionState.failure(
                         error = RuntimeException("Error"),
-                        errorUpdatedAt = 500,
-                        subscriberStatus = SubscriberStatus.Active
+                        errorUpdatedAt = 500
                     )
                 }
             }
@@ -129,11 +95,8 @@ class SubscriptionObjectMapperTest : UnitTest() {
         assertEquals(0, actual.replyUpdatedAt)
         assertNotNull(actual.error)
         assertEquals(500, actual.errorUpdatedAt)
-        assertEquals(subscription::resume, actual.subscribe)
-        assertEquals(subscription::cancel, actual.unsubscribe)
         assertEquals(subscription::reset, actual.reset)
         assertEquals(SubscriptionStatus.Failure, actual.status)
-        assertEquals(SubscriberStatus.Active, actual.subscriberStatus)
         assertNull(actual.data)
     }
 
@@ -147,8 +110,7 @@ class SubscriptionObjectMapperTest : UnitTest() {
                         error = RuntimeException("Error"),
                         errorUpdatedAt = 500,
                         data = "Hello, Subscription!",
-                        dataUpdatedAt = 400,
-                        subscriberStatus = SubscriberStatus.Active
+                        dataUpdatedAt = 400
                     )
                 }
             }
@@ -162,11 +124,8 @@ class SubscriptionObjectMapperTest : UnitTest() {
         assertEquals(400, actual.replyUpdatedAt)
         assertNotNull(actual.error)
         assertEquals(500, actual.errorUpdatedAt)
-        assertEquals(subscription::resume, actual.subscribe)
-        assertEquals(subscription::cancel, actual.unsubscribe)
         assertEquals(subscription::reset, actual.reset)
         assertEquals(SubscriptionStatus.Failure, actual.status)
-        assertEquals(SubscriberStatus.Active, actual.subscriberStatus)
         assertNotNull(actual.data)
     }
 
