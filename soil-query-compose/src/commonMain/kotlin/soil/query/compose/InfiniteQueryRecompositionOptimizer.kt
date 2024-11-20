@@ -26,10 +26,10 @@ interface InfiniteQueryRecompositionOptimizer {
 /**
  * Optimizer implementation for [InfiniteQueryStrategy.Companion.Default].
  */
-val InfiniteQueryRecompositionOptimizer.Companion.Default: InfiniteQueryRecompositionOptimizer
-    get() = DefaultInfiniteQueryRecompositionOptimizer
+val InfiniteQueryRecompositionOptimizer.Companion.Enabled: InfiniteQueryRecompositionOptimizer
+    get() = InfiniteQueryRecompositionOptimizerEnabled
 
-private object DefaultInfiniteQueryRecompositionOptimizer : InfiniteQueryRecompositionOptimizer {
+private object InfiniteQueryRecompositionOptimizerEnabled : InfiniteQueryRecompositionOptimizer {
     override fun <T, S> omit(state: QueryState<QueryChunks<T, S>>): QueryState<QueryChunks<T, S>> {
         val keys = buildSet {
             add(QueryState.OmitKey.replyUpdatedAt)

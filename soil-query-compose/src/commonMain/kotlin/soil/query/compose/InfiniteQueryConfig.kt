@@ -44,7 +44,7 @@ data class InfiniteQueryConfig internal constructor(
     companion object {
         val Default = InfiniteQueryConfig(
             mapper = InfiniteQueryObjectMapper.Default,
-            optimizer = InfiniteQueryRecompositionOptimizer.Default,
+            optimizer = InfiniteQueryRecompositionOptimizer.Enabled,
             strategy = InfiniteQueryStrategy.Default,
             marker = Marker.None
         )

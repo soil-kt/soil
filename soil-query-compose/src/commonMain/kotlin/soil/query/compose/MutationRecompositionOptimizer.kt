@@ -25,10 +25,10 @@ interface MutationRecompositionOptimizer {
 /**
  * Optimizer implementation for [MutationStrategy.Companion.Default].
  */
-val MutationRecompositionOptimizer.Companion.Default: MutationRecompositionOptimizer
-    get() = DefaultMutationRecompositionOptimizer
+val MutationRecompositionOptimizer.Companion.Enabled: MutationRecompositionOptimizer
+    get() = MutationRecompositionOptimizerEnabled
 
-private object DefaultMutationRecompositionOptimizer : MutationRecompositionOptimizer {
+private object MutationRecompositionOptimizerEnabled : MutationRecompositionOptimizer {
     override fun <T> omit(state: MutationState<T>): MutationState<T> {
         val keys = buildSet {
             add(MutationState.OmitKey.replyUpdatedAt)

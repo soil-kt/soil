@@ -44,7 +44,7 @@ data class QueryConfig internal constructor(
     companion object {
         val Default = QueryConfig(
             mapper = QueryObjectMapper.Default,
-            optimizer = QueryRecompositionOptimizer.Default,
+            optimizer = QueryRecompositionOptimizer.Enabled,
             strategy = QueryStrategy.Default,
             marker = Marker.None
         )

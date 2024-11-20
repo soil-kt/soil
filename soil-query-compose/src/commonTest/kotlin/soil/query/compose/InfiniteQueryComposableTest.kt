@@ -51,7 +51,7 @@ class InfiniteQueryComposableTest : UnitTest() {
             SwrClientProvider(client) {
                 val query = rememberInfiniteQuery(key, config = InfiniteQueryConfig {
                     mapper = InfiniteQueryObjectMapper.Default
-                    optimizer = InfiniteQueryRecompositionOptimizer.Default
+                    optimizer = InfiniteQueryRecompositionOptimizer.Enabled
                     strategy = InfiniteQueryStrategy.Default
                     marker = Marker.None
                 })

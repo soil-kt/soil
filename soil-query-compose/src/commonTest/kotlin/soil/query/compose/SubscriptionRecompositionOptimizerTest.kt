@@ -27,7 +27,7 @@ class SubscriptionRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             status = SubscriptionStatus.Pending
         )
-        val actual = SubscriptionRecompositionOptimizer.Default.omit(state)
+        val actual = SubscriptionRecompositionOptimizer.Enabled.omit(state)
         val expected = SubscriptionState.test(
             reply = Reply.some(1),
             replyUpdatedAt = 0,
@@ -45,7 +45,7 @@ class SubscriptionRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             status = SubscriptionStatus.Success
         )
-        val actual = SubscriptionRecompositionOptimizer.Default.omit(state)
+        val actual = SubscriptionRecompositionOptimizer.Enabled.omit(state)
         val expected = SubscriptionState.test(
             reply = Reply.some(1),
             replyUpdatedAt = 0,
@@ -65,7 +65,7 @@ class SubscriptionRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             status = SubscriptionStatus.Failure
         )
-        val actual = SubscriptionRecompositionOptimizer.Default.omit(state)
+        val actual = SubscriptionRecompositionOptimizer.Enabled.omit(state)
         val expected = SubscriptionState.test(
             reply = Reply.some(1),
             replyUpdatedAt = 0,

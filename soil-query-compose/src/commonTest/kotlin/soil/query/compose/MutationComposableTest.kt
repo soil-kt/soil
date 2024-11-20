@@ -46,7 +46,7 @@ class MutationComposableTest : UnitTest() {
             SwrClientProvider(client) {
                 val mutation = rememberMutation(key, config = MutationConfig {
                     mapper = MutationObjectMapper.Default
-                    optimizer = MutationRecompositionOptimizer.Default
+                    optimizer = MutationRecompositionOptimizer.Enabled
                     strategy = MutationStrategy.Default
                     marker = Marker.None
                 })

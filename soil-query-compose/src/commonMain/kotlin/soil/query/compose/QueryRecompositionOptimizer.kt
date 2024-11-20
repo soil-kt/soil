@@ -25,10 +25,10 @@ interface QueryRecompositionOptimizer {
 /**
  * Optimizer implementation for [QueryStrategy.Companion.Default].
  */
-val QueryRecompositionOptimizer.Companion.Default: QueryRecompositionOptimizer
-    get() = DefaultQueryRecompositionOptimizer
+val QueryRecompositionOptimizer.Companion.Enabled: QueryRecompositionOptimizer
+    get() = QueryRecompositionOptimizerEnabled
 
-private object DefaultQueryRecompositionOptimizer : QueryRecompositionOptimizer {
+private object QueryRecompositionOptimizerEnabled : QueryRecompositionOptimizer {
     override fun <T> omit(state: QueryState<T>): QueryState<T> {
         val keys = buildSet {
             add(QueryState.OmitKey.replyUpdatedAt)
