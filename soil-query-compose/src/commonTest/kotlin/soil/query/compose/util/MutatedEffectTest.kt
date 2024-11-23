@@ -1,3 +1,6 @@
+// Copyright 2024 Soil Contributors
+// SPDX-License-Identifier: Apache-2.0
+
 package soil.query.compose.util
 
 import androidx.compose.foundation.layout.Column
