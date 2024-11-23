@@ -15,8 +15,7 @@ data class SubscriptionState<T> internal constructor(
     override val replyUpdatedAt: Long = 0,
     override val error: Throwable? = null,
     override val errorUpdatedAt: Long = 0,
-    override val status: SubscriptionStatus = SubscriptionStatus.Pending,
-    override val subscriberStatus: SubscriberStatus = SubscriberStatus.NoSubscribers
+    override val status: SubscriptionStatus = SubscriptionStatus.Pending
 ) : SubscriptionModel<T> {
 
     /**
@@ -25,14 +24,12 @@ data class SubscriptionState<T> internal constructor(
      * NOTE: This function is provided to optimize recomposition for Compose APIs.
      */
     fun omit(
-        keys: Set<OmitKey>,
-        defaultSubscriberStatus: SubscriberStatus = SubscriberStatus.NoSubscribers
+        keys: Set<OmitKey>
     ): SubscriptionState<T> {
         if (keys.isEmpty()) return this
         return copy(
             replyUpdatedAt = if (keys.contains(OmitKey.replyUpdatedAt)) 0 else replyUpdatedAt,
-            errorUpdatedAt = if (keys.contains(OmitKey.errorUpdatedAt)) 0 else errorUpdatedAt,
-            subscriberStatus = if (keys.contains(OmitKey.subscriberStatus)) defaultSubscriberStatus else subscriberStatus
+            errorUpdatedAt = if (keys.contains(OmitKey.errorUpdatedAt)) 0 else errorUpdatedAt
         )
     }
 
@@ -41,7 +38,6 @@ data class SubscriptionState<T> internal constructor(
         companion object {
             val replyUpdatedAt = OmitKey("replyUpdatedAt")
             val errorUpdatedAt = OmitKey("errorUpdatedAt")
-            val subscriberStatus = OmitKey("subscriberStatus")
         }
     }
 
@@ -49,15 +45,9 @@ data class SubscriptionState<T> internal constructor(
 
         /**
          * Creates a new [SubscriptionState] with the [SubscriptionStatus.Pending] status.
-         *
-         * @param subscriberStatus The status of the subscriber.
          */
-        fun <T> initial(
-            subscriberStatus: SubscriberStatus = SubscriberStatus.NoSubscribers
-        ): SubscriptionState<T> {
-            return SubscriptionState(
-                subscriberStatus = subscriberStatus
-            )
+        fun <T> initial(): SubscriptionState<T> {
+            return SubscriptionState()
         }
 
         /**
@@ -65,18 +55,15 @@ data class SubscriptionState<T> internal constructor(
          *
          * @param data The data to be stored in the state.
          * @param dataUpdatedAt The timestamp when the data was updated. Default is the current epoch.
-         * @param subscriberStatus The status of the subscriber.
          */
         fun <T> success(
             data: T,
-            dataUpdatedAt: Long = epoch(),
-            subscriberStatus: SubscriberStatus = SubscriberStatus.NoSubscribers
+            dataUpdatedAt: Long = epoch()
         ): SubscriptionState<T> {
             return SubscriptionState(
                 reply = Reply(data),
                 replyUpdatedAt = dataUpdatedAt,
-                status = SubscriptionStatus.Success,
-                subscriberStatus = subscriberStatus
+                status = SubscriptionStatus.Success
             )
         }
 
@@ -85,18 +72,15 @@ data class SubscriptionState<T> internal constructor(
          *
          * @param error The error to be stored in the state.
          * @param errorUpdatedAt The timestamp when the error was updated. Default is the current epoch.
-         * @param subscriberStatus The status of the subscriber.
          */
         fun <T> failure(
             error: Throwable,
-            errorUpdatedAt: Long = epoch(),
-            subscriberStatus: SubscriberStatus = SubscriberStatus.NoSubscribers
+            errorUpdatedAt: Long = epoch()
         ): SubscriptionState<T> {
             return SubscriptionState(
                 error = error,
                 errorUpdatedAt = errorUpdatedAt,
-                status = SubscriptionStatus.Failure,
-                subscriberStatus = subscriberStatus
+                status = SubscriptionStatus.Failure
             )
         }
 
@@ -107,22 +91,19 @@ data class SubscriptionState<T> internal constructor(
          * @param errorUpdatedAt The timestamp when the error was updated. Default is the current epoch.
          * @param data The data to be stored in the state.
          * @param dataUpdatedAt The timestamp when the data was updated. Default is the current epoch.
-         * @param subscriberStatus The status of the subscriber.
          */
         fun <T> failure(
             error: Throwable,
             errorUpdatedAt: Long = epoch(),
             data: T,
-            dataUpdatedAt: Long = epoch(),
-            subscriberStatus: SubscriberStatus = SubscriberStatus.NoSubscribers
+            dataUpdatedAt: Long = epoch()
         ): SubscriptionState<T> {
             return SubscriptionState(
                 reply = Reply(data),
                 replyUpdatedAt = dataUpdatedAt,
                 error = error,
                 errorUpdatedAt = errorUpdatedAt,
-                status = SubscriptionStatus.Failure,
-                subscriberStatus = subscriberStatus
+                status = SubscriptionStatus.Failure
             )
         }
 
@@ -136,16 +117,14 @@ data class SubscriptionState<T> internal constructor(
             replyUpdatedAt: Long = 0,
             error: Throwable? = null,
             errorUpdatedAt: Long = 0,
-            status: SubscriptionStatus = SubscriptionStatus.Pending,
-            subscriberStatus: SubscriberStatus = SubscriberStatus.NoSubscribers
+            status: SubscriptionStatus = SubscriptionStatus.Pending
         ): SubscriptionState<T> {
             return SubscriptionState(
                 reply = reply,
                 replyUpdatedAt = replyUpdatedAt,
                 error = error,
                 errorUpdatedAt = errorUpdatedAt,
-                status = status,
-                subscriberStatus = subscriberStatus
+                status = status
             )
         }
     }

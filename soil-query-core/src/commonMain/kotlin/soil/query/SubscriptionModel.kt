@@ -20,11 +20,6 @@ interface SubscriptionModel<out T> : DataModel<T> {
     val status: SubscriptionStatus
 
     /**
-     * The subscriber status of the subscription.
-     */
-    val subscriberStatus: SubscriberStatus
-
-    /**
      * The revision of the currently snapshot.
      */
     val revision: String get() = "d-$replyUpdatedAt/e-$errorUpdatedAt"
@@ -45,17 +40,12 @@ interface SubscriptionModel<out T> : DataModel<T> {
     val isFailure: Boolean get() = status == SubscriptionStatus.Failure
 
     /**
-     * Returns `true` if the subscription has subscribers, `false` otherwise.
-     */
-    val hasSubscribers: Boolean get() = subscriberStatus == SubscriberStatus.Active
-
-    /**
      * Returns true if the [SubscriptionModel] is awaited.
      *
      * @see DataModel.isAwaited
      */
     override fun isAwaited(): Boolean {
-        return isPending && hasSubscribers
+        return isPending
     }
 }
 
@@ -66,12 +56,4 @@ enum class SubscriptionStatus {
     Pending,
     Success,
     Failure
-}
-
-/**
- * The subscriber status of the subscription.
- */
-enum class SubscriberStatus {
-    NoSubscribers,
-    Active,
 }

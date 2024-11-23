@@ -5,9 +5,8 @@ package soil.query
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.onStart
 import soil.query.core.Actor
 import soil.query.core.Marker
 
@@ -37,11 +36,6 @@ interface SubscriptionRef<T> : Actor {
      * Resumes the Subscription.
      */
     suspend fun resume()
-
-    /**
-     * Cancels the Subscription.
-     */
-    fun cancel()
 }
 
 /**
@@ -65,8 +59,6 @@ private class SubscriptionRefImpl<T>(
     private val subscription: Subscription<T>
 ) : SubscriptionRef<T> {
 
-    private var job: Job? = null
-
     override val id: SubscriptionId<T>
         get() = key.id
 
@@ -78,17 +70,13 @@ private class SubscriptionRefImpl<T>(
     }
 
     override suspend fun resume() {
-        if (job?.isActive == true) return
-        coroutineScope {
-            job = launch {
-                subscription.source.collect(::receive)
+        subscription.source
+            .onStart {
+                if (state.value.isFailure) {
+                    reset()
+                }
             }
-        }
-    }
-
-    override fun cancel() {
-        job?.cancel()
-        job = null
+            .collect(::receive)
     }
 
     override suspend fun reset() {

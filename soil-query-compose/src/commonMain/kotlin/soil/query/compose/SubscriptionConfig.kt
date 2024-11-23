@@ -48,13 +48,6 @@ data class SubscriptionConfig internal constructor(
             strategy = SubscriptionStrategy.Default,
             marker = Marker.None
         )
-
-        val Lazy = SubscriptionConfig(
-            mapper = SubscriptionObjectMapper.Default,
-            optimizer = SubscriptionRecompositionOptimizer.Lazy,
-            strategy = SubscriptionStrategy.Lazy,
-            marker = Marker.None
-        )
     }
 }
 

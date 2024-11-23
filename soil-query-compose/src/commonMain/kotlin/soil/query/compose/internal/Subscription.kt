@@ -47,8 +47,6 @@ private class Subscription<T>(
 
     override suspend fun resume() = subscription.resume()
 
-    override fun cancel() = subscription.cancel()
-
     override fun launchIn(scope: CoroutineScope): Job {
         return scope.launch {
             subscription.state.collect { _state.value = optimize(it) }

@@ -50,7 +50,6 @@ class SubscriptionPreviewClient(
         override fun launchIn(scope: CoroutineScope): Job = Job()
         override suspend fun reset() = Unit
         override suspend fun resume() = Unit
-        override fun cancel() = Unit
     }
 
     /**

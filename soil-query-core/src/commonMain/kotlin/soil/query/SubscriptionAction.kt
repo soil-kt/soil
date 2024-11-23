@@ -38,15 +38,6 @@ sealed interface SubscriptionAction<out T> {
         val error: Throwable,
         val errorUpdatedAt: Long
     ) : SubscriptionAction<Nothing>
-
-    /**
-     * Updates the subscriber status.
-     *
-     * @param subscriberStatus The subscriber status to be updated.
-     */
-    data class UpdateSubscriberStatus(
-        val subscriberStatus: SubscriberStatus
-    ) : SubscriptionAction<Nothing>
 }
 
 typealias SubscriptionReducer<T> = (SubscriptionState<T>, SubscriptionAction<T>) -> SubscriptionState<T>
@@ -82,12 +73,6 @@ fun <T> createSubscriptionReducer(): SubscriptionReducer<T> = { state, action ->
                 status = SubscriptionStatus.Failure,
                 error = action.error,
                 errorUpdatedAt = action.errorUpdatedAt
-            )
-        }
-
-        is SubscriptionAction.UpdateSubscriberStatus -> {
-            state.copy(
-                subscriberStatus = action.subscriberStatus
             )
         }
     }

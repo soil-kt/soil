@@ -3,7 +3,6 @@
 
 package soil.query.compose
 
-import soil.query.SubscriberStatus
 import soil.query.SubscriptionState
 import soil.query.SubscriptionStatus
 
@@ -29,27 +28,10 @@ interface SubscriptionRecompositionOptimizer {
 val SubscriptionRecompositionOptimizer.Companion.Default: SubscriptionRecompositionOptimizer
     get() = DefaultSubscriptionRecompositionOptimizer
 
-private object DefaultSubscriptionRecompositionOptimizer :
-    AbstractSubscriptionRecompositionOptimizer(SubscriberStatus.Active)
-
-/**
- * Optimizer implementation for [SubscriptionStrategy.Companion.Lazy].
- */
-val SubscriptionRecompositionOptimizer.Companion.Lazy: SubscriptionRecompositionOptimizer
-    get() = LazySubscriptionRecompositionOptimizer
-
-private object LazySubscriptionRecompositionOptimizer :
-    AbstractSubscriptionRecompositionOptimizer()
-
-private abstract class AbstractSubscriptionRecompositionOptimizer(
-    private val subscriberStatus: SubscriberStatus? = null
-) : SubscriptionRecompositionOptimizer {
+private object DefaultSubscriptionRecompositionOptimizer : SubscriptionRecompositionOptimizer {
     override fun <T> omit(state: SubscriptionState<T>): SubscriptionState<T> {
         val keys = buildSet {
             add(SubscriptionState.OmitKey.replyUpdatedAt)
-            if (subscriberStatus != null) {
-                add(SubscriptionState.OmitKey.subscriberStatus)
-            }
             when (state.status) {
                 SubscriptionStatus.Pending -> {
                     add(SubscriptionState.OmitKey.errorUpdatedAt)
@@ -62,7 +44,7 @@ private abstract class AbstractSubscriptionRecompositionOptimizer(
                 SubscriptionStatus.Failure -> Unit
             }
         }
-        return state.omit(keys, subscriberStatus ?: SubscriberStatus.NoSubscribers)
+        return state.omit(keys)
     }
 }
 

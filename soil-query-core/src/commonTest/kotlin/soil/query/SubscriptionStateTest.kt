@@ -17,14 +17,12 @@ class SubscriptionStateTest : UnitTest() {
             replyUpdatedAt = 300,
             error = null,
             errorUpdatedAt = 400,
-            status = SubscriptionStatus.Success,
-            subscriberStatus = SubscriberStatus.Active
+            status = SubscriptionStatus.Success
         )
         val actual = state.omit(
             keys = setOf(
                 SubscriptionState.OmitKey.replyUpdatedAt,
-                SubscriptionState.OmitKey.errorUpdatedAt,
-                SubscriptionState.OmitKey.subscriberStatus
+                SubscriptionState.OmitKey.errorUpdatedAt
             )
         )
         val expected = SubscriptionState(
@@ -32,8 +30,7 @@ class SubscriptionStateTest : UnitTest() {
             replyUpdatedAt = 0,
             error = null,
             errorUpdatedAt = 0,
-            status = SubscriptionStatus.Success,
-            subscriberStatus = SubscriberStatus.NoSubscribers
+            status = SubscriptionStatus.Success
         )
         assertEquals(expected, actual)
     }
@@ -45,24 +42,20 @@ class SubscriptionStateTest : UnitTest() {
             replyUpdatedAt = 300,
             error = null,
             errorUpdatedAt = 400,
-            status = SubscriptionStatus.Success,
-            subscriberStatus = SubscriberStatus.NoSubscribers
+            status = SubscriptionStatus.Success
         )
         val actual = state.omit(
             keys = setOf(
                 SubscriptionState.OmitKey.replyUpdatedAt,
-                SubscriptionState.OmitKey.errorUpdatedAt,
-                SubscriptionState.OmitKey.subscriberStatus
-            ),
-            defaultSubscriberStatus = SubscriberStatus.Active
+                SubscriptionState.OmitKey.errorUpdatedAt
+            )
         )
         val expected = SubscriptionState(
             reply = Reply(1),
             replyUpdatedAt = 0,
             error = null,
             errorUpdatedAt = 0,
-            status = SubscriptionStatus.Success,
-            subscriberStatus = SubscriberStatus.Active
+            status = SubscriptionStatus.Success
         )
         assertEquals(expected, actual)
     }
@@ -73,5 +66,4 @@ class SubscriptionStateTest : UnitTest() {
         val actual = expected.omit(emptySet())
         assertEquals(expected, actual)
     }
-
 }

@@ -42,11 +42,11 @@ class TestSwrClientPlusTest : UnitTest() {
         }
         val key = ExampleSubscriptionKey()
         val subscription = testClient.getSubscription(key).also { it.launchIn(backgroundScope) }
-        launch { subscription.resume() }
+        val job = launch { subscription.resume() }
         launch { subscription.state.filter { it.isSuccess }.first() }
         runCurrent()
         assertEquals("Hello, World!", subscription.state.value.reply.getOrThrow())
-        subscription.cancel()
+        job.cancel()
     }
 }
 

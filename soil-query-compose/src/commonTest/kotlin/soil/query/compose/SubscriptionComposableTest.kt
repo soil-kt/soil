@@ -21,7 +21,6 @@ import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilExactlyOneExists
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
-import soil.query.SubscriberStatus
 import soil.query.SubscriptionId
 import soil.query.SubscriptionKey
 import soil.query.SubscriptionState
@@ -108,32 +107,11 @@ class SubscriptionComposableTest : UnitTest() {
     }
 
     @Test
-    fun testRememberSubscription_idlePreview() = runComposeUiTest {
-        val key = TestSubscriptionKey()
-        val client = SwrPreviewClient(
-            subscription = SubscriptionPreviewClient {
-                on(key.id) { SubscriptionState.initial(subscriberStatus = SubscriberStatus.NoSubscribers) }
-            }
-        )
-        setContent {
-            SwrClientProvider(client) {
-                when (rememberSubscription(key, config = SubscriptionConfig.Lazy)) {
-                    is SubscriptionIdleObject -> Text("idle", modifier = Modifier.testTag("subscription"))
-                    else -> Unit
-                }
-            }
-        }
-
-        waitForIdle()
-        onNodeWithTag("subscription").assertTextEquals("idle")
-    }
-
-    @Test
     fun testRememberSubscription_loadingPreview() = runComposeUiTest {
         val key = TestSubscriptionKey()
         val client = SwrPreviewClient(
             subscription = SubscriptionPreviewClient {
-                on(key.id) { SubscriptionState.initial(subscriberStatus = SubscriberStatus.Active) }
+                on(key.id) { SubscriptionState.initial() }
             }
         )
         setContent {
@@ -156,8 +134,7 @@ class SubscriptionComposableTest : UnitTest() {
             subscription = SubscriptionPreviewClient {
                 on(key.id) {
                     SubscriptionState.success(
-                        data = "Hello, Subscription!",
-                        subscriberStatus = SubscriberStatus.Active
+                        data = "Hello, Subscription!"
                     )
                 }
             }
@@ -182,8 +159,7 @@ class SubscriptionComposableTest : UnitTest() {
             subscription = SubscriptionPreviewClient {
                 on(key.id) {
                     SubscriptionState.failure(
-                        error = RuntimeException("Error"),
-                        subscriberStatus = SubscriberStatus.Active
+                        error = RuntimeException("Error")
                     )
                 }
             }

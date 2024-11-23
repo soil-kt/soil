@@ -154,7 +154,6 @@ class SwrCachePlus(private val policy: SwrCachePlusPolicy) : SwrCache(policy), S
                     stopTimeout = options.keepAliveTime,
                     onSubscriptionCount = { subscribers ->
                         options.vvv(id) { "subscription count: $subscribers" }
-                        scope.launch { command.send(SubscriptionCommands.Count(subscribers)) }
                     }
                 )
             )
