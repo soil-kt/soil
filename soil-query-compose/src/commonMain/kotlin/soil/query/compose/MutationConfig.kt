@@ -44,7 +44,7 @@ data class MutationConfig internal constructor(
     companion object {
         val Default = MutationConfig(
             mapper = MutationObjectMapper.Default,
-            optimizer = MutationRecompositionOptimizer.Enabled,
+            optimizer = MutationRecompositionOptimizer.Disabled,
             strategy = MutationStrategy.Default,
             marker = Marker.None
         )
