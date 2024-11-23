@@ -45,7 +45,7 @@ class QueryComposableTest : UnitTest() {
             SwrClientProvider(client) {
                 val query = rememberQuery(key, config = QueryConfig {
                     mapper = QueryObjectMapper.Default
-                    optimizer = QueryRecompositionOptimizer.Default
+                    optimizer = QueryRecompositionOptimizer.Enabled
                     strategy = QueryStrategy.Default
                     marker = Marker.None
                 })

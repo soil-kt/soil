@@ -25,10 +25,10 @@ interface SubscriptionRecompositionOptimizer {
 /**
  * Optimizer implementation for [SubscriptionStrategy.Companion.Default].
  */
-val SubscriptionRecompositionOptimizer.Companion.Default: SubscriptionRecompositionOptimizer
-    get() = DefaultSubscriptionRecompositionOptimizer
+val SubscriptionRecompositionOptimizer.Companion.Enabled: SubscriptionRecompositionOptimizer
+    get() = SubscriptionRecompositionOptimizerEnabled
 
-private object DefaultSubscriptionRecompositionOptimizer : SubscriptionRecompositionOptimizer {
+private object SubscriptionRecompositionOptimizerEnabled : SubscriptionRecompositionOptimizer {
     override fun <T> omit(state: SubscriptionState<T>): SubscriptionState<T> {
         val keys = buildSet {
             add(SubscriptionState.OmitKey.replyUpdatedAt)

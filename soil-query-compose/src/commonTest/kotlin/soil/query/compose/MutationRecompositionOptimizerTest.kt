@@ -22,7 +22,7 @@ class MutationRecompositionOptimizerTest : UnitTest() {
             status = MutationStatus.Idle,
             mutatedCount = 1
         )
-        val actual = MutationRecompositionOptimizer.Default.omit(state)
+        val actual = MutationRecompositionOptimizer.Enabled.omit(state)
         val expected = MutationState.test(
             reply = Reply.some(1),
             replyUpdatedAt = 0,
@@ -44,7 +44,7 @@ class MutationRecompositionOptimizerTest : UnitTest() {
             status = MutationStatus.Pending,
             mutatedCount = 1
         )
-        val actual = MutationRecompositionOptimizer.Default.omit(state)
+        val actual = MutationRecompositionOptimizer.Enabled.omit(state)
         val expected = MutationState.test(
             reply = Reply.some(1),
             replyUpdatedAt = 0,
@@ -66,7 +66,7 @@ class MutationRecompositionOptimizerTest : UnitTest() {
             status = MutationStatus.Success,
             mutatedCount = 1
         )
-        val actual = MutationRecompositionOptimizer.Default.omit(state)
+        val actual = MutationRecompositionOptimizer.Enabled.omit(state)
         val expected = MutationState.test(
             reply = Reply.some(1),
             replyUpdatedAt = 0,
@@ -89,7 +89,7 @@ class MutationRecompositionOptimizerTest : UnitTest() {
             status = MutationStatus.Failure,
             mutatedCount = 1
         )
-        val actual = MutationRecompositionOptimizer.Default.omit(state)
+        val actual = MutationRecompositionOptimizer.Enabled.omit(state)
         val expected = MutationState.test(
             reply = Reply.some(1),
             replyUpdatedAt = 0,

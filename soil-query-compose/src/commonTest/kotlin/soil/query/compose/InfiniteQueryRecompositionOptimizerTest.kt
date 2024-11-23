@@ -110,7 +110,7 @@ class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
             fetchStatus = QueryFetchStatus.Fetching,
             isInvalidated = false
         )
-        val actual = InfiniteQueryRecompositionOptimizer.Default.omit(state)
+        val actual = InfiniteQueryRecompositionOptimizer.Enabled.omit(state)
         val expected = QueryState.test<QueryChunks<Int, Int>>(
             reply = Reply.None,
             replyUpdatedAt = 0,
@@ -134,7 +134,7 @@ class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
             fetchStatus = QueryFetchStatus.Fetching,
             isInvalidated = false
         )
-        val actual = InfiniteQueryRecompositionOptimizer.Default.omit(state)
+        val actual = InfiniteQueryRecompositionOptimizer.Enabled.omit(state)
         val expected = QueryState.test<QueryChunks<Int, Int>>(
             reply = Reply.some(emptyChunks()),
             replyUpdatedAt = 0,
@@ -158,7 +158,7 @@ class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
             fetchStatus = QueryFetchStatus.Fetching,
             isInvalidated = true
         )
-        val actual = InfiniteQueryRecompositionOptimizer.Default.omit(state)
+        val actual = InfiniteQueryRecompositionOptimizer.Enabled.omit(state)
         val expected = QueryState.test<QueryChunks<Int, Int>>(
             reply = Reply.some(emptyChunks()),
             replyUpdatedAt = 0,
@@ -184,7 +184,7 @@ class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
             fetchStatus = QueryFetchStatus.Fetching,
             isInvalidated = false
         )
-        val actual = InfiniteQueryRecompositionOptimizer.Default.omit(state)
+        val actual = InfiniteQueryRecompositionOptimizer.Enabled.omit(state)
         val expected = QueryState.test<QueryChunks<Int, Int>>(
             reply = Reply.some(emptyChunks()),
             replyUpdatedAt = 0,
@@ -211,7 +211,7 @@ class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
             fetchStatus = QueryFetchStatus.Fetching,
             isInvalidated = true
         )
-        val actual = InfiniteQueryRecompositionOptimizer.Default.omit(state)
+        val actual = InfiniteQueryRecompositionOptimizer.Enabled.omit(state)
         val expected = QueryState.test<QueryChunks<Int, Int>>(
             reply = Reply.some(emptyChunks()),
             replyUpdatedAt = 0,

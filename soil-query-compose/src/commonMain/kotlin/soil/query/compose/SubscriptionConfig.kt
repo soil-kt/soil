@@ -44,7 +44,7 @@ data class SubscriptionConfig internal constructor(
     companion object {
         val Default = SubscriptionConfig(
             mapper = SubscriptionObjectMapper.Default,
-            optimizer = SubscriptionRecompositionOptimizer.Default,
+            optimizer = SubscriptionRecompositionOptimizer.Enabled,
             strategy = SubscriptionStrategy.Default,
             marker = Marker.None
         )

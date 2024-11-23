@@ -87,7 +87,7 @@ class QueryRecompositionOptimizerTest : UnitTest() {
             fetchStatus = QueryFetchStatus.Fetching,
             isInvalidated = false
         )
-        val actual = QueryRecompositionOptimizer.Default.omit(state)
+        val actual = QueryRecompositionOptimizer.Enabled.omit(state)
         val expected = QueryState.test(
             reply = Reply.None,
             replyUpdatedAt = 0,
@@ -111,7 +111,7 @@ class QueryRecompositionOptimizerTest : UnitTest() {
             fetchStatus = QueryFetchStatus.Fetching,
             isInvalidated = false
         )
-        val actual = QueryRecompositionOptimizer.Default.omit(state)
+        val actual = QueryRecompositionOptimizer.Enabled.omit(state)
         val expected = QueryState.test(
             reply = Reply.some(1),
             replyUpdatedAt = 0,
@@ -135,7 +135,7 @@ class QueryRecompositionOptimizerTest : UnitTest() {
             fetchStatus = QueryFetchStatus.Fetching,
             isInvalidated = true
         )
-        val actual = QueryRecompositionOptimizer.Default.omit(state)
+        val actual = QueryRecompositionOptimizer.Enabled.omit(state)
         val expected = QueryState.test(
             reply = Reply.some(1),
             replyUpdatedAt = 0,
@@ -161,7 +161,7 @@ class QueryRecompositionOptimizerTest : UnitTest() {
             fetchStatus = QueryFetchStatus.Fetching,
             isInvalidated = false
         )
-        val actual = QueryRecompositionOptimizer.Default.omit(state)
+        val actual = QueryRecompositionOptimizer.Enabled.omit(state)
         val expected = QueryState.test(
             reply = Reply.some(1),
             replyUpdatedAt = 0,
@@ -188,7 +188,7 @@ class QueryRecompositionOptimizerTest : UnitTest() {
             fetchStatus = QueryFetchStatus.Fetching,
             isInvalidated = true
         )
-        val actual = QueryRecompositionOptimizer.Default.omit(state)
+        val actual = QueryRecompositionOptimizer.Enabled.omit(state)
         val expected = QueryState.test(
             reply = Reply.some(1),
             replyUpdatedAt = 0,
