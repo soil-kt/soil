@@ -35,7 +35,7 @@ Soil is available on `mavenCentral()`.
 
 ```kts
 dependencies {
-    val soil = "1.0.0-alpha07"
+    val soil = "1.0.0-alpha08"
 
     // Query
     implementation("com.soil-kt.soil:query-core:$soil")
