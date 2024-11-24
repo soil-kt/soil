@@ -56,12 +56,12 @@ fun <T, U : Any> MutatedEffect(
 /**
  * A Composable function to trigger side effects when a Mutation is successfully processed.
  *
- * This function uses [MutationObject.replyUpdatedAt] as the key.
+ * This function uses [MutationObject.mutatedCount] as the key.
  * If you need to use a different key, use [MutatedEffect] with the `keySelector` parameter.
  *
  * **NOTE:**
  * If Mutation optimization is enabled, you must explicitly specify a `keySelector`.
- * This is because [MutationObject.replyUpdatedAt] is omitted during optimization and will always be `0`.
+ * This is because [MutationObject.mutatedCount] is omitted during optimization and will always be `0`.
  *
  * @param T Type of the return value from the mutation.
  * @param mutation The MutationObject whose result will be observed.
@@ -73,7 +73,7 @@ inline fun <T> MutatedEffect(
 ) {
     MutatedEffect(
         mutation = mutation,
-        keySelector = { it.replyUpdatedAt },
+        keySelector = { it.mutatedCount },
         block = block
     )
 }
