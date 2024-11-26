@@ -43,36 +43,30 @@ private class Subscription<T>(
     )
     override val state: StateFlow<SubscriptionState<T>> = _state
 
+    override fun close() = subscription.close()
+
     override suspend fun reset() = subscription.reset()
 
     override suspend fun resume() = subscription.resume()
 
-    override fun launchIn(scope: CoroutineScope): Job {
-        return scope.launch {
-            subscription.state.collect { _state.value = optimize(it) }
-        }
-    }
-
     // ----- RememberObserver -----//
-    private var jobs: List<Job>? = null
+    private var job: Job? = null
 
     override fun onAbandoned() = stop()
 
     override fun onForgotten() = stop()
 
-    override fun onRemembered() {
-        stop()
-        start()
-    }
+    override fun onRemembered() = start()
 
     private fun start() {
-        val job1 = subscription.launchIn(scope)
-        val job2 = launchIn(scope)
-        jobs = listOf(job1, job2)
+        job = scope.launch {
+            subscription.state.collect { _state.value = optimize(it) }
+        }
     }
 
     private fun stop() {
-        jobs?.forEach { it.cancel() }
-        jobs = null
+        job?.cancel()
+        job = null
+        close()
     }
 }

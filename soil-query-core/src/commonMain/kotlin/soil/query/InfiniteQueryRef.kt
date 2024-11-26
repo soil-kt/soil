@@ -4,14 +4,12 @@
 package soil.query
 
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import soil.query.core.Actor
+import soil.query.core.InstanceId
 import soil.query.core.Marker
 import soil.query.core.awaitOrNull
+import soil.query.core.uuid
 
 
 /**
@@ -20,7 +18,7 @@ import soil.query.core.awaitOrNull
  * @param T Type of data to retrieve.
  * @param S Type of parameter.
  */
-interface InfiniteQueryRef<T, S> : Actor {
+interface InfiniteQueryRef<T, S> : AutoCloseable {
 
     /**
      * A unique identifier used for managing [InfiniteQueryKey].
@@ -60,6 +58,13 @@ interface InfiniteQueryRef<T, S> : Actor {
      * setting [QueryModel.isInvalidated] to `true` until revalidation is completed.
      */
     suspend fun invalidate()
+
+    /**
+     * Joins the Query.
+     *
+     * Calling this function will start receiving [events][QueryEvent].
+     */
+    suspend fun join()
 }
 
 /**
@@ -72,16 +77,22 @@ interface InfiniteQueryRef<T, S> : Actor {
 fun <T, S> InfiniteQueryRef(
     key: InfiniteQueryKey<T, S>,
     marker: Marker,
-    query: Query<QueryChunks<T, S>>
+    query: Query<QueryChunks<T, S>>,
+    iid: InstanceId = uuid()
 ): InfiniteQueryRef<T, S> {
-    return InfiniteQueryRefImpl(key, marker, query)
+    return InfiniteQueryRefImpl(key, marker, query, iid)
 }
 
 private class InfiniteQueryRefImpl<T, S>(
     private val key: InfiniteQueryKey<T, S>,
     private val marker: Marker,
-    private val query: Query<QueryChunks<T, S>>
+    private val query: Query<QueryChunks<T, S>>,
+    private val iid: InstanceId
 ) : InfiniteQueryRef<T, S> {
+
+    init {
+        query.attach(iid)
+    }
 
     override val id: InfiniteQueryId<T, S>
         get() = key.id
@@ -89,11 +100,8 @@ private class InfiniteQueryRefImpl<T, S>(
     override val state: StateFlow<QueryState<QueryChunks<T, S>>>
         get() = query.state
 
-    override fun launchIn(scope: CoroutineScope): Job {
-        return scope.launch {
-            query.launchIn(this)
-            query.event.collect(::handleEvent)
-        }
+    override fun close() {
+        query.detach(iid)
     }
 
     override fun nextParam(data: QueryChunks<T, S>): S? {
@@ -116,6 +124,10 @@ private class InfiniteQueryRefImpl<T, S>(
         val deferred = CompletableDeferred<QueryChunks<T, S>>()
         send(InfiniteQueryCommands.Invalidate(key, state.value.revision, marker, deferred::completeWith))
         deferred.awaitOrNull()
+    }
+
+    override suspend fun join() {
+        query.event.collect(::handleEvent)
     }
 
     private suspend fun send(command: InfiniteQueryCommand<T, S>) {

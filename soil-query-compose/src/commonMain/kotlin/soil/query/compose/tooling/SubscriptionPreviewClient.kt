@@ -4,14 +4,11 @@
 package soil.query.compose.tooling
 
 import androidx.compose.runtime.Stable
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import soil.query.SubscriptionClient
 import soil.query.SubscriptionId
 import soil.query.SubscriptionKey
-import soil.query.SubscriptionOptions
 import soil.query.SubscriptionRef
 import soil.query.SubscriptionState
 import soil.query.annotation.ExperimentalSoilQueryApi
@@ -46,7 +43,7 @@ class SubscriptionPreviewClient(
         override val id: SubscriptionId<T>,
         override val state: StateFlow<SubscriptionState<T>>
     ) : SubscriptionRef<T> {
-        override fun launchIn(scope: CoroutineScope): Job = Job()
+        override fun close() = Unit
         override suspend fun reset() = Unit
         override suspend fun resume() = Unit
     }

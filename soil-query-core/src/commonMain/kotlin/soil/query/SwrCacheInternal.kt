@@ -16,11 +16,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import soil.query.annotation.InternalSoilQueryApi
+import soil.query.core.Actor
 import soil.query.core.ActorBlockRunner
-import soil.query.core.ActorSequenceNumber
 import soil.query.core.BatchScheduler
 import soil.query.core.ErrorRelay
-import soil.query.core.HasActorSequence
 import soil.query.core.Marker
 import soil.query.core.Reply
 import soil.query.core.SurrogateKey
@@ -55,13 +54,13 @@ abstract class SwrCacheInternal : MutationClient, QueryClient, QueryMutableClien
         val queryStoreCopy = queryStore.toMap()
         queryStore.clear()
         queryCache.clear()
-        queryStoreCopy.values.forEach { it.close() }
+        queryStoreCopy.values.forEach { it.cancel() }
     }
 
     protected fun resetMutations() {
         val mutationStoreCopy = mutationStore.toMap()
         mutationStore.clear()
-        mutationStoreCopy.values.forEach { it.close() }
+        mutationStoreCopy.values.forEach { it.cancel() }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -103,8 +102,8 @@ abstract class SwrCacheInternal : MutationClient, QueryClient, QueryMutableClien
         val actor = ActorBlockRunner(
             scope = scope,
             options = options,
-            onTimeout = { seq ->
-                scope.launch { batchScheduler.post { closeMutation<T>(id, seq) } }
+            onTimeout = {
+                scope.launch { batchScheduler.post { deactivateMutation<T>(id) } }
             }
         ) {
             for (c in command) {
@@ -132,12 +131,15 @@ abstract class SwrCacheInternal : MutationClient, QueryClient, QueryMutableClien
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T> closeMutation(id: UniqueId, seq: ActorSequenceNumber) {
+    private fun <T> deactivateMutation(id: UniqueId) {
         val mutation = mutationStore[id] as? ManagedMutation<T> ?: return
-        if (mutation.seq == seq) {
-            mutationStore.remove(id)
-            mutation.close()
+        if (mutation.hasAttachedInstances()) {
+            mutation.options.vvv(mutation.id) { "deactivate aborted: instances attached" }
+            return
         }
+        mutationStore.remove(id)
+        mutation.cancel()
+        mutation.options.vvv(mutation.id) { "deactivated" }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -184,8 +186,8 @@ abstract class SwrCacheInternal : MutationClient, QueryClient, QueryMutableClien
         val actor = ActorBlockRunner(
             scope = scope,
             options = options,
-            onTimeout = { seq ->
-                scope.launch { batchScheduler.post { closeQuery<T>(id, seq) } }
+            onTimeout = {
+                scope.launch { batchScheduler.post { deactivateQuery<T>(id) } }
             },
         ) {
             for (c in command) {
@@ -221,13 +223,16 @@ abstract class SwrCacheInternal : MutationClient, QueryClient, QueryMutableClien
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T> closeQuery(id: UniqueId, seq: ActorSequenceNumber) {
+    private fun <T> deactivateQuery(id: UniqueId) {
         val query = queryStore[id] as? ManagedQuery<T> ?: return
-        if (query.seq == seq) {
-            queryStore.remove(id)
-            query.close()
-            saveToCache(query)
+        if (query.hasAttachedInstances()) {
+            query.options.vvv(query.id) { "deactivate aborted: instances attached" }
+            return
         }
+        queryStore.remove(id)
+        query.cancel()
+        query.options.vvv(query.id) { "deactivated" }
+        saveToCache(query)
     }
 
     private fun <T> saveToCache(query: ManagedQuery<T>) {
@@ -237,6 +242,8 @@ abstract class SwrCacheInternal : MutationClient, QueryClient, QueryMutableClien
         if (saveable && query.isCacheable(lastValue.reply)) {
             queryCache.set(query.id, lastValue, ttl)
             query.options.vvv(query.id) { "cached(ttl=$ttl)" }
+        } else {
+            queryCache.delete(query.id)
         }
     }
 
@@ -280,16 +287,13 @@ abstract class SwrCacheInternal : MutationClient, QueryClient, QueryMutableClien
         key: QueryKey<T>,
         marker: Marker
     ): Job {
-        val scope = CoroutineScope(mainDispatcher)
-        val query = getQuery(key, marker).also { it.launchIn(scope) }
-        return coroutineScope.launch {
-            try {
+        val scope = CoroutineScope(newCoroutineContext(coroutineScope) + mainDispatcher)
+        return scope.launch {
+            getQuery(key, marker).use { query ->
                 val options = key.onConfigureOptions()?.invoke(queryOptions) ?: queryOptions
                 withTimeoutOrNull(options.prefetchWindowTime) {
                     query.resume()
                 }
-            } finally {
-                scope.cancel()
             }
         }
     }
@@ -298,16 +302,13 @@ abstract class SwrCacheInternal : MutationClient, QueryClient, QueryMutableClien
         key: InfiniteQueryKey<T, S>,
         marker: Marker
     ): Job {
-        val scope = CoroutineScope(mainDispatcher)
-        val query = getInfiniteQuery(key, marker).also { it.launchIn(scope) }
-        return coroutineScope.launch {
-            try {
+        val scope = CoroutineScope(newCoroutineContext(coroutineScope) + mainDispatcher)
+        return scope.launch {
+            getInfiniteQuery(key, marker).use { query ->
                 val options = key.onConfigureOptions()?.invoke(queryOptions) ?: queryOptions
                 withTimeoutOrNull(options.prefetchWindowTime) {
                     query.resume()
                 }
-            } finally {
-                scope.cancel()
             }
         }
     }
@@ -413,7 +414,7 @@ abstract class SwrCacheInternal : MutationClient, QueryClient, QueryMutableClien
 
     private fun remove(id: UniqueId, type: QueryFilterType) {
         when (type) {
-            QueryFilterType.Active -> queryStore.remove(id)?.close()
+            QueryFilterType.Active -> queryStore.remove(id)?.cancel()
             QueryFilterType.Inactive -> queryCache.delete(id)
         }
     }
@@ -491,18 +492,10 @@ abstract class SwrCacheInternal : MutationClient, QueryClient, QueryMutableClien
         override val command: SendChannel<MutationCommand<T>>,
         private val scope: CoroutineScope,
         private val actor: ActorBlockRunner,
-    ) : Mutation<T>, HasActorSequence {
+    ) : Mutation<T>, Actor by actor {
 
-        override val seq: ActorSequenceNumber
-            get() = actor.seq
-
-        override fun launchIn(scope: CoroutineScope): Job {
-            return actor.launchIn(scope)
-        }
-
-        fun close() {
+        fun cancel() {
             scope.cancel()
-            command.close()
         }
     }
 
@@ -526,18 +519,10 @@ abstract class SwrCacheInternal : MutationClient, QueryClient, QueryMutableClien
         private val actor: ActorBlockRunner,
         private val dispatch: QueryDispatch<T>,
         private val cacheable: QueryContentCacheable<T>?,
-    ) : Query<T>, HasActorSequence {
+    ) : Query<T>, Actor by actor {
 
-        override val seq: ActorSequenceNumber
-            get() = actor.seq
-
-        override fun launchIn(scope: CoroutineScope): Job {
-            return actor.launchIn(scope)
-        }
-
-        fun close() {
+        fun cancel() {
             scope.cancel()
-            command.close()
         }
 
         fun invalidate() {

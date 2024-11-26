@@ -4,21 +4,19 @@
 package soil.query
 
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import soil.query.core.Actor
+import soil.query.core.InstanceId
 import soil.query.core.Marker
 import soil.query.core.awaitOrNull
+import soil.query.core.uuid
 
 /**
  * A reference to an Query for [QueryKey].
  *
  * @param T Type of data to retrieve.
  */
-interface QueryRef<T> : Actor {
+interface QueryRef<T> : AutoCloseable {
 
     /**
      * A unique identifier used for managing [QueryKey].
@@ -42,6 +40,13 @@ interface QueryRef<T> : Actor {
      * setting [QueryModel.isInvalidated] to `true` until revalidation is completed.
      */
     suspend fun invalidate()
+
+    /**
+     * Joins the Query.
+     *
+     * Calling this function will start receiving [events][QueryEvent].
+     */
+    suspend fun join()
 }
 
 /**
@@ -54,16 +59,22 @@ interface QueryRef<T> : Actor {
 fun <T> QueryRef(
     key: QueryKey<T>,
     marker: Marker,
-    query: Query<T>
+    query: Query<T>,
+    iid: InstanceId = uuid()
 ): QueryRef<T> {
-    return QueryRefImpl(key, marker, query)
+    return QueryRefImpl(key, marker, query, iid)
 }
 
 private class QueryRefImpl<T>(
     private val key: QueryKey<T>,
     private val marker: Marker,
-    private val query: Query<T>
+    private val query: Query<T>,
+    private val iid: InstanceId
 ) : QueryRef<T> {
+
+    init {
+        query.attach(iid)
+    }
 
     override val id: QueryId<T>
         get() = key.id
@@ -71,11 +82,9 @@ private class QueryRefImpl<T>(
     override val state: StateFlow<QueryState<T>>
         get() = query.state
 
-    override fun launchIn(scope: CoroutineScope): Job {
-        return scope.launch {
-            query.launchIn(this)
-            query.event.collect(::handleEvent)
-        }
+
+    override fun close() {
+        query.detach(iid)
     }
 
     override suspend fun resume() {
@@ -90,10 +99,13 @@ private class QueryRefImpl<T>(
         deferred.awaitOrNull()
     }
 
+    override suspend fun join() {
+        query.event.collect(::handleEvent)
+    }
+
     private suspend fun send(command: QueryCommand<T>) {
         query.command.send(command)
     }
-
 
     private suspend fun handleEvent(e: QueryEvent) {
         when (e) {

@@ -20,7 +20,6 @@ import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
-import androidx.compose.ui.test.waitUntilAtLeastOneExists
 import kotlinx.coroutines.launch
 import soil.query.InfiniteQueryId
 import soil.query.InfiniteQueryKey
@@ -259,7 +258,7 @@ class InfiniteQueryComposableTest : UnitTest() {
     @Test
     fun testRememberInfiniteQueryIf() = runComposeUiTest {
         val key = TestInfiniteQueryKey()
-        val client = SwrCache(coroutineScope = SwrCacheScope())
+        val client = SwrCache(coroutineScope = SwrCacheScope()).test()
         setContent {
             SwrClientProvider(client) {
                 var enabled by remember { mutableStateOf(false) }
@@ -289,14 +288,14 @@ class InfiniteQueryComposableTest : UnitTest() {
         onNodeWithTag("toggle").performClick()
 
         waitForIdle()
-        waitUntilAtLeastOneExists(hasTestTag("query"))
+        waitUntil { client.isIdleNow() }
         onNodeWithTag("query").assertTextEquals("Size: 10 - Page: 0")
     }
 
     @Test
     fun testRememberInfiniteQueryIf_select() = runComposeUiTest {
         val key = TestInfiniteQueryKey()
-        val client = SwrCache(coroutineScope = SwrCacheScope())
+        val client = SwrCache(coroutineScope = SwrCacheScope()).test()
         setContent {
             SwrClientProvider(client) {
                 var enabled by remember { mutableStateOf(false) }
@@ -326,7 +325,7 @@ class InfiniteQueryComposableTest : UnitTest() {
         onNodeWithTag("toggle").performClick()
 
         waitForIdle()
-        waitUntilAtLeastOneExists(hasTestTag("query"))
+        waitUntil { client.isIdleNow() }
         onAllNodes(hasTestTag("query")).assertCountEquals(10)
     }
 

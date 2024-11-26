@@ -72,13 +72,14 @@ class KeepAliveTest : UnitTest() {
             )
             repeat(times) {
                 val scope = CoroutineScope(Dispatchers.Main + Job())
-                val query = swrClient.getQuery(GetTestQueryKey()).also { it.launchIn(scope) }
-                yield()
-                scope.launch {
-                    query.resume()
-                }.join()
-                scope.cancel()
-                delay(callerDelay)
+                swrClient.getQuery(GetTestQueryKey()).use { query ->
+                    yield()
+                    scope.launch {
+                        query.resume()
+                    }.join()
+                    scope.cancel()
+                    delay(callerDelay)
+                }
             }
         }
     }

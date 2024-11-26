@@ -41,38 +41,32 @@ private class Mutation<T, S>(
 
     override val state: StateFlow<MutationState<T>> = _state
 
+    override fun close() = mutation.close()
+
     override suspend fun mutate(variable: S): T = mutation.mutate(variable)
 
     override suspend fun mutateAsync(variable: S) = mutation.mutateAsync(variable)
 
     override suspend fun reset() = mutation.reset()
 
-    override fun launchIn(scope: CoroutineScope): Job {
-        return scope.launch {
-            mutation.state.collect { _state.value = optimize(it) }
-        }
-    }
-
     // ----- RememberObserver -----//
-    private var jobs: List<Job>? = null
+    private var job: Job? = null
 
     override fun onAbandoned() = stop()
 
     override fun onForgotten() = stop()
 
-    override fun onRemembered() {
-        stop()
-        start()
-    }
+    override fun onRemembered() = start()
 
     private fun start() {
-        val job1 = mutation.launchIn(scope)
-        val job2 = launchIn(scope)
-        jobs = listOf(job1, job2)
+        job = scope.launch {
+            mutation.state.collect { _state.value = optimize(it) }
+        }
     }
 
     private fun stop() {
-        jobs?.forEach { it.cancel() }
-        jobs = null
+        job?.cancel()
+        job = null
+        close()
     }
 }

@@ -4,12 +4,11 @@
 package soil.query
 
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.flow.StateFlow
-import soil.query.core.Actor
+import soil.query.core.InstanceId
 import soil.query.core.Marker
+import soil.query.core.uuid
 
 
 /**
@@ -18,7 +17,7 @@ import soil.query.core.Marker
  * @param T Type of the return value from the mutation.
  * @param S Type of the variable to be mutated.
  */
-interface MutationRef<T, S> : Actor {
+interface MutationRef<T, S> : AutoCloseable {
 
     /**
      * A unique identifier used for managing [MutationKey].
@@ -61,16 +60,22 @@ interface MutationRef<T, S> : Actor {
 fun <T, S> MutationRef(
     key: MutationKey<T, S>,
     marker: Marker,
-    mutation: Mutation<T>
+    mutation: Mutation<T>,
+    iid: InstanceId = uuid()
 ): MutationRef<T, S> {
-    return MutationRefImpl(key, marker, mutation)
+    return MutationRefImpl(key, marker, mutation, iid)
 }
 
 private class MutationRefImpl<T, S>(
     private val key: MutationKey<T, S>,
     private val marker: Marker,
-    private val mutation: Mutation<T>
+    private val mutation: Mutation<T>,
+    private val iid: InstanceId
 ) : MutationRef<T, S> {
+
+    init {
+        mutation.attach(iid)
+    }
 
     override val id: MutationId<T, S>
         get() = key.id
@@ -78,8 +83,8 @@ private class MutationRefImpl<T, S>(
     override val state: StateFlow<MutationState<T>>
         get() = mutation.state
 
-    override fun launchIn(scope: CoroutineScope): Job {
-        return mutation.launchIn(scope)
+    override fun close() {
+        mutation.detach(iid)
     }
 
     override suspend fun mutate(variable: S): T {
