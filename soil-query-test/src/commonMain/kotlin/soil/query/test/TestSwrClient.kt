@@ -3,6 +3,10 @@
 
 package soil.query.test
 
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.yield
 import soil.query.InfiniteQueryId
 import soil.query.InfiniteQueryKey
 import soil.query.InfiniteQueryRef
@@ -12,8 +16,13 @@ import soil.query.MutationRef
 import soil.query.QueryId
 import soil.query.QueryKey
 import soil.query.QueryRef
+import soil.query.SwrCache
 import soil.query.SwrClient
 import soil.query.core.Marker
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * This extended interface of the [SwrClient] provides the capability to mock specific queries and mutations for the purpose of testing.
@@ -21,8 +30,8 @@ import soil.query.core.Marker
  * This allows for more targeted and precise testing of your application.
  *
  * ```kotlin
- * val client = SwrCache(..)
- * val testClient = client.test {
+ * val cache = SwrCache(..)
+ * val testClient = cache.test {
  *      on(MyQueryId) { "returned fake data" }
  * }
  *
@@ -45,18 +54,40 @@ interface TestSwrClient : SwrClient {
      * Mocks the query process corresponding to [InfiniteQueryId].
      */
     fun <T, S> on(id: InfiniteQueryId<T, S>, fetch: FakeInfiniteQueryFetch<T, S>)
+
+
+    /**
+     * Returns true if client is currently idle.
+     */
+    fun isIdleNow(): Boolean
 }
 
 /**
- * Switches [SwrClient] to a test interface.
+ * Suspends until the [TestSwrClient] is idle.
  */
-fun SwrClient.test(initializer: TestSwrClient.() -> Unit = {}): TestSwrClient {
+suspend fun TestSwrClient.awaitIdle(
+    context: CoroutineContext = EmptyCoroutineContext,
+    timeout: Duration = 1.seconds
+) {
+    withContext(context) {
+        withTimeout(timeout) {
+            while (isActive && !isIdleNow()) {
+                yield()
+            }
+        }
+    }
+}
+
+/**
+ * Switches [SwrCache] to a test interface.
+ */
+fun SwrCache.test(initializer: TestSwrClient.() -> Unit = {}): TestSwrClient {
     return TestSwrClientImpl(this).apply(initializer)
 }
 
 internal class TestSwrClientImpl(
-    private val target: SwrClient
-) : TestSwrClient, SwrClient by target {
+    private val cache: SwrCache
+) : TestSwrClient, SwrClient by cache {
 
     private val mockMutations = mutableMapOf<MutationId<*, *>, FakeMutationMutate<*, *>>()
     private val mockQueries = mutableMapOf<QueryId<*>, FakeQueryFetch<*>>()
@@ -74,6 +105,16 @@ internal class TestSwrClientImpl(
         mockInfiniteQueries[id] = fetch
     }
 
+    override fun isIdleNow(): Boolean {
+        if (cache.mutationStoreView.values.any { it.state.value.isAwaited() }) {
+            return false
+        }
+        if (cache.queryStoreView.values.any { it.state.value.isAwaited() }) {
+            return false
+        }
+        return true
+    }
+
     @Suppress("UNCHECKED_CAST")
     override fun <T, S> getMutation(
         key: MutationKey<T, S>,
@@ -81,9 +122,9 @@ internal class TestSwrClientImpl(
     ): MutationRef<T, S> {
         val mock = mockMutations[key.id] as? FakeMutationMutate<T, S>
         return if (mock != null) {
-            target.getMutation(FakeMutationKey(key, mock), marker)
+            cache.getMutation(FakeMutationKey(key, mock), marker)
         } else {
-            target.getMutation(key, marker)
+            cache.getMutation(key, marker)
         }
     }
 
@@ -94,9 +135,9 @@ internal class TestSwrClientImpl(
     ): QueryRef<T> {
         val mock = mockQueries[key.id] as? FakeQueryFetch<T>
         return if (mock != null) {
-            target.getQuery(FakeQueryKey(key, mock), marker)
+            cache.getQuery(FakeQueryKey(key, mock), marker)
         } else {
-            target.getQuery(key, marker)
+            cache.getQuery(key, marker)
         }
     }
 
@@ -107,9 +148,9 @@ internal class TestSwrClientImpl(
     ): InfiniteQueryRef<T, S> {
         val mock = mockInfiniteQueries[key.id] as? FakeInfiniteQueryFetch<T, S>
         return if (mock != null) {
-            target.getInfiniteQuery(FakeInfiniteQueryKey(key, mock), marker)
+            cache.getInfiniteQuery(FakeInfiniteQueryKey(key, mock), marker)
         } else {
-            target.getInfiniteQuery(key, marker)
+            cache.getInfiniteQuery(key, marker)
         }
     }
 }

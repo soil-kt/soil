@@ -3,8 +3,8 @@
 
 package soil.query.test
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import soil.query.InfiniteQueryId
 import soil.query.InfiniteQueryKey
@@ -22,57 +22,67 @@ import soil.testing.UnitTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class TestSwrClientTest : UnitTest() {
 
     @Test
     fun testMutation() = runTest {
-        val client = SwrCache(
+        val testDispatcher = StandardTestDispatcher(testScheduler)
+        val cache = SwrCache(
             policy = SwrCachePolicy(
                 coroutineScope = backgroundScope,
-                mainDispatcher = UnconfinedTestDispatcher(testScheduler)
+                mainDispatcher = testDispatcher
             )
         )
-        val testClient = client.test {
-            on(ExampleMutationKey.Id) { "Hello, World!" }
+        val testClient = cache.test {
+            on(ExampleMutationKey.Id) {
+                "Hello, World!"
+            }
         }
         val key = ExampleMutationKey()
         val mutation = testClient.getMutation(key).also { it.launchIn(backgroundScope) }
-        mutation.mutate(0)
+        launch { mutation.mutate(0) }
+
+        testClient.awaitIdle(testDispatcher)
         assertEquals("Hello, World!", mutation.state.value.reply.getOrThrow())
     }
 
     @Test
     fun testQuery() = runTest {
-        val client = SwrCache(
+        val testDispatcher = StandardTestDispatcher(testScheduler)
+        val cache = SwrCache(
             policy = SwrCachePolicy(
                 coroutineScope = backgroundScope,
-                mainDispatcher = UnconfinedTestDispatcher(testScheduler)
+                mainDispatcher = testDispatcher
             )
         )
-        val testClient = client.test {
+        val testClient = cache.test {
             on(ExampleQueryKey.Id) { "Hello, World!" }
         }
         val key = ExampleQueryKey()
         val query = testClient.getQuery(key).also { it.launchIn(backgroundScope) }
-        query.resume()
+        launch { query.resume() }
+
+        testClient.awaitIdle(testDispatcher)
         assertEquals("Hello, World!", query.state.value.reply.getOrThrow())
     }
 
     @Test
     fun testInfiniteQuery() = runTest {
-        val client = SwrCache(
+        val testDispatcher = StandardTestDispatcher(testScheduler)
+        val cache = SwrCache(
             policy = SwrCachePolicy(
                 coroutineScope = backgroundScope,
-                mainDispatcher = UnconfinedTestDispatcher(testScheduler)
+                mainDispatcher = testDispatcher
             )
         )
-        val testClient = client.test {
+        val testClient = cache.test {
             on(ExampleInfiniteQueryKey.Id) { "Hello, World!" }
         }
         val key = ExampleInfiniteQueryKey()
         val query = testClient.getInfiniteQuery(key).also { it.launchIn(backgroundScope) }
-        query.resume()
+        launch { query.resume() }
+
+        testClient.awaitIdle(testDispatcher)
         assertEquals("Hello, World!", query.state.value.reply.getOrThrow().first().data)
     }
 }

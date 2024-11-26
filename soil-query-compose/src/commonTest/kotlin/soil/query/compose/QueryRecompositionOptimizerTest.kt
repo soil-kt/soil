@@ -21,6 +21,7 @@ import soil.query.SwrCache
 import soil.query.SwrCacheScope
 import soil.query.buildQueryKey
 import soil.query.core.Reply
+import soil.query.test.test
 import soil.testing.UnitTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -33,7 +34,7 @@ class QueryRecompositionOptimizerTest : UnitTest() {
     @Test
     fun testRecompositionCount_default() = runComposeUiTest {
         val key = TestQueryKey()
-        val client = SwrCache(coroutineScope = SwrCacheScope())
+        val client = SwrCache(coroutineScope = SwrCacheScope()).test()
         var recompositionCount = 0
         setContent {
             SwrClientProvider(client) {
@@ -55,7 +56,7 @@ class QueryRecompositionOptimizerTest : UnitTest() {
     @Test
     fun testRecompositionCount_disabled() = runComposeUiTest {
         val key = TestQueryKey()
-        val client = SwrCache(coroutineScope = SwrCacheScope())
+        val client = SwrCache(coroutineScope = SwrCacheScope()).test()
         var recompositionCount = 0
         setContent {
             SwrClientProvider(client) {
