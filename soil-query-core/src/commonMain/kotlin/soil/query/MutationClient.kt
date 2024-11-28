@@ -11,6 +11,12 @@ import soil.query.core.Marker
 interface MutationClient {
 
     /**
+     * **Note:** This property is exposed for limited use cases where you may need to call [MutationKey.mutate] manually.
+     * It can be useful as an escape hatch or for synchronous invocations within the data layer.
+     */
+    val mutationReceiver: MutationReceiver
+
+    /**
      * Gets the [MutationRef] by the specified [MutationKey].
      */
     fun <T, S> getMutation(

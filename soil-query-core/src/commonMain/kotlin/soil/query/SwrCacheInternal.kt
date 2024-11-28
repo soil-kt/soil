@@ -38,10 +38,8 @@ abstract class SwrCacheInternal : MutationClient, QueryClient, QueryEffectClient
     protected abstract val coroutineScope: CoroutineScope
     protected abstract val mainDispatcher: CoroutineDispatcher
     protected abstract val mutationOptions: MutationOptions
-    protected abstract val mutationReceiver: MutationReceiver
     protected abstract val mutationStore: MutableMap<UniqueId, ManagedMutation<*>>
     protected abstract val queryOptions: QueryOptions
-    protected abstract val queryReceiver: QueryReceiver
     protected abstract val queryStore: MutableMap<UniqueId, ManagedQuery<*>>
     protected abstract val queryCache: QueryCache
     protected abstract val batchScheduler: BatchScheduler
