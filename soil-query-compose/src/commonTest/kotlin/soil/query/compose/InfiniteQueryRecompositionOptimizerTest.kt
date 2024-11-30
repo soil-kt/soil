@@ -24,6 +24,7 @@ import soil.query.SwrCacheScope
 import soil.query.buildInfiniteQueryKey
 import soil.query.core.Reply
 import soil.query.emptyChunks
+import soil.query.test.test
 import soil.testing.UnitTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -36,7 +37,7 @@ class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
     @Test
     fun testRecompositionCount_default() = runComposeUiTest {
         val key = TestInfiniteQueryKey()
-        val client = SwrCache(coroutineScope = SwrCacheScope())
+        val client = SwrCache(coroutineScope = SwrCacheScope()).test()
         var recompositionCount = 0
         setContent {
             SwrClientProvider(client) {
@@ -68,7 +69,7 @@ class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
     @Test
     fun testRecompositionCount_disabled() = runComposeUiTest {
         val key = TestInfiniteQueryKey()
-        val client = SwrCache(coroutineScope = SwrCacheScope())
+        val client = SwrCache(coroutineScope = SwrCacheScope()).test()
         var recompositionCount = 0
         setContent {
             SwrClientProvider(client) {

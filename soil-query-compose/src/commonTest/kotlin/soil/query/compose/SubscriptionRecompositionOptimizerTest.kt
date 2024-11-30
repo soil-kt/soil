@@ -3,19 +3,12 @@
 
 package soil.query.compose
 
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.flow
-import soil.query.SubscriptionId
-import soil.query.SubscriptionKey
 import soil.query.SubscriptionState
 import soil.query.SubscriptionStatus
-import soil.query.buildSubscriptionKey
 import soil.query.core.Reply
 import soil.testing.UnitTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 
 class SubscriptionRecompositionOptimizerTest : UnitTest() {
 
@@ -113,16 +106,4 @@ class SubscriptionRecompositionOptimizerTest : UnitTest() {
         val actual = SubscriptionRecompositionOptimizer.Disabled.omit(expected)
         assertEquals(expected, actual)
     }
-
-    private class TestSubscriptionKey(
-        private val delayTime: Duration = 100.milliseconds
-    ) : SubscriptionKey<String> by buildSubscriptionKey(
-        id = SubscriptionId("test/subscription"),
-        subscribe = {
-            flow {
-                delay(delayTime)
-                emit("Hello, Soil!")
-            }
-        }
-    )
 }

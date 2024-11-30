@@ -15,13 +15,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertTextEquals
-import androidx.compose.ui.test.hasTestTag
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
-import androidx.compose.ui.test.waitUntilExactlyOneExists
 import kotlinx.coroutines.launch
 import soil.query.MutationId
 import soil.query.MutationKey
@@ -30,6 +27,7 @@ import soil.query.SwrCacheScope
 import soil.query.buildMutationKey
 import soil.query.compose.SwrClientProvider
 import soil.query.compose.rememberMutation
+import soil.query.test.test
 import soil.testing.UnitTest
 import kotlin.test.Test
 
@@ -39,7 +37,7 @@ class MutatedEffectTest : UnitTest() {
     @Test
     fun testMutatedEffect() = runComposeUiTest {
         val key = TestMutationKey()
-        val client = SwrCache(coroutineScope = SwrCacheScope())
+        val client = SwrCache(coroutineScope = SwrCacheScope()).test()
         setContent {
             SwrClientProvider(client) {
                 val mutation = rememberMutation(key)
@@ -73,13 +71,13 @@ class MutatedEffectTest : UnitTest() {
         onNodeWithTag("result").assertDoesNotExist()
         onNodeWithTag("mutation").performClick()
 
-        waitUntilExactlyOneExists(hasTestTag("result1"))
+        waitUntil { client.isIdleNow() }
         onNodeWithText("Mutated: 1").assertExists()
         onNodeWithTag("count").assertTextEquals("1")
 
         onNodeWithTag("mutation").performClick()
 
-        waitUntilExactlyOneExists(hasTestTag("result2"))
+        waitUntil { client.isIdleNow() }
         onNodeWithText("Mutated: 2").assertExists()
         onNodeWithTag("count").assertTextEquals("2")
     }
@@ -87,7 +85,7 @@ class MutatedEffectTest : UnitTest() {
     @Test
     fun testMutatedEffect_withKeySelector() = runComposeUiTest {
         val key = TestMutationKey()
-        val client = SwrCache(coroutineScope = SwrCacheScope())
+        val client = SwrCache(coroutineScope = SwrCacheScope()).test()
         setContent {
             SwrClientProvider(client) {
                 val mutation = rememberMutation(key)
@@ -124,13 +122,13 @@ class MutatedEffectTest : UnitTest() {
         onNodeWithTag("result").assertDoesNotExist()
         onNodeWithTag("mutation").performClick()
 
-        waitUntilExactlyOneExists(hasTestTag("result1"))
+        waitUntil { client.isIdleNow() }
         onNodeWithText("Mutated: 1").assertExists()
         onNodeWithTag("count").assertTextEquals("1")
 
         onNodeWithTag("mutation").performClick()
 
-        waitUntilExactlyOneExists(hasTestTag("count") and hasText("2"))
+        waitUntil { client.isIdleNow() }
         // The key is the same as the first mutation result, so the MutatedEffect is not called.
         onNodeWithText("Mutated: 2").assertDoesNotExist()
         onNodeWithTag("count").assertTextEquals("2")

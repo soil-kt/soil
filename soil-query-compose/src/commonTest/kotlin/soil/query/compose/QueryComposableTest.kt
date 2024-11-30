@@ -14,11 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertTextEquals
-import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
-import androidx.compose.ui.test.waitUntilExactlyOneExists
 import soil.query.QueryId
 import soil.query.QueryKey
 import soil.query.QueryState
@@ -40,7 +38,7 @@ class QueryComposableTest : UnitTest() {
     @Test
     fun testRememberQuery() = runComposeUiTest {
         val key = TestQueryKey()
-        val client = SwrCache(coroutineScope = SwrCacheScope())
+        val client = SwrCache(coroutineScope = SwrCacheScope()).test()
         setContent {
             SwrClientProvider(client) {
                 val query = rememberQuery(key, config = QueryConfig {
@@ -56,7 +54,7 @@ class QueryComposableTest : UnitTest() {
             }
         }
 
-        waitUntilExactlyOneExists(hasTestTag("query"))
+        waitUntil { client.isIdleNow() }
         onNodeWithTag("query").assertTextEquals("Hello, Soil!")
     }
 
@@ -76,7 +74,7 @@ class QueryComposableTest : UnitTest() {
             }
         }
 
-        waitUntilExactlyOneExists(hasTestTag("query"))
+        waitUntil { client.isIdleNow() }
         onNodeWithTag("query").assertTextEquals("HELLO, COMPOSE!")
     }
 
@@ -99,7 +97,7 @@ class QueryComposableTest : UnitTest() {
             }
         }
 
-        waitUntilExactlyOneExists(hasTestTag("query"))
+        waitUntil { client.isIdleNow() }
         onNodeWithTag("query").assertTextEquals("error")
     }
 
@@ -121,7 +119,7 @@ class QueryComposableTest : UnitTest() {
             }
         }
 
-        waitUntilExactlyOneExists(hasTestTag("query"))
+        waitUntil { client.isIdleNow() }
         onNodeWithTag("query").assertTextEquals("Hello, Compose!Hello, Soil!")
     }
 
@@ -145,7 +143,7 @@ class QueryComposableTest : UnitTest() {
             }
         }
 
-        waitUntilExactlyOneExists(hasTestTag("query"))
+        waitUntil { client.isIdleNow() }
         onNodeWithTag("query").assertTextEquals("Hello, Compose!Hello, Soil!Hello, Kotlin!")
     }
 
@@ -169,7 +167,7 @@ class QueryComposableTest : UnitTest() {
             }
         }
 
-        waitUntilExactlyOneExists(hasTestTag("query"))
+        waitUntil { client.isIdleNow() }
         onNodeWithTag("query").assertTextEquals("Hello, Compose!|Hello, Soil!|Hello, Kotlin!")
     }
 
@@ -260,7 +258,7 @@ class QueryComposableTest : UnitTest() {
     @Test
     fun testRememberQueryIf() = runComposeUiTest {
         val key = TestQueryKey()
-        val client = SwrCache(coroutineScope = SwrCacheScope())
+        val client = SwrCache(coroutineScope = SwrCacheScope()).test()
         setContent {
             SwrClientProvider(client) {
                 var enabled by remember { mutableStateOf(false) }
@@ -281,7 +279,8 @@ class QueryComposableTest : UnitTest() {
         onNodeWithTag("query").assertDoesNotExist()
         onNodeWithTag("toggle").performClick()
 
-        waitUntilExactlyOneExists(hasTestTag("query"))
+        waitForIdle()
+        waitUntil { client.isIdleNow() }
         onNodeWithTag("query").assertTextEquals("Hello, Soil!")
     }
 
@@ -315,7 +314,8 @@ class QueryComposableTest : UnitTest() {
         onNodeWithTag("query").assertDoesNotExist()
         onNodeWithTag("toggle").performClick()
 
-        waitUntilExactlyOneExists(hasTestTag("query"))
+        waitForIdle()
+        waitUntil { client.isIdleNow() }
         onNodeWithTag("query").assertTextEquals("HELLO, COMPOSE!")
     }
 
@@ -350,7 +350,8 @@ class QueryComposableTest : UnitTest() {
         onNodeWithTag("query").assertDoesNotExist()
         onNodeWithTag("toggle").performClick()
 
-        waitUntilExactlyOneExists(hasTestTag("query"))
+        waitForIdle()
+        waitUntil { client.isIdleNow() }
         onNodeWithTag("query").assertTextEquals("Hello, Compose!Hello, Soil!")
     }
 
@@ -387,7 +388,8 @@ class QueryComposableTest : UnitTest() {
         onNodeWithTag("query").assertDoesNotExist()
         onNodeWithTag("toggle").performClick()
 
-        waitUntilExactlyOneExists(hasTestTag("query"))
+        waitForIdle()
+        waitUntil { client.isIdleNow() }
         onNodeWithTag("query").assertTextEquals("Hello, Compose!Hello, Soil!Hello, Kotlin!")
     }
 
@@ -424,7 +426,8 @@ class QueryComposableTest : UnitTest() {
         onNodeWithTag("query").assertDoesNotExist()
         onNodeWithTag("toggle").performClick()
 
-        waitUntilExactlyOneExists(hasTestTag("query"))
+        waitForIdle()
+        waitUntil { client.isIdleNow() }
         onNodeWithTag("query").assertTextEquals("Hello, Compose!|Hello, Soil!|Hello, Kotlin!")
     }
 
