@@ -12,11 +12,6 @@ import soil.query.core.Marker
 interface SubscriptionClient {
 
     /**
-     * The default subscription options.
-     */
-    val defaultSubscriptionOptions: SubscriptionOptions
-
-    /**
      * Gets the [SubscriptionRef] by the specified [SubscriptionKey].
      */
     @ExperimentalSoilQueryApi

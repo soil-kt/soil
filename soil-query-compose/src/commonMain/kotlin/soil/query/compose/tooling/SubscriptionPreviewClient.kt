@@ -29,8 +29,7 @@ import soil.query.core.UniqueId
  */
 @Stable
 class SubscriptionPreviewClient(
-    private val previewData: Map<UniqueId, SubscriptionState<*>>,
-    override val defaultSubscriptionOptions: SubscriptionOptions = SubscriptionOptions()
+    private val previewData: Map<UniqueId, SubscriptionState<*>>
 ) : SubscriptionClient {
 
     @ExperimentalSoilQueryApi

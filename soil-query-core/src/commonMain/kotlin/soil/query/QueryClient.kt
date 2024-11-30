@@ -13,11 +13,6 @@ import soil.query.core.UniqueId
 interface QueryClient {
 
     /**
-     * The default query options.
-     */
-    val defaultQueryOptions: QueryOptions
-
-    /**
      * Gets the [QueryRef] by the specified [QueryKey].
      */
     fun <T> getQuery(

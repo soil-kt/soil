@@ -11,11 +11,6 @@ import soil.query.core.Marker
 interface MutationClient {
 
     /**
-     * The default mutation options.
-     */
-    val defaultMutationOptions: MutationOptions
-
-    /**
      * Gets the [MutationRef] by the specified [MutationKey].
      */
     fun <T, S> getMutation(

@@ -31,7 +31,11 @@ interface Actor {
     fun launchIn(scope: CoroutineScope): Job
 }
 
-internal typealias ActorSequenceNumber = String
+typealias ActorSequenceNumber = String
+
+interface HasActorSequence {
+    val seq: ActorSequenceNumber
+}
 
 internal class ActorBlockRunner(
     private val id: String = uuid(),
@@ -39,9 +43,9 @@ internal class ActorBlockRunner(
     private val options: ActorOptions,
     private val onTimeout: (ActorSequenceNumber) -> Unit,
     private val block: suspend () -> Unit
-) : Actor {
+) : Actor, HasActorSequence {
 
-    val seq: ActorSequenceNumber
+    override val seq: ActorSequenceNumber
         get() = "$id#$versionCounter"
 
     private var versionCounter: Int = 0

@@ -5,7 +5,11 @@ package soil.query.core
 
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.scan
 
 /**
  * Interface for receiving events of window visibility.
@@ -71,4 +75,15 @@ enum class WindowVisibilityEvent {
      * The window enters the background.
      */
     Background
+}
+
+internal suspend fun observeOnWindowFocus(
+    windowVisibility: WindowVisibility,
+    collector: FlowCollector<Unit>
+) {
+    windowVisibility.asFlow()
+        .distinctUntilChanged()
+        .scan(WindowVisibilityEvent.Foreground to WindowVisibilityEvent.Foreground) { acc, state -> state to acc.first }
+        .filter { it.first == WindowVisibilityEvent.Foreground && it.second == WindowVisibilityEvent.Background }
+        .collect { collector.emit(Unit) }
 }

@@ -5,6 +5,7 @@ package soil.query.core
 
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.callbackFlow
 
 /**
@@ -70,4 +71,12 @@ enum class MemoryPressureLevel {
      * Indicates moderate memory pressure.
      */
     High
+}
+
+internal suspend fun observeOnMemoryPressure(
+    memoryPressure: MemoryPressure,
+    collector: FlowCollector<MemoryPressureLevel>
+) {
+    memoryPressure.asFlow()
+        .collect(collector::emit)
 }
