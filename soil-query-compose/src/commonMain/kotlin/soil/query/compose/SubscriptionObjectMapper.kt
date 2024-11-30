@@ -44,6 +44,7 @@ private object DefaultSubscriptionObjectMapper : SubscriptionObjectMapper {
             replyUpdatedAt = replyUpdatedAt,
             error = error,
             errorUpdatedAt = errorUpdatedAt,
+            restartedAt = restartedAt,
             reset = subscription::reset
         )
 
@@ -52,6 +53,7 @@ private object DefaultSubscriptionObjectMapper : SubscriptionObjectMapper {
             replyUpdatedAt = replyUpdatedAt,
             error = error,
             errorUpdatedAt = errorUpdatedAt,
+            restartedAt = restartedAt,
             reset = subscription::reset
         )
 
@@ -60,6 +62,7 @@ private object DefaultSubscriptionObjectMapper : SubscriptionObjectMapper {
             replyUpdatedAt = replyUpdatedAt,
             error = checkNotNull(error),
             errorUpdatedAt = errorUpdatedAt,
+            restartedAt = restartedAt,
             reset = subscription::reset
         )
     }

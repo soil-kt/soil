@@ -3,6 +3,7 @@
 
 package soil.query
 
+import soil.query.core.Effect
 import soil.query.core.SurrogateKey
 import soil.query.core.UniqueId
 import soil.query.core.uuid
@@ -70,7 +71,27 @@ interface MutationKey<T, S> {
      * @param variable The variable to be mutated.
      * @param data The data returned by the mutation.
      */
+    @Deprecated(
+        "Use onMutateEffect instead.",
+        ReplaceWith("onMutateEffect(variable, data)")
+    )
     fun onQueryUpdate(variable: S, data: T): QueryEffect? = null
+
+    /**
+     * Function to handle side effects after the mutation is executed.
+     *
+     * This is often referred to as ["Pessimistic Updates"](https://redux-toolkit.js.org/rtk-query/usage/manual-cache-updates#pessimistic-updates).
+     *
+     * ```kotlin
+     * override fun onMutateEffect(variable: PostForm, data: Post): Effect = {
+     *     queryClient.invalidateQueriesBy(GetPostsKey.Id())
+     * }
+     * ```
+     *
+     * @param variable The variable to be mutated.
+     * @param data The data returned by the mutation.
+     */
+    fun onMutateEffect(variable: S, data: T): Effect? = null
 }
 
 /**

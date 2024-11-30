@@ -5,6 +5,7 @@ package soil.query
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
+import soil.query.core.Effect
 import soil.query.core.ErrorRecord
 import soil.query.core.MemoryPressureLevel
 
@@ -40,7 +41,13 @@ interface SwrClient : MutationClient, QueryClient {
     /**
      * Executes side effects for queries.
      */
+    @Deprecated("Use effect(block: Effect) instead.", ReplaceWith("effect(block)"))
     fun perform(sideEffects: QueryEffect): Job
+
+    /**
+     * Executes side effects for queries.
+     */
+    fun effect(block: Effect): Job
 
     /**
      * Executes initialization procedures based on events.

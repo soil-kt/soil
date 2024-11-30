@@ -15,6 +15,11 @@ import soil.query.core.DataModel
 interface SubscriptionModel<out T> : DataModel<T> {
 
     /**
+     * The timestamp when the subscription was restarted.
+     */
+    val restartedAt: Long
+
+    /**
      * The received status of the subscription.
      */
     val status: SubscriptionStatus

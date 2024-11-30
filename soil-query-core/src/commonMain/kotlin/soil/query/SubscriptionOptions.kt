@@ -34,6 +34,22 @@ interface SubscriptionOptions : ActorOptions, LoggingOptions, RetryOptions {
     val errorEquals: ((Throwable, Throwable) -> Boolean)?
 
     /**
+     * Automatically restart active [Subscription] when the network reconnects.
+     *
+     * **Note:**
+     * This setting is only effective when [soil.query.core.NetworkConnectivity] is available.
+     */
+    val restartOnReconnect: Boolean
+
+    /**
+     * Automatically restart active [Subscription] when the window is refocused.
+     *
+     * **Note:**
+     * This setting is only effective when [soil.query.core.WindowVisibility] is available.
+     */
+    val restartOnFocus: Boolean
+
+    /**
      * This callback function will be called if some mutation encounters an error.
      */
     val onError: ((ErrorRecord, SubscriptionModel<*>) -> Unit)?
@@ -47,6 +63,8 @@ interface SubscriptionOptions : ActorOptions, LoggingOptions, RetryOptions {
     companion object Default : SubscriptionOptions {
         override val gcTime: Duration = 5.minutes
         override val errorEquals: ((Throwable, Throwable) -> Boolean)? = null
+        override val restartOnReconnect: Boolean = true
+        override val restartOnFocus: Boolean = true
         override val onError: ((ErrorRecord, SubscriptionModel<*>) -> Unit)? = null
         override val shouldSuppressErrorRelay: ((ErrorRecord, SubscriptionModel<*>) -> Boolean)? = null
 
@@ -74,6 +92,8 @@ interface SubscriptionOptions : ActorOptions, LoggingOptions, RetryOptions {
  *
  * @param gcTime The period during which the Key's return value, if not referenced anywhere, is temporarily cached in memory.
  * @param errorEquals Determines whether two errors are equal.
+ * @param restartOnReconnect Automatically restart active [Subscription] when the network reconnects.
+ * @param restartOnFocus Automatically restart active [Subscription] when the window is refocused.
  * @param onError This callback function will be called if some subscription encounters an error.
  * @param shouldSuppressErrorRelay Determines whether to suppress error information when relaying it using [soil.query.core.ErrorRelay].
  * @param keepAliveTime The duration to keep the actor alive after the last command is executed.
@@ -89,6 +109,8 @@ interface SubscriptionOptions : ActorOptions, LoggingOptions, RetryOptions {
 fun SubscriptionOptions(
     gcTime: Duration = SubscriptionOptions.gcTime,
     errorEquals: ((Throwable, Throwable) -> Boolean)? = SubscriptionOptions.errorEquals,
+    restartOnReconnect: Boolean = SubscriptionOptions.restartOnReconnect,
+    restartOnFocus: Boolean = SubscriptionOptions.restartOnFocus,
     onError: ((ErrorRecord, SubscriptionModel<*>) -> Unit)? = SubscriptionOptions.onError,
     shouldSuppressErrorRelay: ((ErrorRecord, SubscriptionModel<*>) -> Boolean)? = SubscriptionOptions.shouldSuppressErrorRelay,
     keepAliveTime: Duration = SubscriptionOptions.keepAliveTime,
@@ -104,6 +126,8 @@ fun SubscriptionOptions(
     return object : SubscriptionOptions {
         override val gcTime: Duration = gcTime
         override val errorEquals: ((Throwable, Throwable) -> Boolean)? = errorEquals
+        override val restartOnReconnect: Boolean = restartOnReconnect
+        override val restartOnFocus: Boolean = restartOnFocus
         override val onError: ((ErrorRecord, SubscriptionModel<*>) -> Unit)? = onError
         override val shouldSuppressErrorRelay: ((ErrorRecord, SubscriptionModel<*>) -> Boolean)? =
             shouldSuppressErrorRelay
@@ -125,6 +149,8 @@ fun SubscriptionOptions(
 fun SubscriptionOptions.copy(
     gcTime: Duration = this.gcTime,
     errorEquals: ((Throwable, Throwable) -> Boolean)? = this.errorEquals,
+    restartOnReconnect: Boolean = this.restartOnReconnect,
+    restartOnFocus: Boolean = this.restartOnFocus,
     onError: ((ErrorRecord, SubscriptionModel<*>) -> Unit)? = this.onError,
     shouldSuppressErrorRelay: ((ErrorRecord, SubscriptionModel<*>) -> Boolean)? = this.shouldSuppressErrorRelay,
     keepAliveTime: Duration = this.keepAliveTime,
@@ -140,6 +166,8 @@ fun SubscriptionOptions.copy(
     return SubscriptionOptions(
         gcTime = gcTime,
         errorEquals = errorEquals,
+        restartOnReconnect = restartOnReconnect,
+        restartOnFocus = restartOnFocus,
         onError = onError,
         shouldSuppressErrorRelay = shouldSuppressErrorRelay,
         keepAliveTime = keepAliveTime,

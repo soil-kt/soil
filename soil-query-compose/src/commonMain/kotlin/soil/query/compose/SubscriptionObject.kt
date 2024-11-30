@@ -43,6 +43,7 @@ data class SubscriptionLoadingObject<T>(
     override val replyUpdatedAt: Long,
     override val error: Throwable?,
     override val errorUpdatedAt: Long,
+    override val restartedAt: Long,
     override val reset: suspend () -> Unit
 ) : SubscriptionObject<T> {
     override val status: SubscriptionStatus = SubscriptionStatus.Pending
@@ -63,6 +64,7 @@ data class SubscriptionErrorObject<T>(
     override val replyUpdatedAt: Long,
     override val error: Throwable,
     override val errorUpdatedAt: Long,
+    override val restartedAt: Long,
     override val reset: suspend () -> Unit
 ) : SubscriptionObject<T> {
     override val status: SubscriptionStatus = SubscriptionStatus.Failure
@@ -80,6 +82,7 @@ data class SubscriptionSuccessObject<T>(
     override val replyUpdatedAt: Long,
     override val error: Throwable?,
     override val errorUpdatedAt: Long,
+    override val restartedAt: Long,
     override val reset: suspend () -> Unit
 ) : SubscriptionObject<T> {
     override val status: SubscriptionStatus = SubscriptionStatus.Success

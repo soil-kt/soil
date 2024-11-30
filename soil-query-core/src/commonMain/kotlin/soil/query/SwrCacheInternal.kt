@@ -19,18 +19,21 @@ import soil.query.annotation.InternalSoilQueryApi
 import soil.query.core.Actor
 import soil.query.core.ActorBlockRunner
 import soil.query.core.BatchScheduler
+import soil.query.core.Effect
+import soil.query.core.EffectContext
 import soil.query.core.ErrorRelay
+import soil.query.core.FilterType
 import soil.query.core.Marker
 import soil.query.core.Reply
-import soil.query.core.SurrogateKey
 import soil.query.core.UniqueId
 import soil.query.core.epoch
+import soil.query.core.forEach
 import soil.query.core.getOrNull
 import soil.query.core.vvv
 import kotlin.coroutines.CoroutineContext
 
 @InternalSoilQueryApi
-abstract class SwrCacheInternal : MutationClient, QueryClient, QueryMutableClient {
+abstract class SwrCacheInternal : MutationClient, QueryClient, QueryEffectClient {
 
     protected abstract val coroutineScope: CoroutineScope
     protected abstract val mainDispatcher: CoroutineDispatcher
@@ -43,10 +46,17 @@ abstract class SwrCacheInternal : MutationClient, QueryClient, QueryMutableClien
     protected abstract val queryCache: QueryCache
     protected abstract val batchScheduler: BatchScheduler
     protected abstract val errorRelaySource: ErrorRelay?
+    protected abstract val effectContext: EffectContext
 
     protected fun launch(effectBlock: QueryEffect): Job {
         return coroutineScope.launch {
             with(this@SwrCacheInternal) { effectBlock() }
+        }
+    }
+
+    protected fun launch(effect: Effect): Job {
+        return coroutineScope.launch {
+            with(effectContext) { effect() }
         }
     }
 
@@ -313,7 +323,7 @@ abstract class SwrCacheInternal : MutationClient, QueryClient, QueryMutableClien
         }
     }
 
-    // ----- QueryMutableClient ----- //
+    // ----- QueryEffectClient ----- //
 
     @Suppress("UNCHECKED_CAST")
     override fun <T> getQueryData(id: QueryId<T>): T? {
@@ -382,106 +392,76 @@ abstract class SwrCacheInternal : MutationClient, QueryClient, QueryMutableClien
     }
 
     override fun invalidateQueries(filter: InvalidateQueriesFilter) {
-        forEach(filter, ::invalidate)
+        QueryFilterResolver(queryStore, queryCache)
+            .forEach(filter, ::invalidate)
     }
 
     override fun <U : UniqueId> invalidateQueriesBy(vararg ids: U) {
         require(ids.isNotEmpty())
         ids.forEach { id ->
-            invalidate(id, QueryFilterType.Active)
-            invalidate(id, QueryFilterType.Inactive)
+            invalidate(id, FilterType.Active)
+            invalidate(id, FilterType.Inactive)
         }
     }
 
-    private fun invalidate(id: UniqueId, type: QueryFilterType) {
+    private fun invalidate(id: UniqueId, type: FilterType) {
         when (type) {
-            QueryFilterType.Active -> queryStore[id]?.invalidate()
-            QueryFilterType.Inactive -> queryCache.swap(id) { copy(isInvalidated = true) }
+            FilterType.Active -> queryStore[id]?.invalidate()
+            FilterType.Inactive -> queryCache.swap(id) { copy(isInvalidated = true) }
         }
     }
 
     override fun removeQueries(filter: RemoveQueriesFilter) {
-        forEach(filter, ::remove)
+        QueryFilterResolver(queryStore, queryCache)
+            .forEach(filter, ::removeQuery)
     }
 
     override fun <U : UniqueId> removeQueriesBy(vararg ids: U) {
         require(ids.isNotEmpty())
         ids.forEach { id ->
-            remove(id, QueryFilterType.Active)
-            remove(id, QueryFilterType.Inactive)
+            removeQuery(id, FilterType.Active)
+            removeQuery(id, FilterType.Inactive)
         }
     }
 
-    private fun remove(id: UniqueId, type: QueryFilterType) {
+    private fun removeQuery(id: UniqueId, type: FilterType) {
         when (type) {
-            QueryFilterType.Active -> queryStore.remove(id)?.cancel()
-            QueryFilterType.Inactive -> queryCache.delete(id)
+            FilterType.Active -> queryStore.remove(id)?.cancel()
+            FilterType.Inactive -> queryCache.delete(id)
         }
     }
 
     override fun resumeQueries(filter: ResumeQueriesFilter) {
         // NOTE: resume targets only active queries.
-        forEach(filter) { id, _ -> resume(id) }
+        QueryFilterResolver(queryStore, queryCache)
+            .forEach(filter) { id, _ -> resumeQuery(id) }
+    }
+
+    protected fun resumeQueriesWhenNetworkReconnect(filter: ResumeQueriesFilter) {
+        QueryFilterResolver(queryStore, queryCache)
+            .forEach(filter) { id, _ ->
+                resumeQuery(id) { it.options.revalidateOnReconnect }
+            }
+    }
+
+    protected fun resumeQueriesWhenWindowFocus(filter: ResumeQueriesFilter) {
+        QueryFilterResolver(queryStore, queryCache)
+            .forEach(filter) { id, _ ->
+                resumeQuery(id) { it.options.revalidateOnFocus }
+            }
     }
 
     override fun <U : UniqueId> resumeQueriesBy(vararg ids: U) {
         require(ids.isNotEmpty())
-        ids.forEach { id -> resume(id) }
+        ids.forEach { id -> resumeQuery(id) }
     }
 
-    private fun resume(id: UniqueId) {
+    private fun resumeQuery(id: UniqueId) {
         queryStore[id]?.resume()
     }
 
-    protected fun forEach(
-        filter: QueryFilter,
-        action: (UniqueId, QueryFilterType) -> Unit
-    ) {
-        if (filter.type == null || filter.type == QueryFilterType.Active) {
-            forEach(QueryFilterType.Active, filter.keys, filter.predicate) { id ->
-                action(id, QueryFilterType.Active)
-            }
-        }
-        if (filter.type == null || filter.type == QueryFilterType.Inactive) {
-            forEach(QueryFilterType.Inactive, filter.keys, filter.predicate) { id ->
-                action(id, QueryFilterType.Inactive)
-            }
-        }
-    }
-
-    private fun forEach(
-        type: QueryFilterType,
-        keys: Array<SurrogateKey>?,
-        predicate: ((QueryModel<*>) -> Boolean)?,
-        action: (UniqueId) -> Unit
-    ) {
-        val queryIds = when (type) {
-            QueryFilterType.Active -> queryStore.keys
-            QueryFilterType.Inactive -> queryCache.keys
-        }
-        queryIds.toSet()
-            .asSequence()
-            .filter { id ->
-                if (keys.isNullOrEmpty()) true
-                else keys.any { id.tags.contains(it) }
-            }
-            .filter { id ->
-                if (predicate == null) true
-                else isMatch(id, type, predicate)
-            }
-            .forEach(action)
-    }
-
-    private fun isMatch(
-        id: UniqueId,
-        type: QueryFilterType,
-        predicate: ((QueryModel<*>) -> Boolean)
-    ): Boolean {
-        val model = when (type) {
-            QueryFilterType.Active -> queryStore[id]?.state?.value
-            QueryFilterType.Inactive -> queryCache[id]
-        }
-        return model?.let(predicate) ?: false
+    private fun resumeQuery(id: UniqueId, predicate: (ManagedQuery<*>) -> Boolean) {
+        queryStore[id]?.takeIf(predicate)?.resume()
     }
 
     @InternalSoilQueryApi

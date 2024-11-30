@@ -8,9 +8,10 @@ import soil.playground.query.data.Post
 import soil.query.InfiniteQueryId
 import soil.query.MutationId
 import soil.query.MutationKey
-import soil.query.QueryEffect
+import soil.query.core.Effect
 import soil.query.core.KeyEquals
 import soil.query.core.Namespace
+import soil.query.queryClient
 import soil.query.receivers.ktor.buildKtorMutationKey
 
 @Stable
@@ -22,8 +23,9 @@ class CreatePostKey(auto: Namespace) : KeyEquals(), MutationKey<Post, PostForm> 
         }.body()
     }
 ) {
-    override fun onQueryUpdate(variable: PostForm, data: Post): QueryEffect = {
-        invalidateQueriesBy(InfiniteQueryId.forGetPosts())
+
+    override fun onMutateEffect(variable: PostForm, data: Post): Effect = {
+        queryClient.invalidateQueriesBy(InfiniteQueryId.forGetPosts())
     }
 }
 

@@ -15,8 +15,23 @@ data class SubscriptionState<T> internal constructor(
     override val replyUpdatedAt: Long = 0,
     override val error: Throwable? = null,
     override val errorUpdatedAt: Long = 0,
+    override val restartedAt: Long = 0,
     override val status: SubscriptionStatus = SubscriptionStatus.Pending
 ) : SubscriptionModel<T> {
+
+    /**
+     * Workaround:
+     * The following warning appeared when updating the [reply] property within [SwrCachePlusInternal.setQueryData],
+     * so I replaced the update process with a method that includes type information.
+     * ref. https://youtrack.jetbrains.com/issue/KT-49404
+     */
+    internal fun patch(
+        data: T,
+        dataUpdatedAt: Long = epoch()
+    ): SubscriptionState<T> = copy(
+        reply = Reply(data),
+        replyUpdatedAt = dataUpdatedAt
+    )
 
     /**
      * Returns a new [SubscriptionState] with the items included in [keys] omitted from the current [SubscriptionState].
@@ -29,7 +44,8 @@ data class SubscriptionState<T> internal constructor(
         if (keys.isEmpty()) return this
         return copy(
             replyUpdatedAt = if (keys.contains(OmitKey.replyUpdatedAt)) 0 else replyUpdatedAt,
-            errorUpdatedAt = if (keys.contains(OmitKey.errorUpdatedAt)) 0 else errorUpdatedAt
+            errorUpdatedAt = if (keys.contains(OmitKey.errorUpdatedAt)) 0 else errorUpdatedAt,
+            restartedAt = if (keys.contains(OmitKey.restartedAt)) 0 else restartedAt
         )
     }
 
@@ -38,6 +54,7 @@ data class SubscriptionState<T> internal constructor(
         companion object {
             val replyUpdatedAt = OmitKey("replyUpdatedAt")
             val errorUpdatedAt = OmitKey("errorUpdatedAt")
+            val restartedAt = OmitKey("restartedAt")
         }
     }
 
@@ -117,6 +134,7 @@ data class SubscriptionState<T> internal constructor(
             replyUpdatedAt: Long = 0,
             error: Throwable? = null,
             errorUpdatedAt: Long = 0,
+            restartedAt: Long = 0,
             status: SubscriptionStatus = SubscriptionStatus.Pending
         ): SubscriptionState<T> {
             return SubscriptionState(
@@ -124,6 +142,7 @@ data class SubscriptionState<T> internal constructor(
                 replyUpdatedAt = replyUpdatedAt,
                 error = error,
                 errorUpdatedAt = errorUpdatedAt,
+                restartedAt = restartedAt,
                 status = status
             )
         }

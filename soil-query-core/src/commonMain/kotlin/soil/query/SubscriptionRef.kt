@@ -35,6 +35,13 @@ interface SubscriptionRef<T> : AutoCloseable {
      * Resumes the Subscription.
      */
     suspend fun resume()
+
+    /**
+     * Joins the Subscription.
+     *
+     * Calling this function will start receiving [events][SubscriptionEvent].
+     */
+    suspend fun join()
 }
 
 /**
@@ -78,7 +85,7 @@ private class SubscriptionRefImpl<T>(
         subscription.source
             .onStart {
                 if (state.value.isFailure) {
-                    reset()
+                    restart()
                 }
             }
             .collect(::receive)
@@ -88,11 +95,25 @@ private class SubscriptionRefImpl<T>(
         send(SubscriptionCommands.Reset(key, state.value.revision))
     }
 
-    private suspend fun send(command: SubscriptionCommand<T>) {
-        subscription.command.send(command)
+    override suspend fun join() {
+        subscription.event.collect(::handleEvent)
+    }
+
+    private suspend fun restart() {
+        send(SubscriptionCommands.Restart(key, state.value.revision, state.value.restartedAt))
     }
 
     private suspend fun receive(result: Result<T>) {
         send(SubscriptionCommands.Receive(key, result, state.value.revision, marker))
+    }
+
+    private suspend fun send(command: SubscriptionCommand<T>) {
+        subscription.command.send(command)
+    }
+
+    private suspend fun handleEvent(e: SubscriptionEvent) {
+        when (e) {
+            SubscriptionEvent.Resume -> restart()
+        }
     }
 }

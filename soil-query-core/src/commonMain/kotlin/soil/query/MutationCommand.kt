@@ -99,10 +99,16 @@ suspend inline fun <T, S> MutationCommand.Context<T>.dispatchMutateResult(
 ) {
     mutate(key, variable)
         .onSuccess { data ->
-            val job = key.onQueryUpdate(variable, data)?.let(notifier::onMutate)
+            val job1 = key.onQueryUpdate(variable, data)?.let {
+                notifier.onMutate { withQuery { it() } }
+            }
+            val job2 = key.onMutateEffect(variable, data)?.let(notifier::onMutate)
             withContext(NonCancellable) {
-                if (job != null && options.shouldExecuteEffectSynchronously) {
-                    job.join()
+                if (job1 != null && options.shouldExecuteEffectSynchronously) {
+                    job1.join()
+                }
+                if (job2 != null && options.shouldExecuteEffectSynchronously) {
+                    job2.join()
                 }
                 dispatchMutateSuccess(data, key.contentEquals)
             }
