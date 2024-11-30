@@ -29,8 +29,7 @@ fun KeepAlive(
     key: QueryKey<*>,
     client: QueryClient = LocalQueryClient.current
 ) {
-    val scope = rememberCoroutineScope()
-    remember(key) { client.getQuery(key).also { it.launchIn(scope) } }
+    @Suppress("UNUSED_VARIABLE") val q = remember(key) { client.getQuery(key) }
 }
 
 /**
@@ -46,8 +45,7 @@ fun KeepAlive(
     key: InfiniteQueryKey<*, *>,
     client: QueryClient = LocalQueryClient.current
 ) {
-    val scope = rememberCoroutineScope()
-    remember(key) { client.getInfiniteQuery(key).also { it.launchIn(scope) } }
+    @Suppress("UNUSED_VARIABLE") val q = remember(key) { client.getInfiniteQuery(key) }
 }
 
 /**
@@ -63,6 +61,5 @@ fun KeepAlive(
     key: MutationKey<*, *>,
     client: MutationClient = LocalMutationClient.current
 ) {
-    val scope = rememberCoroutineScope()
-    remember(key) { client.getMutation(key).also { it.launchIn(scope) } }
+    @Suppress("UNUSED_VARIABLE") val q = remember(key) { client.getMutation(key) }
 }

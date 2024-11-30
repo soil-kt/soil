@@ -12,6 +12,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import soil.query.QueryClient
 import soil.query.QueryId
@@ -49,6 +50,10 @@ private class CombinedQueryN<T, R>(
     )
     override val state: StateFlow<QueryState<R>> = _state
 
+    override fun close() {
+        queries.forEach { it.close() }
+    }
+
     override suspend fun resume() {
         coroutineScope {
             queries.map { query -> async { query.resume() } }.awaitAll()
@@ -61,9 +66,9 @@ private class CombinedQueryN<T, R>(
         }
     }
 
-    override fun launchIn(scope: CoroutineScope): Job {
-        return scope.launch {
-            combine(queries.map { it.state }, ::merge).collect { _state.value = it }
+    override suspend fun join() {
+        coroutineScope {
+            queries.map { query -> launch { query.join() } }.joinAll()
         }
     }
 
@@ -72,23 +77,23 @@ private class CombinedQueryN<T, R>(
     }
 
     // ----- RememberObserver -----//
-    private var jobs: List<Job>? = null
+    private var job: Job? = null
 
     override fun onAbandoned() = stop()
 
     override fun onForgotten() = stop()
 
-    override fun onRemembered() {
-        stop()
-        start()
-    }
+    override fun onRemembered() = start()
 
     private fun start() {
-        jobs = queries.map { it.launchIn(scope) } + launchIn(scope)
+        job = scope.launch {
+            combine(queries.map { it.state }, ::merge).collect { _state.value = it }
+        }
     }
 
     private fun stop() {
-        jobs?.forEach { it.cancel() }
-        jobs = null
+        job?.cancel()
+        job = null
+        close()
     }
 }

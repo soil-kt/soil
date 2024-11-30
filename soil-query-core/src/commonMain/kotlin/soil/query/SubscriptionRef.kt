@@ -3,19 +3,18 @@
 
 package soil.query
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.onStart
-import soil.query.core.Actor
+import soil.query.core.InstanceId
 import soil.query.core.Marker
+import soil.query.core.uuid
 
 /**
  * A reference to an Subscription for [SubscriptionKey].
  *
  * @param T Type of data to receive.
  */
-interface SubscriptionRef<T> : Actor {
+interface SubscriptionRef<T> : AutoCloseable {
 
     /**
      * A unique identifier used for managing [SubscriptionKey].
@@ -48,16 +47,22 @@ interface SubscriptionRef<T> : Actor {
 fun <T> SubscriptionRef(
     key: SubscriptionKey<T>,
     marker: Marker,
-    subscription: Subscription<T>
+    subscription: Subscription<T>,
+    iid: InstanceId = uuid()
 ): SubscriptionRef<T> {
-    return SubscriptionRefImpl(key, marker, subscription)
+    return SubscriptionRefImpl(key, marker, subscription, iid)
 }
 
 private class SubscriptionRefImpl<T>(
     private val key: SubscriptionKey<T>,
     private val marker: Marker,
-    private val subscription: Subscription<T>
+    private val subscription: Subscription<T>,
+    private val iid: InstanceId
 ) : SubscriptionRef<T> {
+
+    init {
+        subscription.attach(iid)
+    }
 
     override val id: SubscriptionId<T>
         get() = key.id
@@ -65,8 +70,8 @@ private class SubscriptionRefImpl<T>(
     override val state: StateFlow<SubscriptionState<T>>
         get() = subscription.state
 
-    override fun launchIn(scope: CoroutineScope): Job {
-        return subscription.launchIn(scope)
+    override fun close() {
+        subscription.detach(iid)
     }
 
     override suspend fun resume() {

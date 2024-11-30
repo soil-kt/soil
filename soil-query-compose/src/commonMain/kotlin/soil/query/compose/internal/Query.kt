@@ -41,36 +41,32 @@ private class Query<T>(
     )
     override val state: StateFlow<QueryState<T>> = _state
 
+    override fun close() = query.close()
+
     override suspend fun resume() = query.resume()
 
     override suspend fun invalidate() = query.invalidate()
 
-    override fun launchIn(scope: CoroutineScope): Job {
-        return scope.launch {
-            query.state.collect { _state.value = optimize(it) }
-        }
-    }
+    override suspend fun join() = query.join()
 
     // ----- RememberObserver -----//
-    private var jobs: List<Job>? = null
+    private var job: Job? = null
 
     override fun onAbandoned() = stop()
 
     override fun onForgotten() = stop()
 
-    override fun onRemembered() {
-        stop()
-        start()
-    }
+    override fun onRemembered() = start()
 
     private fun start() {
-        val job1 = query.launchIn(scope)
-        val job2 = launchIn(scope)
-        jobs = listOf(job1, job2)
+        job = scope.launch {
+            query.state.collect { _state.value = optimize(it) }
+        }
     }
 
     private fun stop() {
-        jobs?.forEach { it.cancel() }
-        jobs = null
+        job?.cancel()
+        job = null
+        close()
     }
 }

@@ -39,11 +39,12 @@ class TestSwrClientTest : UnitTest() {
             }
         }
         val key = ExampleMutationKey()
-        val mutation = testClient.getMutation(key).also { it.launchIn(backgroundScope) }
+        val mutation = testClient.getMutation(key)
         launch { mutation.mutate(0) }
 
         testClient.awaitIdle(testDispatcher)
         assertEquals("Hello, World!", mutation.state.value.reply.getOrThrow())
+        mutation.close()
     }
 
     @Test
@@ -59,11 +60,12 @@ class TestSwrClientTest : UnitTest() {
             on(ExampleQueryKey.Id) { "Hello, World!" }
         }
         val key = ExampleQueryKey()
-        val query = testClient.getQuery(key).also { it.launchIn(backgroundScope) }
+        val query = testClient.getQuery(key)
         launch { query.resume() }
 
         testClient.awaitIdle(testDispatcher)
         assertEquals("Hello, World!", query.state.value.reply.getOrThrow())
+        query.close()
     }
 
     @Test
@@ -79,11 +81,12 @@ class TestSwrClientTest : UnitTest() {
             on(ExampleInfiniteQueryKey.Id) { "Hello, World!" }
         }
         val key = ExampleInfiniteQueryKey()
-        val query = testClient.getInfiniteQuery(key).also { it.launchIn(backgroundScope) }
+        val query = testClient.getInfiniteQuery(key)
         launch { query.resume() }
 
         testClient.awaitIdle(testDispatcher)
         assertEquals("Hello, World!", query.state.value.reply.getOrThrow().first().data)
+        query.close()
     }
 }
 

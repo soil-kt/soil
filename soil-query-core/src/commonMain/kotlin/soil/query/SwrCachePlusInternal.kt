@@ -5,7 +5,6 @@ package soil.query
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
@@ -19,9 +18,8 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import soil.query.annotation.ExperimentalSoilQueryApi
 import soil.query.annotation.InternalSoilQueryApi
+import soil.query.core.Actor
 import soil.query.core.ActorBlockRunner
-import soil.query.core.ActorSequenceNumber
-import soil.query.core.HasActorSequence
 import soil.query.core.Marker
 import soil.query.core.Reply
 import soil.query.core.UniqueId
@@ -44,7 +42,7 @@ abstract class SwrCachePlusInternal : SwrCacheInternal(), SubscriptionClient {
         val subscriptionStoreCopy = subscriptionStore.toMap()
         subscriptionStore.clear()
         subscriptionCache.clear()
-        subscriptionStoreCopy.values.forEach { it.close() }
+        subscriptionStoreCopy.values.forEach { it.cancel() }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -94,8 +92,8 @@ abstract class SwrCachePlusInternal : SwrCacheInternal(), SubscriptionClient {
         val actor = ActorBlockRunner(
             scope = scope,
             options = options,
-            onTimeout = { seq ->
-                scope.launch { batchScheduler.post { closeSubscription<T>(id, seq) } }
+            onTimeout = {
+                scope.launch { batchScheduler.post { deactivateSubscription<T>(id) } }
             }
         ) {
             for (c in command) {
@@ -143,13 +141,16 @@ abstract class SwrCachePlusInternal : SwrCacheInternal(), SubscriptionClient {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T> closeSubscription(id: UniqueId, seq: ActorSequenceNumber) {
+    private fun <T> deactivateSubscription(id: UniqueId) {
         val subscription = subscriptionStore[id] as? ManagedSubscription<T> ?: return
-        if (subscription.seq == seq) {
-            subscriptionStore.remove(id)
-            subscription.close()
-            saveToCache(subscription)
+        if (subscription.hasAttachedInstances()) {
+            subscription.options.vvv(subscription.id) { "deactivate aborted: instances attached" }
+            return
         }
+        subscriptionStore.remove(id)
+        subscription.cancel()
+        subscription.options.vvv(subscription.id) { "deactivated" }
+        saveToCache(subscription)
     }
 
     private fun <T> saveToCache(subscription: ManagedSubscription<T>) {
@@ -159,6 +160,8 @@ abstract class SwrCachePlusInternal : SwrCacheInternal(), SubscriptionClient {
         if (saveable && subscription.isCacheable(lastValue.reply)) {
             subscriptionCache.set(subscription.id, lastValue, ttl)
             subscription.options.vvv(subscription.id) { "cached(ttl=$ttl)" }
+        } else {
+            subscriptionCache.delete(subscription.id)
         }
     }
 
@@ -172,18 +175,10 @@ abstract class SwrCachePlusInternal : SwrCacheInternal(), SubscriptionClient {
         private val scope: CoroutineScope,
         private val actor: ActorBlockRunner,
         private val cacheable: SubscriptionContentCacheable<T>?
-    ) : Subscription<T>, HasActorSequence {
+    ) : Subscription<T>, Actor by actor {
 
-        override val seq: ActorSequenceNumber
-            get() = actor.seq
-
-        override fun launchIn(scope: CoroutineScope): Job {
-            return actor.launchIn(scope)
-        }
-
-        fun close() {
+        fun cancel() {
             scope.cancel()
-            command.close()
         }
 
         fun isCacheable(reply: Reply<T>): Boolean {

@@ -66,6 +66,7 @@ fun <T, U : Any> MutatedEffect(
  * @param T Type of the return value from the mutation.
  * @param mutation The MutationObject whose result will be observed.
  */
+@Suppress("NOTHING_TO_INLINE", "KotlinRedundantDiagnosticSuppress")
 @Composable
 inline fun <T> MutatedEffect(
     mutation: MutationObject<T, *>,

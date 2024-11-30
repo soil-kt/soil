@@ -4,8 +4,6 @@
 package soil.query.compose.tooling
 
 import androidx.compose.runtime.Stable
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import soil.query.MutationClient
@@ -44,7 +42,7 @@ class MutationPreviewClient(
         override val id: MutationId<T, S>,
         override val state: StateFlow<MutationState<T>>
     ) : MutationRef<T, S> {
-        override fun launchIn(scope: CoroutineScope): Job = Job()
+        override fun close() = Unit
         override suspend fun reset() = Unit
         override suspend fun mutate(variable: S): T = state.value.reply.getOrThrow()
         override suspend fun mutateAsync(variable: S) = Unit

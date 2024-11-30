@@ -4,12 +4,9 @@
 package soil.query.core
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.time.Duration
 
 /**
@@ -18,61 +15,60 @@ import kotlin.time.Duration
 interface Actor {
 
     /**
-     * Launches the actor.
-     *
-     * The Actor will continue to run as long as any one of the invoked [scope]s is valid.
+     * Attaches an instance to the actor.
      *
      * **Note:**
      * Currently, This function must be called from the main(UI) thread.
-     * If you call it from a thread other than the main thread, the internal counter value will be out of sync.
+     * If you call it from a thread other than the main thread, the internal state value will be out of sync.
      *
-     * @param scope The scope in which the actor will run
      */
-    fun launchIn(scope: CoroutineScope): Job
+    fun attach(iid: InstanceId)
+
+    /**
+     * Detaches an instance from the actor.
+     *
+     * **Note:**
+     * Currently, This function must be called from the main(UI) thread.
+     * If you call it from a thread other than the main thread, the internal state value will be out of sync.*
+     */
+    fun detach(iid: InstanceId)
+
+    /**
+     * Returns whether the actor has attached instances.
+     */
+    fun hasAttachedInstances(): Boolean
 }
 
-typealias ActorSequenceNumber = String
-
-interface HasActorSequence {
-    val seq: ActorSequenceNumber
-}
+typealias InstanceId = String
 
 internal class ActorBlockRunner(
-    private val id: String = uuid(),
     private val scope: CoroutineScope,
     private val options: ActorOptions,
-    private val onTimeout: (ActorSequenceNumber) -> Unit,
+    private val onTimeout: () -> Unit,
     private val block: suspend () -> Unit
-) : Actor, HasActorSequence {
+) : Actor {
 
-    override val seq: ActorSequenceNumber
-        get() = "$id#$versionCounter"
-
-    private var versionCounter: Int = 0
-    private var activeCounter: Int = 0
-    private var hasActiveScope: Boolean = false
     private var runningJob: Job? = null
     private var cancellationJob: Job? = null
+    private var currentAttachedIds: Set<InstanceId> = emptySet()
 
-    override fun launchIn(scope: CoroutineScope): Job {
-        versionCounter++
-        return scope.launch(start = CoroutineStart.UNDISPATCHED) {
-            cancellationJob?.cancelAndJoin()
-            cancellationJob = null
-            suspendCancellableCoroutine { continuation ->
-                activeCounter++
-                if (!hasActiveScope && activeCounter > 0) {
-                    hasActiveScope = true
-                    start()
-                }
-                continuation.invokeOnCancellation {
-                    activeCounter--
-                    if (hasActiveScope && activeCounter <= 0) {
-                        hasActiveScope = false
-                        stop()
-                    }
-                }
-            }
+    override fun hasAttachedInstances(): Boolean {
+        return currentAttachedIds.isNotEmpty()
+    }
+
+    override fun attach(iid: InstanceId) {
+        cancellationJob?.cancel()
+        cancellationJob = null
+        if (currentAttachedIds.isEmpty()) {
+            start()
+        }
+        currentAttachedIds += iid
+    }
+
+    override fun detach(iid: InstanceId) {
+        currentAttachedIds -= iid
+        if (currentAttachedIds.isEmpty()) {
+            stop()
         }
     }
 
@@ -93,7 +89,7 @@ internal class ActorBlockRunner(
             if (options.keepAliveTime >= Duration.ZERO) {
                 delay(options.keepAliveTime)
             }
-            onTimeout(seq)
+            onTimeout()
         }
     }
 }

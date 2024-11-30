@@ -4,9 +4,11 @@
 package soil.query.compose
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import soil.query.InfiniteQueryKey
+import soil.query.InfiniteQueryRef
 import soil.query.QueryChunks
 import soil.query.QueryClient
 import soil.query.compose.internal.newInfiniteQuery
@@ -29,6 +31,7 @@ fun <T, S> rememberInfiniteQuery(
 ): InfiniteQueryObject<QueryChunks<T, S>, S> {
     val scope = rememberCoroutineScope()
     val query = remember(key.id) { newInfiniteQuery(key, config, client, scope) }
+    query.Effect()
     return with(config.mapper) {
         config.strategy.collectAsState(query).toObject(query = query, select = { it })
     }
@@ -54,7 +57,19 @@ fun <T, S, U> rememberInfiniteQuery(
 ): InfiniteQueryObject<U, S> {
     val scope = rememberCoroutineScope()
     val query = remember(key.id) { newInfiniteQuery(key, config, client, scope) }
+    query.Effect()
     return with(config.mapper) {
         config.strategy.collectAsState(query).toObject(query = query, select = select)
+    }
+}
+
+@Suppress("NOTHING_TO_INLINE", "KotlinRedundantDiagnosticSuppress")
+@Composable
+private inline fun InfiniteQueryRef<*, *>.Effect() {
+    // TODO: Switch to LifecycleResumeEffect
+    //  Android, it works only with Compose UI 1.7.0-alpha05 or above.
+    //  Therefore, we will postpone adding this code until a future release.
+    LaunchedEffect(id) {
+        join()
     }
 }

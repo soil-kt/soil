@@ -12,6 +12,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import soil.query.QueryClient
 import soil.query.QueryId
@@ -56,6 +57,12 @@ private class CombinedQuery3<T1, T2, T3, R>(
     )
     override val state: StateFlow<QueryState<R>> = _state
 
+    override fun close() {
+        query1.close()
+        query2.close()
+        query3.close()
+    }
+
     override suspend fun resume() {
         coroutineScope {
             val deferred1 = async { query1.resume() }
@@ -74,9 +81,12 @@ private class CombinedQuery3<T1, T2, T3, R>(
         }
     }
 
-    override fun launchIn(scope: CoroutineScope): Job {
-        return scope.launch {
-            combine(query1.state, query2.state, query3.state, ::merge).collect { _state.value = it }
+    override suspend fun join() {
+        coroutineScope {
+            val job1 = launch { query1.join() }
+            val job2 = launch { query2.join() }
+            val job3 = launch { query3.join() }
+            joinAll(job1, job2, job3)
         }
     }
 
@@ -85,27 +95,23 @@ private class CombinedQuery3<T1, T2, T3, R>(
     }
 
     // ----- RememberObserver -----//
-    private var jobs: List<Job>? = null
+    private var job: Job? = null
 
     override fun onAbandoned() = stop()
 
     override fun onForgotten() = stop()
 
-    override fun onRemembered() {
-        stop()
-        start()
-    }
+    override fun onRemembered() = start()
 
     private fun start() {
-        val job1 = query1.launchIn(scope)
-        val job2 = query2.launchIn(scope)
-        val job3 = query3.launchIn(scope)
-        val job4 = launchIn(scope)
-        jobs = listOf(job1, job2, job3, job4)
+        job = scope.launch {
+            combine(query1.state, query2.state, query3.state, ::merge).collect { _state.value = it }
+        }
     }
 
     private fun stop() {
-        jobs?.forEach { it.cancel() }
-        jobs = null
+        job?.cancel()
+        job = null
+        close()
     }
 }

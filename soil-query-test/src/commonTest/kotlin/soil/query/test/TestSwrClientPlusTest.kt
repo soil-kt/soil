@@ -34,12 +34,13 @@ class TestSwrClientPlusTest : UnitTest() {
             on(ExampleSubscriptionKey.Id) { MutableStateFlow("Hello, World!") }
         }
         val key = ExampleSubscriptionKey()
-        val subscription = testClient.getSubscription(key).also { it.launchIn(backgroundScope) }
+        val subscription = testClient.getSubscription(key)
         // Use backgroundScope for auto cancel
         backgroundScope.launch { subscription.resume() }
 
         testClient.awaitIdle(testDispatcher)
         assertEquals("Hello, World!", subscription.state.value.reply.getOrThrow())
+        subscription.close()
     }
 }
 
