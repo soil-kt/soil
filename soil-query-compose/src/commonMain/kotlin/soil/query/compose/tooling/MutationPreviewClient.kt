@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.StateFlow
 import soil.query.MutationClient
 import soil.query.MutationId
 import soil.query.MutationKey
-import soil.query.MutationOptions
 import soil.query.MutationRef
 import soil.query.MutationState
 import soil.query.core.Marker
@@ -29,8 +28,7 @@ import soil.query.core.getOrThrow
  */
 @Stable
 class MutationPreviewClient(
-    private val previewData: Map<UniqueId, MutationState<*>>,
-    override val defaultMutationOptions: MutationOptions = MutationOptions
+    private val previewData: Map<UniqueId, MutationState<*>>
 ) : MutationClient {
 
     @Suppress("UNCHECKED_CAST")

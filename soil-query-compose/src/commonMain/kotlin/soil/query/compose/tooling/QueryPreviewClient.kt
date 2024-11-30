@@ -32,8 +32,7 @@ import soil.query.core.UniqueId
  */
 @Stable
 class QueryPreviewClient(
-    private val previewData: Map<UniqueId, QueryState<*>>,
-    override val defaultQueryOptions: QueryOptions = QueryOptions
+    private val previewData: Map<UniqueId, QueryState<*>>
 ) : QueryClient {
 
     @Suppress("UNCHECKED_CAST")
