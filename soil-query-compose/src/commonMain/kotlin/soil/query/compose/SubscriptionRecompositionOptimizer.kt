@@ -32,6 +32,7 @@ private object SubscriptionRecompositionOptimizerEnabled : SubscriptionRecomposi
     override fun <T> omit(state: SubscriptionState<T>): SubscriptionState<T> {
         val keys = buildSet {
             add(SubscriptionState.OmitKey.replyUpdatedAt)
+            add(SubscriptionState.OmitKey.restartedAt)
             when (state.status) {
                 SubscriptionStatus.Pending -> {
                     add(SubscriptionState.OmitKey.errorUpdatedAt)

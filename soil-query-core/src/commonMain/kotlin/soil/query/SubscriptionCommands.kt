@@ -4,6 +4,7 @@
 package soil.query
 
 import soil.query.core.Marker
+import soil.query.core.epoch
 import soil.query.core.vvv
 
 object SubscriptionCommands {
@@ -47,8 +48,25 @@ object SubscriptionCommands {
                 ctx.options.vvv(key.id) { "skip receive(revision is not matched)" }
                 return
             }
-            ctx.dispatch(SubscriptionAction.Reset)
-            ctx.restart()
+            val restartAt = epoch()
+            ctx.dispatch(SubscriptionAction.Reset(restartAt))
+            ctx.restart(restartAt)
+        }
+    }
+
+    class Restart<T>(
+        private val key: SubscriptionKey<T>,
+        private val revision: String,
+        private val restartedAt: Long
+    ) : SubscriptionCommand<T> {
+        override suspend fun handle(ctx: SubscriptionCommand.Context<T>) {
+            if (ctx.state.restartedAt != restartedAt || ctx.state.revision != revision) {
+                ctx.options.vvv(key.id) { "skip receive(restartedAt or revision is not matched)" }
+                return
+            }
+            val restartAt = epoch()
+            ctx.dispatch(SubscriptionAction.Restart(restartAt))
+            ctx.restart(restartAt)
         }
     }
 }

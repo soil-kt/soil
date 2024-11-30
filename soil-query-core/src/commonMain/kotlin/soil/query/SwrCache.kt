@@ -13,6 +13,8 @@ import kotlinx.coroutines.withContext
 import soil.query.annotation.InternalSoilQueryApi
 import soil.query.core.BatchScheduler
 import soil.query.core.BatchSchedulerFactory
+import soil.query.core.Effect
+import soil.query.core.EffectContext
 import soil.query.core.ErrorRecord
 import soil.query.core.ErrorRelay
 import soil.query.core.MemoryPressure
@@ -91,6 +93,9 @@ class SwrCache internal constructor(
     )
 
     override val batchScheduler: BatchScheduler = batchSchedulerFactory.create(coroutineScope)
+    override val effectContext: EffectContext = EffectContext(
+        queryEffectClientPropertyKey to this
+    )
 
     private var mountedIds: Set<String> = emptySet()
     private var mountedScope: CoroutineScope? = null
@@ -120,8 +125,13 @@ class SwrCache internal constructor(
         resetMutations()
     }
 
+    @Deprecated("Use effect(block: Effect) instead.", replaceWith = ReplaceWith("effect(block)"))
     override fun perform(sideEffects: QueryEffect): Job {
         return launch(sideEffects)
+    }
+
+    override fun effect(block: Effect): Job {
+        return launch(block)
     }
 
     override fun onMount(id: String) {
@@ -155,26 +165,14 @@ class SwrCache internal constructor(
     private suspend fun observeNetworkConnectivity() {
         if (networkConnectivity == NetworkConnectivity.Unsupported) return
         observeOnNetworkReconnect(networkConnectivity, networkResumeAfterDelay) {
-            perform {
-                forEach(networkResumeQueriesFilter) { id, _ ->
-                    queryStore[id]
-                        ?.takeIf { it.options.revalidateOnReconnect }
-                        ?.resume()
-                }
-            }
+            resumeQueriesWhenNetworkReconnect(networkResumeQueriesFilter)
         }
     }
 
     private suspend fun observeWindowVisibility() {
         if (windowVisibility == WindowVisibility.Unsupported) return
         observeOnWindowFocus(windowVisibility) {
-            perform {
-                forEach(windowResumeQueriesFilter) { id, _ ->
-                    queryStore[id]
-                        ?.takeIf { it.options.revalidateOnFocus }
-                        ?.resume()
-                }
-            }
+            resumeQueriesWhenWindowFocus(windowResumeQueriesFilter)
         }
     }
 }

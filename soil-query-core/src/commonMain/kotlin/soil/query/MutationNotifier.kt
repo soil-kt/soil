@@ -4,6 +4,7 @@
 package soil.query
 
 import kotlinx.coroutines.Job
+import soil.query.core.Effect
 
 /**
  * MutationNotifier is used to notify the mutation result.
@@ -13,11 +14,11 @@ fun interface MutationNotifier {
     /**
      * Notifies the mutation success
      *
-     * Mutation success usually implies data update, causing side effects on related queries.
+     * Mutation success usually implies data update, causing side effects on related queries and subscriptions.
      * This callback is used as a trigger for re-fetching or revalidating data managed by queries.
-     * It invokes with the [QueryEffect] set in [MutationKey.onQueryUpdate].
+     * It invokes with the [Effect] set in [MutationKey.onMutateEffect].
      *
-     * @param sideEffects The side effects of the mutation for related queries.
+     * @param effect The side effects of the mutation for related queries and subscriptions.
      */
-    fun onMutate(sideEffects: QueryEffect): Job
+    fun onMutate(effect: Effect): Job
 }

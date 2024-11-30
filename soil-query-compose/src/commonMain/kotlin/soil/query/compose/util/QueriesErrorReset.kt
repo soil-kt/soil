@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import soil.query.ResumeQueriesFilter
 import soil.query.SwrClient
 import soil.query.compose.LocalSwrClient
+import soil.query.queryClient
 
 
 typealias QueriesErrorReset = () -> Unit
@@ -25,7 +26,7 @@ fun rememberQueriesErrorReset(
     client: SwrClient = LocalSwrClient.current
 ): QueriesErrorReset {
     val reset = remember<() -> Unit>(client) {
-        { client.perform { resumeQueries(filter) } }
+        { client.effect { queryClient.resumeQueries(filter) } }
     }
     return reset
 }

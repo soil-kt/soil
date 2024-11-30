@@ -5,7 +5,6 @@ package soil.query
 
 import kotlinx.coroutines.Job
 import soil.query.core.Marker
-import soil.query.core.UniqueId
 
 /**
  * A Query client, which allows you to make queries actor and handle [QueryKey] and [InfiniteQueryKey].
@@ -72,68 +71,7 @@ interface QueryReadonlyClient {
     fun <T, S> getInfiniteQueryData(id: InfiniteQueryId<T, S>): QueryChunks<T, S>?
 }
 
-/**
- * Interface for causing side effects on [Query] under the control of [QueryClient].
- *
- * [QueryEffect] is designed to allow side effects such as updating, deleting, and revalidating queries.
- * It is useful for handling [MutationKey.onQueryUpdate] after executing [Mutation] that affects [Query] data.
- */
-interface QueryMutableClient : QueryReadonlyClient {
-
-    /**
-     * Updates the data of the [QueryKey] associated with the [id].
-     */
-    fun <T> updateQueryData(
-        id: QueryId<T>,
-        edit: T.() -> T
-    )
-
-    /**
-     * Updates the data of the [InfiniteQueryKey] associated with the [id].
-     */
-    fun <T, S> updateInfiniteQueryData(
-        id: InfiniteQueryId<T, S>,
-        edit: QueryChunks<T, S>.() -> QueryChunks<T, S>
-    )
-
-    /**
-     * Invalidates the queries by the specified [InvalidateQueriesFilter].
-     */
-    fun invalidateQueries(filter: InvalidateQueriesFilter)
-
-    /**
-     * Invalidates the queries by the specified [UniqueId].
-     */
-    fun <U : UniqueId> invalidateQueriesBy(vararg ids: U)
-
-    /**
-     * Removes the queries by the specified [RemoveQueriesFilter].
-     *
-     * **Note:**
-     * Queries will be removed from [QueryClient], but [QueryRef] instances on the subscriber side will remain until they are dereferenced.
-     * Also, the [kotlinx.coroutines.CoroutineScope] associated with the [kotlinx.coroutines.Job] will be canceled at the time of removal.
-     */
-    fun removeQueries(filter: RemoveQueriesFilter)
-
-    /**
-     * Removes the queries by the specified [UniqueId].
-     */
-    fun <U : UniqueId> removeQueriesBy(vararg ids: U)
-
-    /**
-     * Resumes the queries by the specified [ResumeQueriesFilter].
-     */
-    fun resumeQueries(filter: ResumeQueriesFilter)
-
-    /**
-     * Resumes the queries by the specified [UniqueId].
-     */
-    fun <U : UniqueId> resumeQueriesBy(vararg ids: U)
-}
-
 typealias QueryInitialData<T> = QueryReadonlyClient.() -> T?
-typealias QueryEffect = QueryMutableClient.() -> Unit
-
 typealias QueryContentEquals<T> = (oldData: T, newData: T) -> Boolean
 typealias QueryContentCacheable<T> = (currentData: T) -> Boolean
 typealias QueryRecoverData<T> = (error: Throwable) -> T

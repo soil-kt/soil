@@ -21,6 +21,11 @@ interface Subscription<T> : Actor {
     val source: SharedFlow<Result<T>>
 
     /**
+     * [Shared Flow][SharedFlow] to receive subscription [events][SubscriptionEvent].
+     */
+    val event: SharedFlow<SubscriptionEvent>
+
+    /**
      * [State Flow][StateFlow] to receive the current state of the subscription.
      */
     val state: StateFlow<SubscriptionState<T>>
@@ -29,4 +34,11 @@ interface Subscription<T> : Actor {
      * [Send Channel][SendChannel] to manipulate the state of the subscription.
      */
     val command: SendChannel<SubscriptionCommand<T>>
+}
+
+/**
+ * Events occurring in the subscription.
+ */
+enum class SubscriptionEvent {
+    Resume
 }

@@ -3,6 +3,9 @@
 
 package soil.query
 
+import kotlinx.coroutines.Job
+import soil.query.core.Effect
+
 /**
  * An enhanced version of [SwrClient] that integrates [SubscriptionClient] into SwrClient.
  */
@@ -16,4 +19,9 @@ interface SwrClientPlus : SwrClient, SubscriptionClient {
      * This method should only be used for full resets, such as during sign-out.
      */
     override fun purgeAll()
+
+    /**
+     * Executes side effects for queries and subscriptions.
+     */
+    override fun effect(block: Effect): Job
 }

@@ -49,6 +49,8 @@ private class Subscription<T>(
 
     override suspend fun resume() = subscription.resume()
 
+    override suspend fun join() = subscription.join()
+
     // ----- RememberObserver -----//
     private var job: Job? = null
 

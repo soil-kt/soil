@@ -35,6 +35,22 @@ interface SwrCachePlusPolicy : SwrCachePolicy {
      * Management of cached data for inactive [Subscription] instances.
      */
     val subscriptionCache: SubscriptionCache
+
+    /**
+     * The specified filter to resume subscriptions after network connectivity is reconnected.
+     *
+     * **Note:**
+     * This setting is only effective when [networkConnectivity] is available.
+     */
+    val networkResumeSubscriptionsFilter: ResumeSubscriptionsFilter
+
+    /**
+     * The specified filter to resume subscriptions after window visibility is refocused.
+     *
+     * **Note:**
+     * This setting is only effective when [windowVisibility] is available.
+     */
+    val windowResumeSubscriptionsFilter: ResumeSubscriptionsFilter
 }
 
 /**
@@ -56,8 +72,10 @@ interface SwrCachePlusPolicy : SwrCachePolicy {
  * @param networkConnectivity Management of network connectivity.
  * @param networkResumeAfterDelay Duration after which the network resumes.
  * @param networkResumeQueriesFilter Filter for resuming queries after a network error.
+ * @param networkResumeSubscriptionsFilter Filter for resuming subscriptions after a network error.
  * @param windowVisibility Management of window visibility.
  * @param windowResumeQueriesFilter Filter for resuming queries after a window focus.
+ * @param windowResumeSubscriptionsFilter Filter for resuming subscriptions after a window focus.
  */
 @ExperimentalSoilQueryApi
 fun SwrCachePlusPolicy(
@@ -79,9 +97,15 @@ fun SwrCachePlusPolicy(
     networkResumeQueriesFilter: ResumeQueriesFilter = ResumeQueriesFilter(
         predicate = { it.isFailure }
     ),
+    networkResumeSubscriptionsFilter: ResumeSubscriptionsFilter = ResumeSubscriptionsFilter(
+        predicate = { it.isFailure }
+    ),
     windowVisibility: WindowVisibility = WindowVisibility,
     windowResumeQueriesFilter: ResumeQueriesFilter = ResumeQueriesFilter(
         predicate = { it.isStaled() }
+    ),
+    windowResumeSubscriptionsFilter: ResumeSubscriptionsFilter = ResumeSubscriptionsFilter(
+        predicate = { it.isFailure }
     )
 ): SwrCachePlusPolicy = SwrCachePlusPolicyImpl(
     coroutineScope = coroutineScope,
@@ -100,8 +124,10 @@ fun SwrCachePlusPolicy(
     networkConnectivity = networkConnectivity,
     networkResumeAfterDelay = networkResumeAfterDelay,
     networkResumeQueriesFilter = networkResumeQueriesFilter,
+    networkResumeSubscriptionsFilter = networkResumeSubscriptionsFilter,
     windowVisibility = windowVisibility,
-    windowResumeQueriesFilter = windowResumeQueriesFilter
+    windowResumeQueriesFilter = windowResumeQueriesFilter,
+    windowResumeSubscriptionsFilter = windowResumeSubscriptionsFilter
 )
 
 /**
@@ -120,8 +146,10 @@ fun SwrCachePlusPolicy(
  * @param networkConnectivity Management of network connectivity.
  * @param networkResumeAfterDelay Duration after which the network resumes.
  * @param networkResumeQueriesFilter Filter for resuming queries after a network error.
+ * @param networkResumeSubscriptionsFilter Filter for resuming subscriptions after a network error.
  * @param windowVisibility Management of window visibility.
  * @param windowResumeQueriesFilter Filter for resuming queries after a window focus.
+ * @param windowResumeSubscriptionsFilter Filter for resuming subscriptions after a window focus.
  * @param receiverBuilder Receiver builder for [MutationReceiver], [QueryReceiver] and [SubscriptionReceiver].
  */
 @ExperimentalSoilQueryApi
@@ -141,9 +169,15 @@ fun SwrCachePlusPolicy(
     networkResumeQueriesFilter: ResumeQueriesFilter = ResumeQueriesFilter(
         predicate = { it.isFailure }
     ),
+    networkResumeSubscriptionsFilter: ResumeSubscriptionsFilter = ResumeSubscriptionsFilter(
+        predicate = { it.isFailure }
+    ),
     windowVisibility: WindowVisibility = WindowVisibility,
     windowResumeQueriesFilter: ResumeQueriesFilter = ResumeQueriesFilter(
         predicate = { it.isStaled() }
+    ),
+    windowResumeSubscriptionsFilter: ResumeSubscriptionsFilter = ResumeSubscriptionsFilter(
+        predicate = { it.isFailure }
     ),
     receiverBuilder: SwrReceiverBuilderPlus.() -> Unit
 ): SwrCachePlusPolicy {
@@ -165,8 +199,10 @@ fun SwrCachePlusPolicy(
         networkConnectivity = networkConnectivity,
         networkResumeAfterDelay = networkResumeAfterDelay,
         networkResumeQueriesFilter = networkResumeQueriesFilter,
+        networkResumeSubscriptionsFilter = networkResumeSubscriptionsFilter,
         windowVisibility = windowVisibility,
-        windowResumeQueriesFilter = windowResumeQueriesFilter
+        windowResumeQueriesFilter = windowResumeQueriesFilter,
+        windowResumeSubscriptionsFilter = windowResumeSubscriptionsFilter
     )
 }
 
@@ -188,6 +224,8 @@ internal class SwrCachePlusPolicyImpl(
     override val networkConnectivity: NetworkConnectivity,
     override val networkResumeAfterDelay: Duration,
     override val networkResumeQueriesFilter: ResumeQueriesFilter,
+    override val networkResumeSubscriptionsFilter: ResumeSubscriptionsFilter,
     override val windowVisibility: WindowVisibility,
-    override val windowResumeQueriesFilter: ResumeQueriesFilter
+    override val windowResumeQueriesFilter: ResumeQueriesFilter,
+    override val windowResumeSubscriptionsFilter: ResumeSubscriptionsFilter
 ) : SwrCachePlusPolicy

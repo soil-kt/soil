@@ -21,6 +21,21 @@ interface SubscriptionClient {
     ): SubscriptionRef<T>
 }
 
+/**
+ * Interface for directly accessing retrieved [Subscription] data by [SubscriptionClient].
+ *
+ * [SubscriptionInitialData] is designed to calculate initial data from other [Subscription].
+ * This is useful when the type included in the list on the overview screen matches the type of content on the detailed screen.
+ */
+interface SubscriptionReadonlyClient {
+
+    /**
+     * Retrieves data of the [SubscriptionKey] associated with the [id].
+     */
+    fun <T> getSubscriptionData(id: SubscriptionId<T>): T?
+}
+
+typealias SubscriptionInitialData<T> = SubscriptionReadonlyClient.() -> T?
 typealias SubscriptionContentEquals<T> = (oldData: T, newData: T) -> Boolean
 typealias SubscriptionContentCacheable<T> = (currentData: T) -> Boolean
 typealias SubscriptionRecoverData<T> = (error: Throwable) -> T

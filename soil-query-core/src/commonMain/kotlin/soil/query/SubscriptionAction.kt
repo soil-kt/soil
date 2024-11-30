@@ -15,7 +15,16 @@ sealed interface SubscriptionAction<out T> {
     /**
      * Resets the subscription state.
      */
-    data object Reset : SubscriptionAction<Nothing>
+    data class Reset(
+        val restartedAt: Long
+    ) : SubscriptionAction<Nothing>
+
+    /**
+     * Restarts the subscription state.
+     */
+    data class Restart(
+        val restartedAt: Long
+    ) : SubscriptionAction<Nothing>
 
     /**
      * Indicates that the subscription is successful.
@@ -38,6 +47,17 @@ sealed interface SubscriptionAction<out T> {
         val error: Throwable,
         val errorUpdatedAt: Long
     ) : SubscriptionAction<Nothing>
+
+    /**
+     * Forces the subscription to update the data.
+     *
+     * @param data The data to be updated.
+     * @param dataUpdatedAt The timestamp when the data was updated.
+     */
+    data class ForceUpdate<T>(
+        val data: T,
+        val dataUpdatedAt: Long
+    ) : SubscriptionAction<T>
 }
 
 typealias SubscriptionReducer<T> = (SubscriptionState<T>, SubscriptionAction<T>) -> SubscriptionState<T>
@@ -54,6 +74,14 @@ fun <T> createSubscriptionReducer(): SubscriptionReducer<T> = { state, action ->
                 replyUpdatedAt = 0,
                 error = null,
                 errorUpdatedAt = 0,
+                restartedAt = action.restartedAt,
+                status = SubscriptionStatus.Pending
+            )
+        }
+
+        is SubscriptionAction.Restart -> {
+            state.copy(
+                restartedAt = action.restartedAt,
                 status = SubscriptionStatus.Pending
             )
         }
@@ -73,6 +101,13 @@ fun <T> createSubscriptionReducer(): SubscriptionReducer<T> = { state, action ->
                 status = SubscriptionStatus.Failure,
                 error = action.error,
                 errorUpdatedAt = action.errorUpdatedAt
+            )
+        }
+
+        is SubscriptionAction.ForceUpdate -> {
+            state.copy(
+                reply = Reply(action.data),
+                replyUpdatedAt = action.dataUpdatedAt
             )
         }
     }

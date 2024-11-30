@@ -69,6 +69,21 @@ interface SubscriptionKey<T> {
     fun onConfigureOptions(): SubscriptionOptionsOverride? = null
 
     /**
+     * Function to specify initial data.
+     *
+     * You can specify initial data instead of the initial loading state.
+     *
+     * ```kotlin
+     * override fun onInitialData(): SubscriptionInitialData<User> = {
+     *     getSubscriptionData(XxxSubscriptionKey.Id())
+     * }
+     * ```
+     *
+     * @see SubscriptionInitialData
+     */
+    fun onInitialData(): SubscriptionInitialData<T>? = null
+
+    /**
      * Function to recover data from the error.
      *
      * You can recover data from the error instead of the error state.

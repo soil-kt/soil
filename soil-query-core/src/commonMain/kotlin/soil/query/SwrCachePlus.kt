@@ -14,6 +14,8 @@ import soil.query.annotation.ExperimentalSoilQueryApi
 import soil.query.annotation.InternalSoilQueryApi
 import soil.query.core.BatchScheduler
 import soil.query.core.BatchSchedulerFactory
+import soil.query.core.Effect
+import soil.query.core.EffectContext
 import soil.query.core.ErrorRecord
 import soil.query.core.ErrorRelay
 import soil.query.core.MemoryPressure
@@ -50,8 +52,10 @@ class SwrCachePlus internal constructor(
     private val networkConnectivity: NetworkConnectivity,
     private val networkResumeAfterDelay: Duration,
     private val networkResumeQueriesFilter: ResumeQueriesFilter,
+    private val networkResumeSubscriptionsFilter: ResumeSubscriptionsFilter,
     private val windowVisibility: WindowVisibility,
     private val windowResumeQueriesFilter: ResumeQueriesFilter,
+    private val windowResumeSubscriptionsFilter: ResumeSubscriptionsFilter,
     batchSchedulerFactory: BatchSchedulerFactory
 ) : SwrCachePlusInternal(), SwrCachePlusView, SwrClientPlus {
 
@@ -77,12 +81,18 @@ class SwrCachePlus internal constructor(
         networkConnectivity = policy.networkConnectivity,
         networkResumeAfterDelay = policy.networkResumeAfterDelay,
         networkResumeQueriesFilter = policy.networkResumeQueriesFilter,
+        networkResumeSubscriptionsFilter = policy.networkResumeSubscriptionsFilter,
         windowVisibility = policy.windowVisibility,
         windowResumeQueriesFilter = policy.windowResumeQueriesFilter,
+        windowResumeSubscriptionsFilter = policy.windowResumeSubscriptionsFilter,
         batchSchedulerFactory = policy.batchSchedulerFactory
     )
 
     override val batchScheduler: BatchScheduler = batchSchedulerFactory.create(coroutineScope)
+    override val effectContext: EffectContext = EffectContext(
+        queryEffectClientPropertyKey to this,
+        subscriptionEffectClientPropertyKey to this
+    )
 
     private var mountedIds: Set<String> = emptySet()
     private var mountedScope: CoroutineScope? = null
@@ -123,8 +133,13 @@ class SwrCachePlus internal constructor(
         resetSubscriptions()
     }
 
+    @Deprecated("Use effect(block: Effect) instead.", replaceWith = ReplaceWith("effect(block)"))
     override fun perform(sideEffects: QueryEffect): Job {
         return launch(sideEffects)
+    }
+
+    override fun effect(block: Effect): Job {
+        return launch(block)
     }
 
     override fun onMount(id: String) {
@@ -158,26 +173,16 @@ class SwrCachePlus internal constructor(
     private suspend fun observeNetworkConnectivity() {
         if (networkConnectivity == NetworkConnectivity.Unsupported) return
         observeOnNetworkReconnect(networkConnectivity, networkResumeAfterDelay) {
-            perform {
-                forEach(networkResumeQueriesFilter) { id, _ ->
-                    queryStore[id]
-                        ?.takeIf { it.options.revalidateOnReconnect }
-                        ?.resume()
-                }
-            }
+            resumeQueriesWhenNetworkReconnect(networkResumeQueriesFilter)
+            resumeSubscriptionsWhenNetworkReconnect(networkResumeSubscriptionsFilter)
         }
     }
 
     private suspend fun observeWindowVisibility() {
         if (windowVisibility == WindowVisibility.Unsupported) return
         observeOnWindowFocus(windowVisibility) {
-            perform {
-                forEach(windowResumeQueriesFilter) { id, _ ->
-                    queryStore[id]
-                        ?.takeIf { it.options.revalidateOnFocus }
-                        ?.resume()
-                }
-            }
+            resumeQueriesWhenWindowFocus(windowResumeQueriesFilter)
+            resumeSubscriptionsWhenWindowFocus(windowResumeSubscriptionsFilter)
         }
     }
 }

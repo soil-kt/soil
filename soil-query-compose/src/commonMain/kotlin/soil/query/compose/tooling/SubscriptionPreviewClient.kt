@@ -46,6 +46,7 @@ class SubscriptionPreviewClient(
         override fun close() = Unit
         override suspend fun reset() = Unit
         override suspend fun resume() = Unit
+        override suspend fun join() = Unit
     }
 
     /**

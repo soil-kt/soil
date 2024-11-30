@@ -8,12 +8,13 @@ import soil.playground.query.data.Post
 import soil.query.InfiniteQueryId
 import soil.query.MutationId
 import soil.query.MutationKey
-import soil.query.QueryEffect
 import soil.query.QueryId
+import soil.query.core.Effect
 import soil.query.core.KeyEquals
 import soil.query.core.Namespace
 import soil.query.modifyData
 import soil.query.receivers.ktor.buildKtorMutationKey
+import soil.query.withQuery
 
 @Stable
 class UpdatePostKey(auto: Namespace) : KeyEquals(), MutationKey<Post, Post> by buildKtorMutationKey(
@@ -24,8 +25,11 @@ class UpdatePostKey(auto: Namespace) : KeyEquals(), MutationKey<Post, Post> by b
         }.body()
     }
 ) {
-    override fun onQueryUpdate(variable: Post, data: Post): QueryEffect = {
-        updateQueryData(QueryId.forGetPost(data.id)) { data }
-        updateInfiniteQueryData(InfiniteQueryId.forGetPosts()) { modifyData({ it.id == data.id }) { data } }
+
+    override fun onMutateEffect(variable: Post, data: Post): Effect = {
+        withQuery {
+            updateQueryData(QueryId.forGetPost(data.id)) { data }
+            updateInfiniteQueryData(InfiniteQueryId.forGetPosts()) { modifyData({ it.id == data.id }) { data } }
+        }
     }
 }

@@ -36,7 +36,7 @@ interface SubscriptionCommand<T> {
 }
 
 internal typealias SubscriptionErrorRelay = (ErrorRecord) -> Unit
-internal typealias SubscriptionRestart = () -> Unit
+internal typealias SubscriptionRestart = (Long) -> Unit
 
 /**
  * Dispatches the result of the subscription.
