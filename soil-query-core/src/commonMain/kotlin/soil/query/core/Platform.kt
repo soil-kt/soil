@@ -20,5 +20,6 @@ expect fun epoch(): Long
 expect fun uuid(): String
 
 internal fun Duration.toEpoch(at: Long = epoch()): Long {
-    return at + inWholeSeconds
+    val leftover = Long.MAX_VALUE - at
+    return at + inWholeSeconds.coerceAtMost(leftover)
 }
