@@ -12,6 +12,12 @@ import soil.query.core.Marker
 interface QueryClient {
 
     /**
+     * **Note:** This property is exposed for limited use cases where you may need to call [QueryKey.fetch] and [InfiniteQueryKey.fetch] manually.
+     * It can be useful as an escape hatch or for synchronous invocations within the data layer.
+     */
+    val queryReceiver: QueryReceiver
+
+    /**
      * Gets the [QueryRef] by the specified [QueryKey].
      */
     fun <T> getQuery(

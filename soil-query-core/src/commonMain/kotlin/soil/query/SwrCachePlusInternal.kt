@@ -39,7 +39,6 @@ import soil.query.core.vvv
 abstract class SwrCachePlusInternal : SwrCacheInternal(), SubscriptionClient, SubscriptionEffectClient {
 
     protected abstract val subscriptionOptions: SubscriptionOptions
-    protected abstract val subscriptionReceiver: SubscriptionReceiver
     protected abstract val subscriptionStore: MutableMap<UniqueId, ManagedSubscription<*>>
     protected abstract val subscriptionCache: SubscriptionCache
 

@@ -12,6 +12,12 @@ import soil.query.core.Marker
 interface SubscriptionClient {
 
     /**
+     * **Note:** This property is exposed for limited use cases where you may need to call [SubscriptionKey.subscribe] manually.
+     * It can be useful as an escape hatch or for synchronous invocations within the data layer.
+     */
+    val subscriptionReceiver: SubscriptionReceiver
+
+    /**
      * Gets the [SubscriptionRef] by the specified [SubscriptionKey].
      */
     @ExperimentalSoilQueryApi

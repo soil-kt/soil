@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import soil.query.SubscriptionClient
 import soil.query.SubscriptionId
 import soil.query.SubscriptionKey
+import soil.query.SubscriptionReceiver
 import soil.query.SubscriptionRef
 import soil.query.SubscriptionState
 import soil.query.annotation.ExperimentalSoilQueryApi
@@ -28,6 +29,8 @@ import soil.query.core.UniqueId
 class SubscriptionPreviewClient(
     private val previewData: Map<UniqueId, SubscriptionState<*>>
 ) : SubscriptionClient {
+
+    override val subscriptionReceiver = SubscriptionReceiver
 
     @ExperimentalSoilQueryApi
     @Suppress("UNCHECKED_CAST")

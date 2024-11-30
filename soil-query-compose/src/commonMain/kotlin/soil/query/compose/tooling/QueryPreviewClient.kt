@@ -14,6 +14,7 @@ import soil.query.QueryChunks
 import soil.query.QueryClient
 import soil.query.QueryId
 import soil.query.QueryKey
+import soil.query.QueryReceiver
 import soil.query.QueryRef
 import soil.query.QueryState
 import soil.query.core.Marker
@@ -32,6 +33,8 @@ import soil.query.core.UniqueId
 class QueryPreviewClient(
     private val previewData: Map<UniqueId, QueryState<*>>
 ) : QueryClient {
+
+    override val queryReceiver: QueryReceiver = QueryReceiver
 
     @Suppress("UNCHECKED_CAST")
     override fun <T> getQuery(
