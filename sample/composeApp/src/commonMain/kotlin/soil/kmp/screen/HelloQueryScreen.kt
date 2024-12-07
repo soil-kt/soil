@@ -13,8 +13,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.ktor.client.plugins.ResponseException
-import soil.playground.Alert
 import soil.playground.query.compose.ContentLoading
 import soil.playground.query.compose.ContentUnavailable
 import soil.playground.query.compose.PostListItem
@@ -24,7 +22,6 @@ import soil.playground.query.data.Posts
 import soil.playground.router.NavLink
 import soil.playground.style.withAppTheme
 import soil.query.compose.runtime.Await
-import soil.query.compose.runtime.Catch
 import soil.query.compose.runtime.ErrorBoundary
 import soil.query.compose.runtime.LazyLoadEffect
 import soil.query.compose.runtime.Suspense
@@ -113,15 +110,6 @@ private fun ListSectionContainer(
             derivedStateOf { ListSectionState(posts, query.loadMoreParam, query.loadMore) }
         }
         content(state)
-    }
-    Catch(query) { e ->
-        // You can also write your own error handling logic.
-        // Try testing the error by setting your mobile device to AirPlane mode.
-        if (e !is ResponseException) {
-            Alert(message = "Unexpected error :(")
-            return@Catch
-        }
-        Throw(e)
     }
 }
 
