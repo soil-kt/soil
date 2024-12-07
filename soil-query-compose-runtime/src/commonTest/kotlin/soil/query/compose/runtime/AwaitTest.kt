@@ -3,25 +3,21 @@
 
 package soil.query.compose.runtime
 
-import androidx.compose.material.Button
 import androidx.compose.material.Text
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
-import androidx.compose.ui.test.waitUntilDoesNotExist
 import androidx.compose.ui.test.waitUntilExactlyOneExists
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.launch
 import soil.query.InfiniteQueryId
 import soil.query.InfiniteQueryKey
 import soil.query.QueryId
 import soil.query.QueryKey
+import soil.query.QueryState
 import soil.query.SwrCache
 import soil.query.SwrCacheScope
 import soil.query.buildInfiniteQueryKey
@@ -30,6 +26,8 @@ import soil.query.compose.QueryObject
 import soil.query.compose.SwrClientProvider
 import soil.query.compose.rememberInfiniteQuery
 import soil.query.compose.rememberQuery
+import soil.query.compose.tooling.QueryPreviewClient
+import soil.query.compose.tooling.SwrPreviewClient
 import soil.query.test.test
 import soil.testing.UnitTest
 import kotlin.test.Test
@@ -133,14 +131,14 @@ class AwaitTest : UnitTest() {
 
     @Test
     fun testAwait_withSuspense() = runComposeUiTest {
-        val deferred1 = CompletableDeferred<String>()
-        val deferred2 = CompletableDeferred<String>()
         val key1 = TestQueryKey("foo")
         val key2 = TestQueryKey("bar")
-        val client = SwrCache(coroutineScope = SwrCacheScope()).test {
-            on(key1.id) { deferred1.await() }
-            on(key2.id) { deferred2.await() }
-        }
+        val client = SwrPreviewClient(
+            query = QueryPreviewClient {
+                on(key1.id) { QueryState.initial() }
+                on(key2.id) { QueryState.success("Hello, Soil!") }
+            }
+        )
         setContent {
             SwrClientProvider(client) {
                 val query1 = rememberQuery(key1)
@@ -158,74 +156,86 @@ class AwaitTest : UnitTest() {
         waitUntilExactlyOneExists(hasTestTag("fallback"))
         onNodeWithTag("fallback").assertTextEquals("Loading...")
         onNodeWithTag("await").assertDoesNotExist()
-
-        deferred1.complete("Hello, Soil!")
-        waitForIdle()
-        onNodeWithTag("fallback").assertTextEquals("Loading...")
-        onNodeWithTag("await").assertDoesNotExist()
-
-        deferred2.complete("Hello, Compose!")
-        waitUntilExactlyOneExists(hasTestTag("await"))
-        onNodeWithTag("await").assertTextEquals("Hello, Soil!Hello, Compose!")
-        onNodeWithTag("fallback").assertDoesNotExist()
     }
 
     @Test
-    fun testAwait_withSuspense_refresh() = runComposeUiTest {
-        val deferred1 = CompletableDeferred<String>()
-        val deferred2 = CompletableDeferred<String>()
-        var isFirst = true
-        val key = TestQueryKey("foo")
-        val client = SwrCache(coroutineScope = SwrCacheScope()).test {
-            on(key.id) {
-                if (isFirst) {
-                    isFirst = false
-                    deferred1.await()
-                } else {
-                    deferred2.await()
-                }
+    fun testAwait_error() = runComposeUiTest {
+        val key1 = TestQueryKey("foo")
+        val key2 = TestQueryKey("bar")
+        val client = SwrPreviewClient(
+            query = QueryPreviewClient {
+                on(key1.id) { QueryState.failure(RuntimeException(key1.variant), errorUpdatedAt = 300) }
+                on(key2.id) { QueryState.failure(RuntimeException(key2.variant), errorUpdatedAt = 200) }
             }
-        }
+        )
         setContent {
             SwrClientProvider(client) {
-                val query = rememberQuery(key)
-                Suspense(
-                    fallback = { Text("Loading...", modifier = Modifier.testTag("fallback")) },
-                    contentThreshold = Duration.ZERO
-                ) {
-                    Await(query) { data ->
-                        Text(data, modifier = Modifier.testTag("await"))
-                    }
-                }
-                val scope = rememberCoroutineScope()
-                Button(
-                    onClick = { scope.launch { query.refresh() } },
-                    modifier = Modifier.testTag("refresh")
-                ) {
-                    Text("Refresh")
+                val query1 = rememberQuery(key1)
+                val query2 = rememberQuery(key2)
+                Await(query1, query2, errorFallback = {
+                    Text("Error: ${it.message}", modifier = Modifier.testTag("error"))
+                }) { data1, data2 ->
+                    Text(data1 + data2, modifier = Modifier.testTag("await"))
                 }
             }
         }
-        waitForIdle()
-        waitUntilExactlyOneExists(hasTestTag("fallback"))
-        onNodeWithTag("fallback").assertTextEquals("Loading...")
+        waitUntilExactlyOneExists(hasTestTag("error"))
+        onNodeWithTag("error").assertTextEquals("Error: ${key2.variant}")
         onNodeWithTag("await").assertDoesNotExist()
+    }
 
-        deferred1.complete("Hello, Soil!")
-        waitForIdle()
+    @Test
+    fun testAwait_errorWithReply() = runComposeUiTest {
+        val key1 = TestQueryKey("foo")
+        val key2 = TestQueryKey("bar")
+        val client = SwrPreviewClient(
+            query = QueryPreviewClient {
+                on(key1.id) { QueryState.failure(RuntimeException(key1.variant), data = "Hello, Soil!") }
+                on(key2.id) { QueryState.failure(RuntimeException(key2.variant), data = "Hello, Compose!") }
+            }
+        )
+        setContent {
+            SwrClientProvider(client) {
+                val query1 = rememberQuery(key1)
+                val query2 = rememberQuery(key2)
+                Await(query1, query2, errorFallback = {
+                    Text("Error: ${it.message}", modifier = Modifier.testTag("error"))
+                }) { data1, data2 ->
+                    Text(data1 + data2, modifier = Modifier.testTag("await"))
+                }
+            }
+        }
         waitUntilExactlyOneExists(hasTestTag("await"))
-        onNodeWithTag("await").assertTextEquals("Hello, Soil!")
-        onNodeWithTag("fallback").assertDoesNotExist()
+        onNodeWithTag("await").assertTextEquals("Hello, Soil!Hello, Compose!")
+        onNodeWithTag("error").assertDoesNotExist()
+    }
 
-        onNodeWithTag("refresh").performClick()
-        waitForIdle()
+    @Test
+    fun testAwait_errorWithErrorBoundary() = runComposeUiTest {
+        val key1 = TestQueryKey("foo")
+        val key2 = TestQueryKey("bar")
+        val client = SwrPreviewClient(
+            query = QueryPreviewClient {
+                on(key1.id) { QueryState.failure(RuntimeException(key1.variant), errorUpdatedAt = 300) }
+                on(key2.id) { QueryState.failure(RuntimeException(key2.variant), errorUpdatedAt = 200) }
+            }
+        )
+        setContent {
+            SwrClientProvider(client) {
+                val query1 = rememberQuery(key1)
+                val query2 = rememberQuery(key2)
+                ErrorBoundary(
+                    fallback = { Text("Error: ${it.err.message}", modifier = Modifier.testTag("fallback")) }
+                ) {
+                    Await(query1, query2) { data1, data2 ->
+                        Text(data1 + data2, modifier = Modifier.testTag("await"))
+                    }
+                }
+            }
+        }
         waitUntilExactlyOneExists(hasTestTag("fallback"))
-        onNodeWithTag("fallback").assertTextEquals("Loading...")
-        onNodeWithTag("await").assertTextEquals("Hello, Soil!")
-
-        deferred2.complete("Hello, Compose!")
-        waitUntilDoesNotExist(hasTestTag("fallback"))
-        onNodeWithTag("await").assertTextEquals("Hello, Compose!")
+        onNodeWithTag("fallback").assertTextEquals("Error: ${key2.variant}")
+        onNodeWithTag("await").assertDoesNotExist()
     }
 
     @Test

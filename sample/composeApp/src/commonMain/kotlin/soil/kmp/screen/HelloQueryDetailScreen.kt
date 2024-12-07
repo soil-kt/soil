@@ -22,7 +22,6 @@ import soil.playground.query.data.Post
 import soil.playground.query.data.Posts
 import soil.playground.query.data.User
 import soil.query.compose.runtime.Await
-import soil.query.compose.runtime.Catch
 import soil.query.compose.runtime.ErrorBoundary
 import soil.query.compose.runtime.Suspense
 import soil.query.compose.util.rememberQueriesErrorReset
@@ -91,7 +90,6 @@ private fun PostDetailContainer(
     Await(query) { post ->
         content(post)
     }
-    Catch(query)
 }
 
 @Composable
@@ -109,5 +107,4 @@ private fun PostUserDetailContainer(
             content(user, posts)
         }
     }
-    Catch(userQuery, postsQuery)
 }

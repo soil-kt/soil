@@ -39,9 +39,9 @@ dependencies {
 
     // Query
     implementation("com.soil-kt.soil:query-core:$soil")
-    // Query utilities for Compose
+    // Query for Compose
     implementation("com.soil-kt.soil:query-compose:$soil")
-    // optional - helpers for Compose
+    // optional - experimental helpers for Compose
     implementation("com.soil-kt.soil:query-compose-runtime:$soil")
     // optional - receivers for Ktor (3.x)
     implementation("com.soil-kt.soil:query-receivers-ktor:$soil")
