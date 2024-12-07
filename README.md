@@ -15,6 +15,45 @@ Simplify Compose, Accelerate Development :rocket:
   A flexible scoped state management. collaborating with the navigation library to create new scopes.
 
 
+The following example demonstrates the basic usage of a Query to fetch the number of GitHub stars for the Soil GitHub project itself.
+
+```kotlin
+private val swrClient = SwrCache(
+    policy = SwrCachePolicy(coroutineScope = SwrCacheScope()) {
+        httpClient = /* createKtorHttpClient() */
+    }
+)
+
+@Composable
+fun App() {
+    SwrClientProvider(client = swrClient) {
+        Box {
+            when (val query = rememberQuery(key = HelloQueryKey())) {
+                is QuerySuccessObject -> Text("✨ ${query.data.stargazersCount}")
+                is QueryLoadingObject -> Text("Loading...")
+                is QueryLoadingErrorObject,
+                is QueryRefreshErrorObject -> Text("Error :(")
+            }
+        }
+    }
+}
+
+@Immutable
+class HelloQueryKey : KeyEquals(), QueryKey<Repo> by buildKtorQueryKey(
+    id = QueryId("demo/hello-query"),
+    fetch = { // HttpClient.() -> Repo
+        get("https://api.github.com/repos/soil-kt/soil").body()
+    }
+)
+
+@Serializable
+data class Repo(
+    @SerialName("stargazers_count")
+    val stargazersCount: Int
+)
+```
+
+
 ## Try It Online
 
 The Soil library for Kotlin Multiplatform now includes experimental support for [Kotlin Wasm](https://kotlinlang.org/docs/wasm-overview.html).
