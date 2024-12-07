@@ -96,14 +96,14 @@ class ErrorRelayTest : UnitTest() {
         val relay = ErrorRelay.newAnycast(
             scope = backgroundScope,
             policy = TestErrorRelayPolicy(
-                shouldSuppressError = { it.marker == SuppressMarker }
+                shouldSuppressError = { it.marker == ErrorMarker.Suppress }
             )
         )
 
         val err1 = ErrorRecord(
             exception = RuntimeException("Error 1"),
             keyId = QueryId<String>(namespace = "test"),
-            marker = SuppressMarker
+            marker = ErrorMarker.Suppress
         )
 
         relay.send(err1)
@@ -126,7 +126,7 @@ class ErrorRelayTest : UnitTest() {
         val err1 = ErrorRecord(
             exception = RuntimeException("Error 1"),
             keyId = QueryId<String>(namespace = "test"),
-            marker = SuppressMarker
+            marker = ErrorMarker.Suppress
         )
 
         relay.send(err1)
@@ -152,5 +152,12 @@ class ErrorRelayTest : UnitTest() {
         override val areErrorsEqual: (ErrorRecord, ErrorRecord) -> Boolean = ErrorRelayPolicy.None.areErrorsEqual
     ) : ErrorRelayPolicy
 
-    object SuppressMarker : Marker
+    sealed class ErrorMarker : Marker.Element {
+        override val key: Marker.Key<*>
+            get() = Key
+
+        companion object Key : Marker.Key<ErrorMarker>
+
+        data object Suppress : ErrorMarker()
+    }
 }
