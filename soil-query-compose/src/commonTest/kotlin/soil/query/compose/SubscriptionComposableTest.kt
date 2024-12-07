@@ -14,9 +14,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
+import androidx.compose.ui.test.waitUntilAtLeastOneExists
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import soil.query.SubscriptionId
@@ -57,7 +59,7 @@ class SubscriptionComposableTest : UnitTest() {
             }
         }
 
-        waitUntil { client.isIdleNow() }
+        waitUntilAtLeastOneExists(hasTestTag("subscription"))
         onNodeWithTag("subscription").assertTextEquals("Hello, Soil!")
     }
 
@@ -77,7 +79,7 @@ class SubscriptionComposableTest : UnitTest() {
             }
         }
 
-        waitUntil { client.isIdleNow() }
+        waitUntilAtLeastOneExists(hasTestTag("subscription"))
         onNodeWithTag("subscription").assertTextEquals("HELLO, COMPOSE!")
     }
 
@@ -100,7 +102,7 @@ class SubscriptionComposableTest : UnitTest() {
             }
         }
 
-        waitUntil { client.isIdleNow() }
+        waitUntilAtLeastOneExists(hasTestTag("subscription"))
         onNodeWithTag("subscription").assertTextEquals("error")
     }
 

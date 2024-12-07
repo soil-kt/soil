@@ -36,6 +36,8 @@ import kotlin.time.Duration
 @OptIn(ExperimentalTestApi::class)
 class AwaitTest : UnitTest() {
 
+    // TODO flaky test: CalledFromWrongThreadException
+    //  https://issuetracker.google.com/issues?q=CalledFromWrongThreadException
     @Test
     fun testAwait() = runComposeUiTest {
         val deferred = CompletableDeferred<String>()
