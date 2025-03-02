@@ -432,26 +432,26 @@ internal fun byteSaver(key: AtomSaverKey): AtomSaver<Byte> {
 }
 
 @PublishedApi
-internal fun integerArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<Int>> {
-    return object : AtomSaver<ArrayList<Int>> {
-        override fun save(bundle: Bundle, value: ArrayList<Int>) {
+internal fun integerArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<Int?>> {
+    return object : AtomSaver<ArrayList<Int?>> {
+        override fun save(bundle: Bundle, value: ArrayList<Int?>) {
             bundle.putIntegerArrayList(key, value)
         }
 
-        override fun restore(bundle: Bundle): ArrayList<Int>? {
+        override fun restore(bundle: Bundle): ArrayList<Int?>? {
             return bundle.getIntegerArrayList(key)
         }
     }
 }
 
 @PublishedApi
-internal fun stringArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<String>> {
-    return object : AtomSaver<ArrayList<String>> {
-        override fun save(bundle: Bundle, value: ArrayList<String>) {
+internal fun stringArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<String?>> {
+    return object : AtomSaver<ArrayList<String?>> {
+        override fun save(bundle: Bundle, value: ArrayList<String?>) {
             bundle.putStringArrayList(key, value)
         }
 
-        override fun restore(bundle: Bundle): ArrayList<String>? {
+        override fun restore(bundle: Bundle): ArrayList<String?>? {
             return bundle.getStringArrayList(key)
         }
     }
@@ -562,26 +562,26 @@ internal fun doubleArraySaver(key: AtomSaverKey): AtomSaver<DoubleArray> {
 }
 
 @PublishedApi
-internal fun stringArraySaver(key: AtomSaverKey): AtomSaver<Array<String>> {
-    return object : AtomSaver<Array<String>> {
-        override fun save(bundle: Bundle, value: Array<String>) {
+internal fun stringArraySaver(key: AtomSaverKey): AtomSaver<Array<String?>> {
+    return object : AtomSaver<Array<String?>> {
+        override fun save(bundle: Bundle, value: Array<String?>) {
             bundle.putStringArray(key, value)
         }
 
-        override fun restore(bundle: Bundle): Array<String>? {
+        override fun restore(bundle: Bundle): Array<String?>? {
             return bundle.getStringArray(key)
         }
     }
 }
 
 @PublishedApi
-internal fun charSequenceArraySaver(key: AtomSaverKey): AtomSaver<Array<CharSequence>> {
-    return object : AtomSaver<Array<CharSequence>> {
-        override fun save(bundle: Bundle, value: Array<CharSequence>) {
+internal fun charSequenceArraySaver(key: AtomSaverKey): AtomSaver<Array<CharSequence?>> {
+    return object : AtomSaver<Array<CharSequence?>> {
+        override fun save(bundle: Bundle, value: Array<CharSequence?>) {
             bundle.putCharSequenceArray(key, value)
         }
 
-        override fun restore(bundle: Bundle): Array<CharSequence>? {
+        override fun restore(bundle: Bundle): Array<CharSequence?>? {
             return bundle.getCharSequenceArray(key)
         }
     }
