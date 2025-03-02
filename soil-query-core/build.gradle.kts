@@ -58,6 +58,10 @@ kotlin {
 
         wasmJsMain {
             dependsOn(skikoMain)
+            dependencies {
+                // https://kotlinlang.org/docs/whatsnew21.html#browser-apis-moved-to-the-kotlinx-browser-stand-alone-library
+                implementation(libs.kotlinx.browser)
+            }
         }
     }
 }
