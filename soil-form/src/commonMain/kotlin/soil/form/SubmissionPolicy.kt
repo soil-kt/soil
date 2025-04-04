@@ -13,6 +13,7 @@ import kotlin.time.Duration.Companion.milliseconds
  * @property preValidationDelay The settings for delayed execution of pre-validation.
  * @constructor Creates a new instance of [SubmissionPolicy].
  */
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 data class SubmissionPolicy(
     val preValidation: Boolean = true,
     val preValidationDelay: SubmissionPreValidationDelay = SubmissionPreValidationDelay()
@@ -28,6 +29,7 @@ data class SubmissionPolicy(
  * @property onChange The delay before pre-validation when the form value changes.
  * @constructor Creates a new instance of [SubmissionPreValidationDelay].
  */
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 data class SubmissionPreValidationDelay(
     val onMount: Duration = 200.milliseconds,
     val onChange: Duration = 200.milliseconds

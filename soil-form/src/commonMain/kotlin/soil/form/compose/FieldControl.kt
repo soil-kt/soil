@@ -25,6 +25,7 @@ import soil.form.FormRule
  * @property shouldTrigger The function to determine if the field should trigger validation on the given event.
  * @property isEnabled The function to determine if the field is enabled.
  */
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 @Stable
 class FieldControl<V>(
     val name: FieldName,

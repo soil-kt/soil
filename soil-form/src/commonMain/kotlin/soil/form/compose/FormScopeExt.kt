@@ -9,9 +9,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import soil.form.FieldErrors
 import soil.form.FieldName
-import soil.form.ValidationRuleBuilder
-import soil.form.ValidationRuleSet
-import soil.form.rules
+import soil.form.core.ValidationResult
+import soil.form.core.ValidationRuleBuilder
+import soil.form.core.ValidationRuleSet
+import soil.form.core.rules
 
 /**
  * Remembers a field control for the given field name with the given rule set.
@@ -36,6 +37,7 @@ import soil.form.rules
  * @param dependsOn The set of field names that this field depends on.
  * @param builder The block to build the rule set.
  */
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 @Composable
 fun <T : Any, V> FormScope<T>.rememberFieldRuleControl(
     name: FieldName,
@@ -81,6 +83,7 @@ fun <T : Any, V> FormScope<T>.rememberFieldRuleControl(
  * @param dependsOn The set of field names that this field depends on.
  * @param ruleSet The rule set to validate the field value.
  */
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 @Composable
 fun <T : Any, V> FormScope<T>.rememberFieldRuleControl(
     name: FieldName,
@@ -93,7 +96,12 @@ fun <T : Any, V> FormScope<T>.rememberFieldRuleControl(
     val handleValidate = remember<T.() -> FieldErrors?>(formState) {
         {
             val currentValue = select()
-            ruleSet.flatMap { it.test(currentValue) }
+            ruleSet.flatMap {
+                when (val result = it.invoke(currentValue)) {
+                    is ValidationResult.Valid -> emptyList()
+                    is ValidationResult.Invalid -> result.messages
+                }
+            }
         }
     }
     return rememberFieldControl(
@@ -109,6 +117,7 @@ fun <T : Any, V> FormScope<T>.rememberFieldRuleControl(
 /**
  * Remembers a submission rule control that automatically controls state of the form.
  */
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 @Composable
 fun <T : Any> FormScope<T>.rememberSubmissionRuleAutoControl(): SubmissionControl<T> {
     return rememberSubmissionControl(validate = { rules, dryRun ->
@@ -128,6 +137,7 @@ fun <T : Any> FormScope<T>.rememberSubmissionRuleAutoControl(): SubmissionContro
  * @param V The type of the watch value.
  * @param select The function to select the watch value.
  */
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 @Composable
 fun <T : Any, V> FormScope<T>.rememberWatch(select: T.() -> V): V {
     val value by remember { derivedStateOf { with(formState.value) { select() } } }

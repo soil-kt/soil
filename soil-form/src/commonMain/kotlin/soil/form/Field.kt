@@ -8,6 +8,7 @@ package soil.form
  *
  * @param V The type of the value of the field.
  */
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 interface Field<V> {
 
     /**
@@ -79,20 +80,12 @@ interface Field<V> {
     fun virtualTrigger(validateOn: FieldValidateOn)
 }
 
-/**
- * This field name is used to uniquely identify a field within a form.
- */
-typealias FieldName = String
-
-/**
- * Represents a single error message in the field.
- */
-typealias FieldError = String
 
 /**
  * Represents multiple error messages in the field.
  */
-typealias FieldErrors = List<FieldError>
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
+typealias FieldErrors = List<String>
 
 /**
  * Creates error messages for a field.
@@ -100,6 +93,7 @@ typealias FieldErrors = List<FieldError>
  * @param messages Error messages. There must be at least one error message.
  * @return The generated error messages for the field.
  */
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 fun fieldError(vararg messages: String): FieldErrors {
     require(messages.isNotEmpty())
     return listOf(*messages)
@@ -108,4 +102,5 @@ fun fieldError(vararg messages: String): FieldErrors {
 /**
  * Syntax sugar representing that there are no errors in the field.
  */
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 val noErrors: FieldErrors = emptyList()

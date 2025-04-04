@@ -1,3 +1,4 @@
+import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
@@ -26,7 +27,11 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        browser()
+        browser {
+            testTask {
+                enabled = false
+            }
+        }
     }
 
     sourceSets {
@@ -38,20 +43,56 @@ kotlin {
             api(projects.soilSerializationBundle)
         }
 
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            @OptIn(ExperimentalComposeLibrary::class)
+            implementation(compose.uiTest)
+            implementation(compose.runtime)
+            implementation(compose.ui)
+            implementation(compose.material)
+            implementation(projects.internal.testing)
+        }
+
         val skikoMain by creating {
             dependsOn(commonMain.get())
+        }
+
+        val skikoTest by creating {
+            dependsOn(commonTest.get())
+        }
+
+        val androidUnitTest by getting {
+            dependencies {
+                implementation(libs.compose.ui.test.junit4.android)
+                implementation(libs.compose.ui.test.manifest)
+            }
         }
 
         iosMain {
             dependsOn(skikoMain)
         }
 
+        iosTest {
+            dependsOn(skikoTest)
+        }
+
         jvmMain {
             dependsOn(skikoMain)
         }
 
+        jvmTest {
+            dependsOn(skikoTest)
+            dependencies {
+                implementation(compose.desktop.currentOs)
+            }
+        }
+
         wasmJsMain {
             dependsOn(skikoMain)
+        }
+
+        wasmJsTest {
+            dependsOn(skikoTest)
         }
     }
 }
@@ -66,6 +107,7 @@ android {
 
     defaultConfig {
         minSdk = buildTarget.androidMinSdk.get()
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     packaging {
         resources {
@@ -80,6 +122,10 @@ android {
     compileOptions {
         sourceCompatibility = buildTarget.javaVersion.get()
         targetCompatibility = buildTarget.javaVersion.get()
+    }
+    @Suppress("UnstableApiUsage")
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
     }
     dependencies {
         debugImplementation(libs.compose.ui.tooling)

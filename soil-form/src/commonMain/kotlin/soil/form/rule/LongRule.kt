@@ -3,30 +3,45 @@
 
 package soil.form.rule
 
-import soil.form.FieldErrors
-import soil.form.ValidationRule
-import soil.form.ValidationRuleBuilder
-import soil.form.fieldError
-import soil.form.noErrors
+import soil.form.core.ValidationResult
+import soil.form.core.ValidationRule
+import soil.form.core.ValidationRuleBuilder
 
+/**
+ * A type alias for validation rules that operate on Long values.
+ *
+ * Long rules are validation functions that take a Long value and return
+ * a [ValidationResult] indicating whether the validation passed or failed.
+ */
 typealias LongRule = ValidationRule<Long>
+
+/**
+ * A type alias for builders that create Long validation rules.
+ *
+ * Long rule builders provide a DSL for constructing validation rules
+ * specifically for Long values, with convenient methods like [minimum] and [maximum].
+ */
 typealias LongRuleBuilder = ValidationRuleBuilder<Long>
 
 /**
  * A rule that tests the long value.
  *
- * @property predicate The predicate to test the long value. Returns `true` if the test passes; `false` otherwise.
- * @property message The message to return when the test fails.
- * @constructor Creates a new instance of [LongRuleTester].
+ * @param predicate The predicate to test the long value. Returns `true` if the test passes; `false` otherwise.
+ * @param message The message to return when the test fails.
+ * @return Creates a new instance of [LongRule].
  */
-class LongRuleTester(
-    val predicate: Long.() -> Boolean,
-    val message: () -> String
-) : LongRule {
-    override fun test(value: Long): FieldErrors {
-        return if (value.predicate()) noErrors else fieldError(message())
-    }
+fun LongRule(
+    predicate: Long.() -> Boolean,
+    message: () -> String
+): LongRule = { value ->
+    if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
+
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
+class LongRuleTester(
+    predicate: Long.() -> Boolean,
+    message: () -> String
+) : LongRule by LongRule(predicate, message)
 
 /**
  * Validates that the long value is greater than or equal to [limit].
@@ -42,19 +57,22 @@ class LongRuleTester(
  * @param message The message to return when the test fails.
  */
 fun LongRuleBuilder.minimum(limit: Long, message: () -> String) {
-    extend(LongRuleTester({ this >= limit }, message))
+    extend(LongRule({ this >= limit }, message))
 }
 
 /**
  * Validates that the long value is less than or equal to [limit].
  *
+ * Usage:
+ * ```kotlin
  * rules<Long> {
  *     maximum(20) { "must be less than or equal to 20" }
  * }
+ * ```
  *
  * @param limit The maximum value the long can have.
  * @param message The message to return when the test fails.
  */
 fun LongRuleBuilder.maximum(limit: Long, message: () -> String) {
-    extend(LongRuleTester({ this <= limit }, message))
+    extend(LongRule({ this <= limit }, message))
 }

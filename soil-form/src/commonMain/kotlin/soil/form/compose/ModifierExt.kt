@@ -14,6 +14,7 @@ import soil.form.Field
  * @param target The field to observe.
  * @return The applied modifier.
  */
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 fun Modifier.onFocusChanged(target: Field<*>): Modifier {
     return this then Modifier.onFocusChanged(target::onFocusChanged)
 }

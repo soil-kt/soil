@@ -3,30 +3,48 @@
 
 package soil.form.rule
 
-import soil.form.FieldErrors
-import soil.form.ValidationRule
-import soil.form.ValidationRuleBuilder
-import soil.form.fieldError
-import soil.form.noErrors
+import soil.form.core.ValidationResult
+import soil.form.core.ValidationRule
+import soil.form.core.ValidationRuleBuilder
+import soil.form.core.rules
+import soil.form.core.validate
 
+/**
+ * A type alias for validation rules that operate on Array values.
+ *
+ * Array rules are validation functions that take an Array value and return
+ * a [ValidationResult] indicating whether the validation passed or failed.
+ */
 typealias ArrayRule<V> = ValidationRule<Array<V>>
+
+/**
+ * A type alias for builders that create Array validation rules.
+ *
+ * Array rule builders provide a DSL for constructing validation rules
+ * specifically for Array values, with convenient methods like [notEmpty],
+ * [minSize], and [maxSize].
+ */
 typealias ArrayRuleBuilder<V> = ValidationRuleBuilder<Array<V>>
 
 /**
  * A rule that tests the array value.
  *
- * @property predicate The predicate to test the array value. Returns `true` if the test passes; `false` otherwise.
- * @property message The message to return when the test fails.
- * @constructor Creates a new instance of [ArrayRuleTester].
+ * @param predicate The predicate to test the array value. Returns `true` if the test passes; `false` otherwise.
+ * @param message The message to return when the test fails.
+ * @return Creates a new instance of [ArrayRule].
  */
-class ArrayRuleTester<V>(
-    val predicate: Array<V>.() -> Boolean,
-    val message: () -> String
-) : ArrayRule<V> {
-    override fun test(value: Array<V>): FieldErrors {
-        return if (value.predicate()) noErrors else fieldError(message())
-    }
+fun <V> ArrayRule(
+    predicate: Array<V>.() -> Boolean,
+    message: () -> String
+): ArrayRule<V> = { value ->
+    if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
+
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
+class ArrayRuleTester<V>(
+    predicate: Array<V>.() -> Boolean,
+    message: () -> String
+) : ArrayRule<V> by ArrayRule(predicate, message)
 
 /**
  * Validates that the array is not empty.
@@ -41,7 +59,7 @@ class ArrayRuleTester<V>(
  * @param message The message to return when the test fails.
  */
 fun <V> ArrayRuleBuilder<V>.notEmpty(message: () -> String) {
-    extend(ArrayRuleTester(Array<V>::isNotEmpty, message))
+    extend(ArrayRule(Array<V>::isNotEmpty, message))
 }
 
 /**
@@ -58,7 +76,7 @@ fun <V> ArrayRuleBuilder<V>.notEmpty(message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun <V> ArrayRuleBuilder<V>.minSize(limit: Int, message: () -> String) {
-    extend(ArrayRuleTester({ size >= limit }, message))
+    extend(ArrayRule({ size >= limit }, message))
 }
 
 /**
@@ -75,5 +93,44 @@ fun <V> ArrayRuleBuilder<V>.minSize(limit: Int, message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun <V> ArrayRuleBuilder<V>.maxSize(limit: Int, message: () -> String) {
-    extend(ArrayRuleTester({ size <= limit }, message))
+    extend(ArrayRule({ size <= limit }, message))
+}
+
+/**
+ * Creates a validation rule chain for applying rules to each element of the array.
+ *
+ * This function allows you to validate each individual element within an array
+ * using the `all` function internally. It's useful when you need to ensure that
+ * every element in the array meets certain criteria.
+ *
+ * Usage:
+ * ```kotlin
+ * rules<Array<String>> {
+ *     notEmpty { "array must not be empty" }
+ *     element {
+ *         notBlank { "must be not blank" }
+ *         minLength(3) { "must be at least 3 characters" }
+ *     }
+ * }
+ * ```
+ *
+ * @param V The type of the elements in the array.
+ * @param block A lambda that builds the validation rules using [ValidationRuleBuilder].
+ */
+fun <V> ArrayRuleBuilder<V>.element(block: ValidationRuleBuilder<V>.() -> Unit) {
+    val ruleSet = rules(block)
+    val chainedRule: ArrayRule<V> = { collection ->
+        val allErrorMessages = collection.flatMap { element ->
+            when (val result = validate(element, ruleSet)) {
+                is ValidationResult.Valid -> emptyList()
+                is ValidationResult.Invalid -> result.messages
+            }
+        }
+        if (allErrorMessages.isEmpty()) {
+            ValidationResult.Valid
+        } else {
+            ValidationResult.Invalid(allErrorMessages.distinct())
+        }
+    }
+    extend(chainedRule)
 }
