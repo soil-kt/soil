@@ -4,8 +4,8 @@
 package soil.form.compose
 
 import androidx.compose.runtime.Stable
-import soil.form.FormFieldNames
-import soil.form.FormRule
+import soil.form.FieldNames
+import soil.form.FormRules
 import soil.form.SubmissionPolicy
 
 /**
@@ -13,7 +13,7 @@ import soil.form.SubmissionPolicy
  *
  * @param T The type of the form value.
  * @property policy The policy of the submission.
- * @property rule The rule to validate the form value.
+ * @property rules The rule to validate the form value.
  * @property submit The function to submit the form.
  * @property initialValue The initial value of the form.
  * @property getValue The function to get the current form value.
@@ -27,12 +27,12 @@ import soil.form.SubmissionPolicy
 @Stable
 class SubmissionControl<T>(
     val policy: SubmissionPolicy,
-    val rule: FormRule<T>,
+    val rules: () -> FormRules<T>,
     val submit: () -> Unit,
     val initialValue: T,
     val getValue: () -> T,
     val hasError: () -> Boolean,
-    val getFieldKeys: () -> FormFieldNames,
+    val getFieldKeys: () -> FieldNames,
     val isSubmitting: () -> Boolean,
     val isSubmitted: () -> Boolean,
     val getSubmitCount: () -> Int
@@ -46,6 +46,6 @@ class SubmissionControl<T>(
      * @return `true` if the form value is valid; `false` otherwise.
      */
     fun validate(value: T, dryRun: Boolean = false): Boolean {
-        return rule.test(value, dryRun)
+        return policy.validate(value, rules(), dryRun)
     }
 }

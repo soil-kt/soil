@@ -13,10 +13,21 @@ import kotlin.time.Duration.Companion.milliseconds
  * @property preValidationDelay The settings for delayed execution of pre-validation.
  * @constructor Creates a new instance of [SubmissionPolicy].
  */
+// TODO: 関数ベースで公開する
 data class SubmissionPolicy(
     val preValidation: Boolean = true,
     val preValidationDelay: SubmissionPreValidationDelay = SubmissionPreValidationDelay()
-)
+) {
+
+    fun <T> validate(value: T, rules: FormRules<T>, dryRun: Boolean): Boolean {
+        return if (dryRun) {
+            rules.values.all { it.test(value, dryRun = true) }
+        } else {
+            // NOTE: Related to FieldValidateOn, make sure to traverse all rules
+            rules.values.map { it.test(value, dryRun = false) }.all { it }
+        }
+    }
+}
 
 /**
  * Represents the settings for delayed execution of pre-validation.
@@ -28,6 +39,7 @@ data class SubmissionPolicy(
  * @property onChange The delay before pre-validation when the form value changes.
  * @constructor Creates a new instance of [SubmissionPreValidationDelay].
  */
+// TODO: 関数ベースで公開する
 data class SubmissionPreValidationDelay(
     val onMount: Duration = 200.milliseconds,
     val onChange: Duration = 200.milliseconds

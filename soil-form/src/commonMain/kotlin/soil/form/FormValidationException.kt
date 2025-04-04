@@ -13,6 +13,7 @@ package soil.form
  * @property cause The exception source that caused this exception.
  * @constructor Creates a new instance with specified validation error information.
  */
+// TODO: Cancellationベースにしたい
 class FormValidationException(
     val errors: FormErrors,
     cause: Throwable? = null

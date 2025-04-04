@@ -3,8 +3,7 @@
 
 package soil.form
 
-typealias FormFieldNames = Set<FieldName>
-typealias FormFieldDependencies = Map<FieldName, FormFieldNames>
+typealias FormFieldDependencies = Map<FieldName, FieldNames>
 typealias FormErrors = Map<FieldName, FieldErrors>
 typealias FormTriggers = Map<FieldName, FieldValidateOn>
 typealias FormRules<T> = Map<FieldName, FormRule<T>>
