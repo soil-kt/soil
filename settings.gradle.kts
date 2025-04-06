@@ -35,6 +35,7 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 // Public modules
 include(
+    ":soil-experimental:soil-optimistic-update",
     ":soil-query-core",
     ":soil-query-compose",
     ":soil-query-compose-runtime",
