@@ -86,6 +86,7 @@ kover {
 }
 
 dependencies {
+    kover(projects.soilExperimental.soilOptimisticUpdate)
     kover(projects.soilQueryCore)
     kover(projects.soilQueryCompose)
     kover(projects.soilQueryComposeRuntime)
