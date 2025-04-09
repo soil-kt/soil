@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import soil.query.InfiniteQueryId
 import soil.query.InfiniteQueryKey
 import soil.query.InfiniteQueryRef
+import soil.query.InfiniteQueryTestTag
 import soil.query.QueryChunks
 import soil.query.QueryClient
 import soil.query.QueryId
@@ -17,8 +18,11 @@ import soil.query.QueryKey
 import soil.query.QueryReceiver
 import soil.query.QueryRef
 import soil.query.QueryState
+import soil.query.QueryTestTag
 import soil.query.core.Marker
+import soil.query.core.TestTag
 import soil.query.core.UniqueId
+import soil.query.marker.TestTagMarker
 
 /**
  * Usage:
@@ -31,7 +35,8 @@ import soil.query.core.UniqueId
  */
 @Stable
 class QueryPreviewClient(
-    private val previewData: Map<UniqueId, QueryState<*>>
+    private val previewData: Map<UniqueId, QueryState<*>>,
+    private val previewDataByTag: Map<TestTag, QueryState<*>>
 ) : QueryClient {
 
     override val queryReceiver: QueryReceiver = QueryReceiver
@@ -41,7 +46,9 @@ class QueryPreviewClient(
         key: QueryKey<T>,
         marker: Marker
     ): QueryRef<T> {
-        val state = previewData[key.id] as? QueryState<T> ?: QueryState.initial()
+        val state = previewData[key.id] as? QueryState<T>
+            ?: marker[TestTagMarker.Key]?.value?.let { previewDataByTag[it] as? QueryState<T> }
+            ?: QueryState.initial()
         return SnapshotQuery(key.id, MutableStateFlow(state))
     }
 
@@ -50,7 +57,9 @@ class QueryPreviewClient(
         key: InfiniteQueryKey<T, S>,
         marker: Marker
     ): InfiniteQueryRef<T, S> {
-        val state = previewData[key.id] as? QueryState<QueryChunks<T, S>> ?: QueryState.initial()
+        val state = previewData[key.id] as? QueryState<QueryChunks<T, S>>
+            ?: marker[TestTagMarker.Key]?.value?.let { previewDataByTag[it] as? QueryState<QueryChunks<T, S>> }
+            ?: QueryState.initial()
         return SnapshotInfiniteQuery(key, MutableStateFlow(state))
     }
 
@@ -92,21 +101,62 @@ class QueryPreviewClient(
      */
     class Builder {
         private val previewData = mutableMapOf<UniqueId, QueryState<*>>()
+        private val previewDataByTag = mutableMapOf<TestTag, QueryState<*>>()
 
+        /**
+         * Registers a preview state for the query with the specified ID.
+         *
+         * @param id The query ID that identifies this query
+         * @param snapshot A function that provides the query state to be returned for this ID
+         */
         fun <T> on(id: QueryId<T>, snapshot: () -> QueryState<T>) {
             previewData[id] = snapshot()
         }
 
+        /**
+         * Registers a preview state for the query with the specified test tag.
+         *
+         * @param testTag The test tag that identifies this query
+         * @param snapshot A function that provides the query state to be returned for this tag
+         */
+        fun <T> on(testTag: QueryTestTag<T>, snapshot: () -> QueryState<T>) {
+            previewDataByTag[testTag] = snapshot()
+        }
+
+        /**
+         * Registers a preview state for the infinite query with the specified ID.
+         *
+         * @param id The infinite query ID that identifies this infinite query
+         * @param snapshot A function that provides the query state to be returned for this ID
+         */
         fun <T, S> on(id: InfiniteQueryId<T, S>, snapshot: () -> QueryState<QueryChunks<T, S>>) {
             previewData[id] = snapshot()
         }
 
-        fun build() = QueryPreviewClient(previewData)
+        /**
+         * Registers a preview state for the infinite query with the specified test tag.
+         *
+         * @param testTag The test tag that identifies this infinite query
+         * @param snapshot A function that provides the query state to be returned for this tag
+         */
+        fun <T, S> on(testTag: InfiniteQueryTestTag<T, S>, snapshot: () -> QueryState<QueryChunks<T, S>>) {
+            previewDataByTag[testTag] = snapshot()
+        }
+
+        /**
+         * Builds a new instance of [QueryPreviewClient] with the registered preview states.
+         *
+         * @return A new [QueryPreviewClient] instance
+         */
+        fun build() = QueryPreviewClient(previewData, previewDataByTag)
     }
 }
 
 /**
  * Create a [QueryPreviewClient] instance with the provided [initializer].
+ *
+ * @param initializer A lambda with [QueryPreviewClient.Builder] receiver that initializes preview states
+ * @return A query client that can be used to provide mock data for queries in Compose previews
  */
 fun QueryPreviewClient(initializer: QueryPreviewClient.Builder.() -> Unit): QueryPreviewClient {
     return QueryPreviewClient.Builder().apply(initializer).build()

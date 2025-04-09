@@ -4,9 +4,6 @@
 package soil.query
 
 import soil.query.core.Effect
-import soil.query.core.SurrogateKey
-import soil.query.core.UniqueId
-import soil.query.core.uuid
 
 /**
  * Interface for mutations key.
@@ -92,57 +89,6 @@ interface MutationKey<T, S> {
      * @param data The data returned by the mutation.
      */
     fun onMutateEffect(variable: S, data: T): Effect? = null
-}
-
-/**
- * Unique identifier for [MutationKey].
- */
-@Suppress("unused")
-open class MutationId<T, S>(
-    override val namespace: String,
-    override vararg val tags: SurrogateKey
-) : UniqueId {
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is MutationId<*, *>) return false
-        if (namespace != other.namespace) return false
-        return tags.contentEquals(other.tags)
-    }
-
-    override fun hashCode(): Int {
-        var result = namespace.hashCode()
-        result = 31 * result + tags.contentHashCode()
-        return result
-    }
-
-    override fun toString(): String {
-        return "MutationId(namespace='$namespace', tags=${tags.contentToString()})"
-    }
-
-    companion object {
-
-        /**
-         * Automatically generates a [MutationId].
-         *
-         * Generates an ID for one-time use, so it cannot be shared among multiple places of use.
-         *
-         * FIXME: Since this function is for automatic ID assignment, it might be better not to have arguments.
-         */
-        @Deprecated(
-            """
-            This function is deprecated because it does not retain automatically generated values when used within Compose.
-            As a result, values are regenerated after configuration changes, leading to different values.
-            Consider using an alternative approach that preserves state across recompositions.
-        """, ReplaceWith("MutationId(namespace, *tags)", "soil.query.MutationId")
-        )
-        fun <T, S> auto(
-            namespace: String = "auto/${uuid()}",
-            vararg tags: SurrogateKey
-        ): MutationId<T, S> {
-            return MutationId(namespace, *tags)
-        }
-    }
 }
 
 /**

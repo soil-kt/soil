@@ -12,9 +12,12 @@ import soil.query.SubscriptionKey
 import soil.query.SubscriptionReceiver
 import soil.query.SubscriptionRef
 import soil.query.SubscriptionState
+import soil.query.SubscriptionTestTag
 import soil.query.annotation.ExperimentalSoilQueryApi
 import soil.query.core.Marker
+import soil.query.core.TestTag
 import soil.query.core.UniqueId
+import soil.query.marker.TestTagMarker
 
 /**
  * Usage:
@@ -27,7 +30,8 @@ import soil.query.core.UniqueId
  */
 @Stable
 class SubscriptionPreviewClient(
-    private val previewData: Map<UniqueId, SubscriptionState<*>>
+    private val previewData: Map<UniqueId, SubscriptionState<*>>,
+    private val previewDataByTag: Map<TestTag, SubscriptionState<*>>
 ) : SubscriptionClient {
 
     override val subscriptionReceiver = SubscriptionReceiver
@@ -38,7 +42,9 @@ class SubscriptionPreviewClient(
         key: SubscriptionKey<T>,
         marker: Marker
     ): SubscriptionRef<T> {
-        val state = previewData[key.id] as? SubscriptionState<T> ?: SubscriptionState.initial()
+        val state = previewData[key.id] as? SubscriptionState<T>
+            ?: marker[TestTagMarker.Key]?.value?.let { previewDataByTag[it] as? SubscriptionState<T> }
+            ?: SubscriptionState.initial()
         return SnapshotSubscription(key.id, MutableStateFlow(state))
     }
 
@@ -57,17 +63,42 @@ class SubscriptionPreviewClient(
      */
     class Builder {
         private val previewData = mutableMapOf<UniqueId, SubscriptionState<*>>()
+        private val previewDataByTag = mutableMapOf<TestTag, SubscriptionState<*>>()
 
+        /**
+         * Registers a preview state for the subscription with the specified ID.
+         *
+         * @param id The subscription ID that identifies this subscription
+         * @param snapshot A function that provides the subscription state to be returned for this ID
+         */
         fun <T> on(id: SubscriptionId<T>, snapshot: () -> SubscriptionState<T>) {
             previewData[id] = snapshot()
         }
 
-        fun build() = SubscriptionPreviewClient(previewData)
+        /**
+         * Registers a preview state for the subscription with the specified test tag.
+         *
+         * @param testTag The test tag that identifies this subscription
+         * @param snapshot A function that provides the subscription state to be returned for this tag
+         */
+        fun <T> on(testTag: SubscriptionTestTag<T>, snapshot: () -> SubscriptionState<T>) {
+            previewDataByTag[testTag] = snapshot()
+        }
+
+        /**
+         * Builds a new instance of [SubscriptionPreviewClient] with the registered preview states.
+         *
+         * @return A new [SubscriptionPreviewClient] instance
+         */
+        fun build() = SubscriptionPreviewClient(previewData, previewDataByTag)
     }
 }
 
 /**
  * Create a [SubscriptionPreviewClient] instance with the provided [initializer].
+ *
+ * @param initializer A lambda with [SubscriptionPreviewClient.Builder] receiver that initializes preview states
+ * @return A subscription client that can be used to provide mock data for subscriptions in Compose previews
  */
 fun SubscriptionPreviewClient(initializer: SubscriptionPreviewClient.Builder.() -> Unit): SubscriptionPreviewClient {
     return SubscriptionPreviewClient.Builder().apply(initializer).build()
