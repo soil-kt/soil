@@ -10,15 +10,21 @@ import kotlinx.coroutines.yield
 import soil.query.InfiniteQueryId
 import soil.query.InfiniteQueryKey
 import soil.query.InfiniteQueryRef
+import soil.query.InfiniteQueryTestTag
 import soil.query.MutationId
 import soil.query.MutationKey
 import soil.query.MutationRef
+import soil.query.MutationTestTag
 import soil.query.QueryId
 import soil.query.QueryKey
 import soil.query.QueryRef
+import soil.query.QueryTestTag
 import soil.query.SwrCache
 import soil.query.SwrClient
 import soil.query.core.Marker
+import soil.query.core.TestTag
+import soil.query.core.UniqueId
+import soil.query.marker.TestTagMarker
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration
@@ -42,19 +48,51 @@ interface TestSwrClient : SwrClient {
 
     /**
      * Mocks the mutation process corresponding to [MutationId].
+     *
+     * @param id The mutation ID that identifies this mutation
+     * @param mutate A function that mocks the mutation behavior
      */
     fun <T, S> on(id: MutationId<T, S>, mutate: FakeMutationMutate<T, S>)
 
     /**
+     * Mocks the mutation process corresponding to [MutationTestTag].
+     *
+     * @param testTag The test tag that identifies this mutation
+     * @param mutate A function that mocks the mutation behavior
+     */
+    fun <T, S> on(testTag: MutationTestTag<T, S>, mutate: FakeMutationMutate<T, S>)
+
+    /**
      * Mocks the query process corresponding to [QueryId].
+     *
+     * @param id The query ID that identifies this query
+     * @param fetch A function that mocks the query behavior
      */
     fun <T> on(id: QueryId<T>, fetch: FakeQueryFetch<T>)
 
     /**
+     * Mocks the query process corresponding to [QueryTestTag].
+     *
+     * @param testTag The test tag that identifies this query
+     * @param fetch A function that mocks the query behavior
+     */
+    fun <T> on(testTag: QueryTestTag<T>, fetch: FakeQueryFetch<T>)
+
+    /**
      * Mocks the query process corresponding to [InfiniteQueryId].
+     *
+     * @param id The infinite query ID that identifies this infinite query
+     * @param fetch A function that mocks the infinite query behavior
      */
     fun <T, S> on(id: InfiniteQueryId<T, S>, fetch: FakeInfiniteQueryFetch<T, S>)
 
+    /**
+     * Mocks the query process corresponding to [InfiniteQueryTestTag].
+     *
+     * @param testTag The test tag that identifies this infinite query
+     * @param fetch A function that mocks the infinite query behavior
+     */
+    fun <T, S> on(testTag: InfiniteQueryTestTag<T, S>, fetch: FakeInfiniteQueryFetch<T, S>)
 
     /**
      * Returns true if client is currently idle.
@@ -80,6 +118,9 @@ suspend fun TestSwrClient.awaitIdle(
 
 /**
  * Switches [SwrCache] to a test interface.
+ *
+ * @param initializer A lambda with [TestSwrClient] receiver that initializes mocks
+ * @return A test client that can be used to mock queries and mutations
  */
 fun SwrCache.test(initializer: TestSwrClient.() -> Unit = {}): TestSwrClient {
     return TestSwrClientImpl(this).apply(initializer)
@@ -89,20 +130,36 @@ internal class TestSwrClientImpl(
     private val cache: SwrCache
 ) : TestSwrClient, SwrClient by cache {
 
-    private val mockMutations = mutableMapOf<MutationId<*, *>, FakeMutationMutate<*, *>>()
-    private val mockQueries = mutableMapOf<QueryId<*>, FakeQueryFetch<*>>()
-    private val mockInfiniteQueries = mutableMapOf<InfiniteQueryId<*, *>, FakeInfiniteQueryFetch<*, *>>()
+    private val mockMutations = mutableMapOf<UniqueId, FakeMutationMutate<*, *>>()
+    private val mockQueries = mutableMapOf<UniqueId, FakeQueryFetch<*>>()
+    private val mockInfiniteQueries = mutableMapOf<UniqueId, FakeInfiniteQueryFetch<*, *>>()
+
+    private val mockMutationsByTag = mutableMapOf<TestTag, FakeMutationMutate<*, *>>()
+    private val mockQueriesByTag = mutableMapOf<TestTag, FakeQueryFetch<*>>()
+    private val mockInfiniteQueriesByTag = mutableMapOf<TestTag, FakeInfiniteQueryFetch<*, *>>()
 
     override fun <T, S> on(id: MutationId<T, S>, mutate: FakeMutationMutate<T, S>) {
         mockMutations[id] = mutate
+    }
+
+    override fun <T, S> on(testTag: MutationTestTag<T, S>, mutate: FakeMutationMutate<T, S>) {
+        mockMutationsByTag[testTag] = mutate
     }
 
     override fun <T> on(id: QueryId<T>, fetch: FakeQueryFetch<T>) {
         mockQueries[id] = fetch
     }
 
+    override fun <T> on(testTag: QueryTestTag<T>, fetch: FakeQueryFetch<T>) {
+        mockQueriesByTag[testTag] = fetch
+    }
+
     override fun <T, S> on(id: InfiniteQueryId<T, S>, fetch: FakeInfiniteQueryFetch<T, S>) {
         mockInfiniteQueries[id] = fetch
+    }
+
+    override fun <T, S> on(testTag: InfiniteQueryTestTag<T, S>, fetch: FakeInfiniteQueryFetch<T, S>) {
+        mockInfiniteQueriesByTag[testTag] = fetch
     }
 
     override fun isIdleNow(): Boolean {
@@ -120,12 +177,16 @@ internal class TestSwrClientImpl(
         key: MutationKey<T, S>,
         marker: Marker
     ): MutationRef<T, S> {
-        val mock = mockMutations[key.id] as? FakeMutationMutate<T, S>
-        return if (mock != null) {
-            cache.getMutation(FakeMutationKey(key, mock), marker)
-        } else {
-            cache.getMutation(key, marker)
+        val idMock = mockMutations[key.id] as? FakeMutationMutate<T, S>
+        if (idMock != null) {
+            return cache.getMutation(FakeMutationKey(key, idMock), marker)
         }
+        val testTag = marker[TestTagMarker.Key]?.value
+        val testTagMock = testTag?.let { mockMutationsByTag[it] } as? FakeMutationMutate<T, S>
+        if (testTagMock != null) {
+            return cache.getMutation(FakeMutationKey(key, testTagMock), marker)
+        }
+        return cache.getMutation(key, marker)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -133,12 +194,16 @@ internal class TestSwrClientImpl(
         key: QueryKey<T>,
         marker: Marker
     ): QueryRef<T> {
-        val mock = mockQueries[key.id] as? FakeQueryFetch<T>
-        return if (mock != null) {
-            cache.getQuery(FakeQueryKey(key, mock), marker)
-        } else {
-            cache.getQuery(key, marker)
+        val idMock = mockQueries[key.id] as? FakeQueryFetch<T>
+        if (idMock != null) {
+            return cache.getQuery(FakeQueryKey(key, idMock), marker)
         }
+        val testTag = marker[TestTagMarker.Key]?.value
+        val testTagMock = testTag?.let { mockQueriesByTag[it] } as? FakeQueryFetch<T>
+        if (testTagMock != null) {
+            return cache.getQuery(FakeQueryKey(key, testTagMock), marker)
+        }
+        return cache.getQuery(key, marker)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -146,11 +211,15 @@ internal class TestSwrClientImpl(
         key: InfiniteQueryKey<T, S>,
         marker: Marker
     ): InfiniteQueryRef<T, S> {
-        val mock = mockInfiniteQueries[key.id] as? FakeInfiniteQueryFetch<T, S>
-        return if (mock != null) {
-            cache.getInfiniteQuery(FakeInfiniteQueryKey(key, mock), marker)
-        } else {
-            cache.getInfiniteQuery(key, marker)
+        val idMock = mockInfiniteQueries[key.id] as? FakeInfiniteQueryFetch<T, S>
+        if (idMock != null) {
+            return cache.getInfiniteQuery(FakeInfiniteQueryKey(key, idMock), marker)
         }
+        val testTag = marker[TestTagMarker.Key]?.value
+        val testTagMock = testTag?.let { mockInfiniteQueriesByTag[it] } as? FakeInfiniteQueryFetch<T, S>
+        if (testTagMock != null) {
+            return cache.getInfiniteQuery(FakeInfiniteQueryKey(key, testTagMock), marker)
+        }
+        return cache.getInfiniteQuery(key, marker)
     }
 }

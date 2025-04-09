@@ -29,9 +29,21 @@ import soil.query.core.MemoryPressureLevel
  */
 @Stable
 class SwrPreviewClient(
-    query: QueryPreviewClient = QueryPreviewClient(emptyMap()),
-    mutation: MutationPreviewClient = MutationPreviewClient(emptyMap()),
-    subscription: SubscriptionPreviewClient = SubscriptionPreviewClient(emptyMap()),
+    /**
+     * The query client to handle query operations in the preview environment.
+     */
+    query: QueryPreviewClient = QueryPreviewClient(emptyMap(), emptyMap()),
+    /**
+     * The mutation client to handle mutation operations in the preview environment.
+     */
+    mutation: MutationPreviewClient = MutationPreviewClient(emptyMap(), emptyMap()),
+    /**
+     * The subscription client to handle subscription operations in the preview environment.
+     */
+    subscription: SubscriptionPreviewClient = SubscriptionPreviewClient(emptyMap(), emptyMap()),
+    /**
+     * The error relay flow to emit error records.
+     */
     override val errorRelay: Flow<ErrorRecord> = flow { }
 ) : SwrClient, SwrClientPlus, QueryClient by query, MutationClient by mutation, SubscriptionClient by subscription {
     override fun gc(level: MemoryPressureLevel) = Unit
