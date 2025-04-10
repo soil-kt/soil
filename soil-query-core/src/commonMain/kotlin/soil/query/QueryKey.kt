@@ -3,9 +3,6 @@
 
 package soil.query
 
-import soil.query.core.SurrogateKey
-import soil.query.core.UniqueId
-
 /**
  * [QueryKey] for managing [Query] associated with [id].
  *
@@ -101,35 +98,6 @@ interface QueryKey<T> {
      * @see QueryRecoverData
      */
     fun onRecoverData(): QueryRecoverData<T>? = null
-}
-
-/**
- * Unique identifier for [QueryKey].
- */
-@Suppress("unused")
-open class QueryId<T>(
-    override val namespace: String,
-    override vararg val tags: SurrogateKey
-) : UniqueId {
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is QueryId<*>) return false
-        if (namespace != other.namespace) return false
-        return tags.contentEquals(other.tags)
-    }
-
-    override fun hashCode(): Int {
-        var result = namespace.hashCode()
-        result = 31 * result + tags.contentHashCode()
-        return result
-    }
-
-    override fun toString(): String {
-        return "QueryId(namespace='$namespace', tags=${tags.contentToString()})"
-    }
-
-    companion object
 }
 
 /**

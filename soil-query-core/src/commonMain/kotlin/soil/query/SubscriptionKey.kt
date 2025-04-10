@@ -4,9 +4,6 @@
 package soil.query
 
 import kotlinx.coroutines.flow.Flow
-import soil.query.core.SurrogateKey
-import soil.query.core.UniqueId
-import soil.query.core.uuid
 
 /**
  * [SubscriptionKey] for managing [Subscription] associated with [id].
@@ -89,49 +86,6 @@ interface SubscriptionKey<T> {
      * You can recover data from the error instead of the error state.
      */
     fun onRecoverData(): SubscriptionRecoverData<T>? = null
-}
-
-/**
- * Unique identifier for [SubscriptionKey].
- */
-@Suppress("unused")
-open class SubscriptionId<T>(
-    override val namespace: String,
-    override vararg val tags: SurrogateKey
-) : UniqueId {
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is SubscriptionId<*>) return false
-        if (namespace != other.namespace) return false
-        return tags.contentEquals(other.tags)
-    }
-
-    override fun hashCode(): Int {
-        var result = namespace.hashCode()
-        result = 31 * result + tags.contentHashCode()
-        return result
-    }
-
-    override fun toString(): String {
-        return "SubscriptionId(namespace='$namespace', tags=${tags.contentToString()})"
-    }
-
-    companion object {
-        @Deprecated(
-            """
-            This function is deprecated because it does not retain automatically generated values when used within Compose.
-            As a result, values are regenerated after configuration changes, leading to different values.
-            Consider using an alternative approach that preserves state across recompositions.
-        """, ReplaceWith("SubscriptionId(namespace, *tags)", "soil.query.SubscriptionId")
-        )
-        fun <T> auto(
-            namespace: String = "auto/${uuid()}",
-            vararg tags: SurrogateKey
-        ): SubscriptionId<T> {
-            return SubscriptionId(namespace, *tags)
-        }
-    }
 }
 
 /**
