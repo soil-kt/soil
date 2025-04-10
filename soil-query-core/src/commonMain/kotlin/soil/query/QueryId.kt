@@ -38,27 +38,27 @@ open class QueryId<T>(
 
 /**
  * TestTag implementation for Query operations that provides tag-based identification.
- * 
+ *
  * This class is used to identify queries for mocking in test and preview environments,
  * particularly when dealing with auto-generated query IDs that may change during
  * configuration changes or recompositions.
- * 
+ *
  * Unlike [QueryId] which might use auto-generated values that can change across
  * recompositions, QueryTestTag provides a stable identifier that can be consistently
  * referenced in tests and previews.
- * 
+ *
  * Usage example:
  * ```kotlin
  * // Define a test tag
  * class UserQueryTestTag : QueryTestTag<User>("user-query")
- * 
+ *
  * // Use with test client
  * testClient.on(UserQueryTestTag()) { QueryState.success(mockUser) }
- * 
+ *
  * // Apply when getting a query
  * val query = client.getQuery(queryKey, Marker.testTag(UserQueryTestTag()))
  * ```
- * 
+ *
  * @param T The type of data that will be returned by the query
  * @param tag A unique string identifier for this test tag
  */
