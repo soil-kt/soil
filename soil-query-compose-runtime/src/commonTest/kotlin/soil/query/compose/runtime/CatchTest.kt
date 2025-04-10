@@ -47,6 +47,7 @@ class CatchTest : UnitTest() {
                 }
             }
         }
+        useIdlingResource(client)
         setContent {
             SwrClientProvider(client) {
                 val query = rememberQuery(key)
@@ -91,6 +92,7 @@ class CatchTest : UnitTest() {
                 }
             }
         }
+        useIdlingResource(client)
         setContent {
             SwrClientProvider(client) {
                 val query = rememberQuery(key)
