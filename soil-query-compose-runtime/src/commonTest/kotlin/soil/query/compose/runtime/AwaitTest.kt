@@ -45,6 +45,7 @@ class AwaitTest : UnitTest() {
         val client = SwrCache(coroutineScope = SwrCacheScope()).test {
             on(key.id) { deferred.await() }
         }
+        useIdlingResource(client)
         setContent {
             SwrClientProvider(client) {
                 val query = rememberQuery(key)
@@ -71,6 +72,7 @@ class AwaitTest : UnitTest() {
             on(key1.id) { deferred1.await() }
             on(key2.id) { deferred2.await() }
         }
+        useIdlingResource(client)
         setContent {
             SwrClientProvider(client) {
                 val query1 = rememberQuery(key1)
@@ -105,6 +107,7 @@ class AwaitTest : UnitTest() {
             on(key2.id) { deferred2.await() }
             on(key3.id) { deferred3.await() }
         }
+        useIdlingResource(client)
         setContent {
             SwrClientProvider(client) {
                 val query1 = rememberQuery(key1)
