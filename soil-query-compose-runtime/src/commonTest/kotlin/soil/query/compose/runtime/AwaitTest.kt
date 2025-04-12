@@ -17,6 +17,7 @@ import soil.query.InfiniteQueryId
 import soil.query.InfiniteQueryKey
 import soil.query.QueryId
 import soil.query.QueryKey
+import soil.query.QueryOptionsOverride
 import soil.query.QueryState
 import soil.query.SwrCache
 import soil.query.SwrCacheScope
@@ -28,6 +29,7 @@ import soil.query.compose.rememberInfiniteQuery
 import soil.query.compose.rememberQuery
 import soil.query.compose.tooling.QueryPreviewClient
 import soil.query.compose.tooling.SwrPreviewClient
+import soil.query.copy
 import soil.query.test.test
 import soil.testing.UnitTest
 import kotlin.test.Test
@@ -45,6 +47,7 @@ class AwaitTest : UnitTest() {
         val client = SwrCache(coroutineScope = SwrCacheScope()).test {
             on(key.id) { deferred.await() }
         }
+        useIdlingResource(client)
         setContent {
             SwrClientProvider(client) {
                 val query = rememberQuery(key)
@@ -71,6 +74,7 @@ class AwaitTest : UnitTest() {
             on(key1.id) { deferred1.await() }
             on(key2.id) { deferred2.await() }
         }
+        useIdlingResource(client)
         setContent {
             SwrClientProvider(client) {
                 val query1 = rememberQuery(key1)
@@ -105,6 +109,7 @@ class AwaitTest : UnitTest() {
             on(key2.id) { deferred2.await() }
             on(key3.id) { deferred3.await() }
         }
+        useIdlingResource(client)
         setContent {
             SwrClientProvider(client) {
                 val query1 = rememberQuery(key1)
@@ -280,6 +285,12 @@ class AwaitTest : UnitTest() {
         id = Id(variant),
         fetch = { "Hello, Soil!" }
     ) {
+
+        override fun onConfigureOptions(): QueryOptionsOverride = { options ->
+            // NOTE: To investigate flaky tests.
+            options.copy(logger = { println(it) })
+        }
+
         class Id(variant: String) : QueryId<String>("test/query", "variant" to variant)
     }
 
