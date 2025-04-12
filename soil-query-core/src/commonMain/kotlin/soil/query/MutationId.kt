@@ -61,27 +61,27 @@ open class MutationId<T, S>(
 
 /**
  * TestTag implementation for Mutation operations that provides tag-based identification.
- * 
+ *
  * This class is used to identify mutations for mocking in test and preview environments,
  * particularly when dealing with auto-generated mutation IDs that may change during
  * configuration changes or recompositions.
- * 
+ *
  * Unlike [MutationId] which might use auto-generated values that can change across
  * recompositions, MutationTestTag provides a stable identifier that can be consistently
  * referenced in tests and previews.
- * 
+ *
  * Usage example:
  * ```kotlin
  * // Define a test tag
  * class UpdateUserMutationTestTag : MutationTestTag<User, UserUpdateParams>("update-user")
- * 
+ *
  * // Use with test client
  * testClient.on(UpdateUserMutationTestTag()) { updatedUser }
- * 
+ *
  * // Apply when getting a mutation
  * val mutation = client.getMutation(mutationKey, Marker.testTag(UpdateUserMutationTestTag()))
  * ```
- * 
+ *
  * @param T The type of data that will be returned by the mutation
  * @param S The type of input parameters for the mutation
  * @param tag A unique string identifier for this test tag

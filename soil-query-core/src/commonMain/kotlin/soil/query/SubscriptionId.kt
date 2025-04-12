@@ -53,27 +53,27 @@ open class SubscriptionId<T>(
 
 /**
  * TestTag implementation for Subscription operations that provides tag-based identification.
- * 
+ *
  * This class is used to identify subscriptions for mocking in test and preview environments,
  * particularly when dealing with auto-generated subscription IDs that may change during
  * configuration changes or recompositions.
- * 
+ *
  * Unlike [SubscriptionId] which might use auto-generated values that can change across
  * recompositions, SubscriptionTestTag provides a stable identifier that can be consistently
  * referenced in tests and previews.
- * 
+ *
  * Usage example:
  * ```kotlin
  * // Define a test tag
  * class UserUpdatesTestTag : SubscriptionTestTag<User>("user-updates")
- * 
+ *
  * // Use with test client
  * testClient.on(UserUpdatesTestTag()) { MutableStateFlow(mockUser) }
- * 
+ *
  * // Apply when getting a subscription
  * val subscription = client.getSubscription(subscriptionKey, Marker.testTag(UserUpdatesTestTag()))
  * ```
- * 
+ *
  * @param T The type of data that will be received by the subscription
  * @param tag A unique string identifier for this test tag
  */
