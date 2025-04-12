@@ -1,0 +1,36 @@
+name: Run Unit Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      module:
+        description: 'Module name to test (e.g., soil-query-compose-runtime)'
+        required: true
+        type: string
+      tests:
+        description: 'Test class to run (optional, e.g., soil.query.compose.runtime.AwaitTest)'
+        required: false
+        type: string
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup JDK
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@d9c87d481d55275bb5441eef3fe0e46805f9ef70 # v3.5.0
+
+      - name: Run unit tests
+        run: |
+          if [ -n "${{ github.event.inputs.tests }}" ]; then
+            ./gradlew :${{ github.event.inputs.module }}:testDebugUnitTest --tests "${{ github.event.inputs.tests }}"
+          else
+            ./gradlew :${{ github.event.inputs.module }}:testDebugUnitTest
+          fi
