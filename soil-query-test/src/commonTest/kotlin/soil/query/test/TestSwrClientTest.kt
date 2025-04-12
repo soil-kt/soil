@@ -8,16 +8,21 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import soil.query.InfiniteQueryId
 import soil.query.InfiniteQueryKey
+import soil.query.InfiniteQueryTestTag
 import soil.query.MutationId
 import soil.query.MutationKey
+import soil.query.MutationTestTag
 import soil.query.QueryId
 import soil.query.QueryKey
+import soil.query.QueryTestTag
 import soil.query.SwrCache
 import soil.query.SwrCachePolicy
 import soil.query.buildInfiniteQueryKey
 import soil.query.buildMutationKey
 import soil.query.buildQueryKey
+import soil.query.core.Marker
 import soil.query.core.getOrThrow
+import soil.query.marker.testTag
 import soil.testing.UnitTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -25,7 +30,7 @@ import kotlin.test.assertEquals
 class TestSwrClientTest : UnitTest() {
 
     @Test
-    fun testMutation() = runTest {
+    fun testMutation_withId() = runTest {
         val testDispatcher = StandardTestDispatcher(testScheduler)
         val cache = SwrCache(
             policy = SwrCachePolicy(
@@ -48,7 +53,32 @@ class TestSwrClientTest : UnitTest() {
     }
 
     @Test
-    fun testQuery() = runTest {
+    fun testMutation_withTestTag() = runTest {
+        val testDispatcher = StandardTestDispatcher(testScheduler)
+        val cache = SwrCache(
+            policy = SwrCachePolicy(
+                coroutineScope = backgroundScope,
+                mainDispatcher = testDispatcher
+            )
+        )
+
+        val testTag = ExampleMutationKey.TestTag()
+        val testClient = cache.test {
+            on(testTag) {
+                "Hello, TestTag!"
+            }
+        }
+        val key = ExampleMutationKey()
+        val mutation = testClient.getMutation(key, Marker.testTag(testTag))
+        launch { mutation.mutate(0) }
+
+        testClient.awaitIdle(testDispatcher)
+        assertEquals("Hello, TestTag!", mutation.state.value.reply.getOrThrow())
+        mutation.close()
+    }
+
+    @Test
+    fun testQuery_withId() = runTest {
         val testDispatcher = StandardTestDispatcher(testScheduler)
         val cache = SwrCache(
             policy = SwrCachePolicy(
@@ -69,7 +99,29 @@ class TestSwrClientTest : UnitTest() {
     }
 
     @Test
-    fun testInfiniteQuery() = runTest {
+    fun testQuery_withTestTag() = runTest {
+        val testDispatcher = StandardTestDispatcher(testScheduler)
+        val cache = SwrCache(
+            policy = SwrCachePolicy(
+                coroutineScope = backgroundScope,
+                mainDispatcher = testDispatcher
+            )
+        )
+        val testTag = ExampleQueryKey.TestTag()
+        val testClient = cache.test {
+            on(testTag) { "Hello, TestTag!" }
+        }
+        val key = ExampleQueryKey()
+        val query = testClient.getQuery(key, Marker.testTag(testTag))
+        launch { query.resume() }
+
+        testClient.awaitIdle(testDispatcher)
+        assertEquals("Hello, TestTag!", query.state.value.reply.getOrThrow())
+        query.close()
+    }
+
+    @Test
+    fun testInfiniteQuery_withId() = runTest {
         val testDispatcher = StandardTestDispatcher(testScheduler)
         val cache = SwrCache(
             policy = SwrCachePolicy(
@@ -88,6 +140,28 @@ class TestSwrClientTest : UnitTest() {
         assertEquals("Hello, World!", query.state.value.reply.getOrThrow().first().data)
         query.close()
     }
+
+    @Test
+    fun testInfiniteQuery_withTestTag() = runTest {
+        val testDispatcher = StandardTestDispatcher(testScheduler)
+        val cache = SwrCache(
+            policy = SwrCachePolicy(
+                coroutineScope = backgroundScope,
+                mainDispatcher = testDispatcher
+            )
+        )
+        val testTag = ExampleInfiniteQueryKey.TestTag()
+        val testClient = cache.test {
+            on(testTag) { "Hello, TestTag!" }
+        }
+        val key = ExampleInfiniteQueryKey()
+        val query = testClient.getInfiniteQuery(key, Marker.testTag(testTag))
+        launch { query.resume() }
+
+        testClient.awaitIdle(testDispatcher)
+        assertEquals("Hello, TestTag!", query.state.value.reply.getOrThrow().first().data)
+        query.close()
+    }
 }
 
 private class ExampleMutationKey : MutationKey<String, Int> by buildMutationKey(
@@ -99,6 +173,8 @@ private class ExampleMutationKey : MutationKey<String, Int> by buildMutationKey(
     object Id : MutationId<String, Int>(
         namespace = "mutation/example"
     )
+
+    class TestTag : MutationTestTag<String, Int>("mutation/example")
 }
 
 private class ExampleQueryKey : QueryKey<String> by buildQueryKey(
@@ -110,6 +186,8 @@ private class ExampleQueryKey : QueryKey<String> by buildQueryKey(
     object Id : QueryId<String>(
         namespace = "query/example"
     )
+
+    class TestTag : QueryTestTag<String>("query/example")
 }
 
 private class ExampleInfiniteQueryKey : InfiniteQueryKey<String, Int> by buildInfiniteQueryKey(
@@ -123,4 +201,6 @@ private class ExampleInfiniteQueryKey : InfiniteQueryKey<String, Int> by buildIn
     object Id : InfiniteQueryId<String, Int>(
         namespace = "infinite-query/example"
     )
+
+    class TestTag : InfiniteQueryTestTag<String, Int>("infinite-query/example")
 }

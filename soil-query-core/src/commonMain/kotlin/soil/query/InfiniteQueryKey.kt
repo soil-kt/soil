@@ -3,9 +3,6 @@
 
 package soil.query
 
-import soil.query.core.SurrogateKey
-import soil.query.core.UniqueId
-
 /**
  * [InfiniteQueryKey] for managing [Query] associated with [id].
  *
@@ -83,35 +80,6 @@ interface InfiniteQueryKey<T, S> {
      * @see QueryKey.onRecoverData
      */
     fun onRecoverData(): QueryRecoverData<QueryChunks<T, S>>? = null
-}
-
-/**
- * Unique identifier for [InfiniteQueryKey].
- */
-@Suppress("unused")
-open class InfiniteQueryId<T, S>(
-    override val namespace: String,
-    override vararg val tags: SurrogateKey
-) : UniqueId {
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is InfiniteQueryId<*, *>) return false
-        if (namespace != other.namespace) return false
-        return tags.contentEquals(other.tags)
-    }
-
-    override fun hashCode(): Int {
-        var result = namespace.hashCode()
-        result = 31 * result + tags.contentHashCode()
-        return result
-    }
-
-    override fun toString(): String {
-        return "InfiniteQueryId(namespace='$namespace', tags=${tags.contentToString()})"
-    }
-
-    companion object
 }
 
 internal fun <T, S> InfiniteQueryKey<T, S>.hasMore(chunks: QueryChunks<T, S>): Boolean {
