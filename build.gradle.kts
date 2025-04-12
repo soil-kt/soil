@@ -54,14 +54,14 @@ allprojects {
             target("src/**/*.kt", "*.gradle.kts")
             targetExclude("$projectDir/build/**/*.kt")
             trimTrailingWhitespace()
-            indentWithSpaces()
+            leadingTabsToSpaces()
             endWithNewline()
         }
 
         format("formatYaml") {
             target(".github/**/*.yml")
             trimTrailingWhitespace()
-            indentWithSpaces()
+            leadingTabsToSpaces()
             endWithNewline()
         }
 
