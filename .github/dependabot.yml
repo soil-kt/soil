@@ -1,0 +1,8 @@
+version: 2
+updates:
+  # Update commit hash
+  # https://github.com/soil-kt/soil/pull/149
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
