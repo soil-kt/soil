@@ -16,7 +16,6 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilExactlyOneExists
 import soil.testing.UnitTest
 import kotlin.test.Test
@@ -25,7 +24,7 @@ import kotlin.test.Test
 class SuspenseTest : UnitTest() {
 
     @Test
-    fun testSuspense() = runComposeUiTest {
+    fun testSuspense() = runUiTest {
         setContent {
             var state by remember { mutableStateOf<Loadable<String>>(Loadable.Pending) }
             Suspense(

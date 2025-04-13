@@ -17,15 +17,14 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilAtLeastOneExists
+import androidx.compose.ui.test.waitUntilExactlyOneExists
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import soil.query.SubscriptionId
 import soil.query.SubscriptionKey
 import soil.query.SubscriptionState
 import soil.query.SwrCachePlus
-import soil.query.SwrCacheScope
 import soil.query.annotation.ExperimentalSoilQueryApi
 import soil.query.buildSubscriptionKey
 import soil.query.compose.tooling.SubscriptionPreviewClient
@@ -41,9 +40,9 @@ import kotlin.test.Test
 class SubscriptionComposableTest : UnitTest() {
 
     @Test
-    fun testRememberSubscription() = runComposeUiTest {
+    fun testRememberSubscription() = runUiTest {
         val key = TestSubscriptionKey()
-        val client = SwrCachePlus(coroutineScope = SwrCacheScope()).test()
+        val client = SwrCachePlus(coroutineScope = it).test()
         setContent {
             SwrClientProvider(client) {
                 val subscription = rememberSubscription(key, config = SubscriptionConfig {
@@ -64,9 +63,9 @@ class SubscriptionComposableTest : UnitTest() {
     }
 
     @Test
-    fun testRememberSubscription_select() = runComposeUiTest {
+    fun testRememberSubscription_select() = runUiTest {
         val key = TestSubscriptionKey()
-        val client = SwrCachePlus(coroutineScope = SwrCacheScope()).test {
+        val client = SwrCachePlus(coroutineScope = it).test {
             on(key.id) { MutableStateFlow("Hello, Compose!") }
         }
         setContent {
@@ -84,9 +83,9 @@ class SubscriptionComposableTest : UnitTest() {
     }
 
     @Test
-    fun testRememberSubscription_throwError() = runComposeUiTest {
+    fun testRememberSubscription_throwError() = runUiTest {
         val key = TestSubscriptionKey()
-        val client = SwrCachePlus(coroutineScope = SwrCacheScope()).test {
+        val client = SwrCachePlus(coroutineScope = it).test {
             on(key.id) { flow { throw RuntimeException("Failed to do something :(") } }
         }
         setContent {
@@ -107,7 +106,7 @@ class SubscriptionComposableTest : UnitTest() {
     }
 
     @Test
-    fun testRememberSubscription_loadingPreview() = runComposeUiTest {
+    fun testRememberSubscription_loadingPreview() = runUiTest {
         val key = TestSubscriptionKey()
         val client = SwrPreviewClient(
             subscription = SubscriptionPreviewClient {
@@ -123,12 +122,12 @@ class SubscriptionComposableTest : UnitTest() {
             }
         }
 
-        waitForIdle()
+        waitUntilExactlyOneExists(hasTestTag("subscription"))
         onNodeWithTag("subscription").assertTextEquals("loading")
     }
 
     @Test
-    fun testRememberSubscription_successPreview() = runComposeUiTest {
+    fun testRememberSubscription_successPreview() = runUiTest {
         val key = TestSubscriptionKey()
         val client = SwrPreviewClient(
             subscription = SubscriptionPreviewClient {
@@ -142,18 +141,22 @@ class SubscriptionComposableTest : UnitTest() {
         setContent {
             SwrClientProvider(client) {
                 when (val subscription = rememberSubscription(key)) {
-                    is SubscriptionSuccessObject -> Text(subscription.data, modifier = Modifier.testTag("subscription"))
+                    is SubscriptionSuccessObject -> Text(
+                        subscription.data,
+                        modifier = Modifier.testTag("subscription")
+                    )
+
                     else -> Unit
                 }
             }
         }
 
-        waitForIdle()
+        waitUntilExactlyOneExists(hasTestTag("subscription"))
         onNodeWithTag("subscription").assertTextEquals("Hello, Subscription!")
     }
 
     @Test
-    fun testRememberSubscription_errorPreview() = runComposeUiTest {
+    fun testRememberSubscription_errorPreview() = runUiTest {
         val key = TestSubscriptionKey()
         val client = SwrPreviewClient(
             subscription = SubscriptionPreviewClient {
@@ -177,14 +180,14 @@ class SubscriptionComposableTest : UnitTest() {
             }
         }
 
-        waitForIdle()
+        waitUntilExactlyOneExists(hasTestTag("subscription"))
         onNodeWithTag("subscription").assertTextEquals("Error")
     }
 
     @Test
-    fun testRememberSubscriptionIf() = runComposeUiTest {
+    fun testRememberSubscriptionIf() = runUiTest {
         val key = TestSubscriptionKey()
-        val client = SwrCachePlus(coroutineScope = SwrCacheScope()).test()
+        val client = SwrCachePlus(coroutineScope = it).test()
         setContent {
             SwrClientProvider(client) {
                 var enabled by remember { mutableStateOf(false) }
@@ -201,26 +204,27 @@ class SubscriptionComposableTest : UnitTest() {
             }
         }
 
-        waitForIdle()
         onNodeWithTag("subscription").assertDoesNotExist()
         onNodeWithTag("toggle").performClick()
 
-        waitForIdle()
-        waitUntil { client.isIdleNow() }
+        waitUntilExactlyOneExists(hasTestTag("subscription"))
         onNodeWithTag("subscription").assertTextEquals("Hello, Soil!")
     }
 
     @Test
-    fun testRememberSubscriptionIf_select() = runComposeUiTest {
+    fun testRememberSubscriptionIf_select() = runUiTest {
         val key = TestSubscriptionKey()
-        val client = SwrCachePlus(coroutineScope = SwrCacheScope()).test {
+        val client = SwrCachePlus(coroutineScope = it).test {
             on(key.id) { MutableStateFlow("Hello, Compose!") }
         }
         setContent {
             SwrClientProvider(client) {
                 var enabled by remember { mutableStateOf(false) }
                 val subscription =
-                    rememberSubscriptionIf(enabled, keyFactory = { if (it) key else null }, select = { it.uppercase() })
+                    rememberSubscriptionIf(
+                        enabled,
+                        keyFactory = { if (it) key else null },
+                        select = { it.uppercase() })
                 Column {
                     Button(onClick = { enabled = !enabled }, modifier = Modifier.testTag("toggle")) {
                         Text("Toggle")
@@ -233,12 +237,10 @@ class SubscriptionComposableTest : UnitTest() {
             }
         }
 
-        waitForIdle()
         onNodeWithTag("subscription").assertDoesNotExist()
         onNodeWithTag("toggle").performClick()
 
-        waitForIdle()
-        waitUntil { client.isIdleNow() }
+        waitUntilExactlyOneExists(hasTestTag("subscription"))
         onNodeWithTag("subscription").assertTextEquals("HELLO, COMPOSE!")
     }
 

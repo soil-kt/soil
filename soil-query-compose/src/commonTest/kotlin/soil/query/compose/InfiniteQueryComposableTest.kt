@@ -14,19 +14,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertAll
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.runComposeUiTest
+import androidx.compose.ui.test.waitUntilExactlyOneExists
+import androidx.compose.ui.test.waitUntilNodeCount
 import kotlinx.coroutines.launch
 import soil.query.InfiniteQueryId
 import soil.query.InfiniteQueryKey
 import soil.query.QueryChunk
 import soil.query.QueryState
 import soil.query.SwrCache
-import soil.query.SwrCacheScope
 import soil.query.buildChunks
 import soil.query.buildInfiniteQueryKey
 import soil.query.chunkedData
@@ -43,9 +44,9 @@ import kotlin.test.Test
 class InfiniteQueryComposableTest : UnitTest() {
 
     @Test
-    fun testRememberInfiniteQuery() = runComposeUiTest {
+    fun testRememberInfiniteQuery() = runUiTest {
         val key = TestInfiniteQueryKey()
-        val client = SwrCache(coroutineScope = SwrCacheScope()).test()
+        val client = SwrCache(coroutineScope = it).test()
         setContent {
             SwrClientProvider(client) {
                 val query = rememberInfiniteQuery(key, config = InfiniteQueryConfig {
@@ -71,15 +72,15 @@ class InfiniteQueryComposableTest : UnitTest() {
                 }
             }
         }
-        waitUntil { client.isIdleNow() }
+        waitUntilExactlyOneExists(hasTestTag("query"))
         onNodeWithTag("query").assertTextEquals("Size: 10 - Page: 0")
         onNodeWithTag("loadMore").assertTextEquals("HasNext: true")
     }
 
     @Test
-    fun testRememberInfiniteQuery_select() = runComposeUiTest {
+    fun testRememberInfiniteQuery_select() = runUiTest {
         val key = TestInfiniteQueryKey()
-        val client = SwrCache(coroutineScope = SwrCacheScope()).test()
+        val client = SwrCache(coroutineScope = it).test()
         setContent {
             SwrClientProvider(client) {
                 val query = rememberInfiniteQuery(key, select = { it.chunkedData })
@@ -97,14 +98,14 @@ class InfiniteQueryComposableTest : UnitTest() {
             }
         }
 
-        waitUntil { client.isIdleNow() }
-        onAllNodes(hasTestTag("query")).assertCountEquals(10)
+        waitUntilNodeCount(hasTestTag("query"), 10)
+        onAllNodes(hasTestTag("query")).assertAll(hasText("Item", substring = true))
     }
 
     @Test
-    fun testRememberInfiniteQuery_loadMore() = runComposeUiTest {
+    fun testRememberInfiniteQuery_loadMore() = runUiTest {
         val key = TestInfiniteQueryKey()
-        val client = SwrCache(coroutineScope = SwrCacheScope()).test()
+        val client = SwrCache(coroutineScope = it).test()
         setContent {
             SwrClientProvider(client) {
                 val query = rememberInfiniteQuery(key)
@@ -135,19 +136,17 @@ class InfiniteQueryComposableTest : UnitTest() {
                 }
             }
         }
-
-        waitUntil { client.isIdleNow() }
+        waitUntilExactlyOneExists(hasTestTag("query0"))
         onNodeWithTag("query0").assertTextEquals("Size: 10 - Page: 0")
         onNodeWithTag("loadMore").performClick()
 
-        waitForIdle()
-        waitUntil { client.isIdleNow() }
+        waitUntilExactlyOneExists(hasTestTag("query1"))
         onNodeWithTag("query1").assertTextEquals("Size: 10 - Page: 1")
     }
 
 
     @Test
-    fun testRememberInfiniteQuery_loadingPreview() = runComposeUiTest {
+    fun testRememberInfiniteQuery_loadingPreview() = runUiTest {
         val key = TestInfiniteQueryKey()
         val client = SwrPreviewClient(
             query = QueryPreviewClient {
@@ -163,12 +162,12 @@ class InfiniteQueryComposableTest : UnitTest() {
             }
         }
 
-        waitForIdle()
+        waitUntilExactlyOneExists(hasTestTag("query"))
         onNodeWithTag("query").assertTextEquals("Loading")
     }
 
     @Test
-    fun testRememberInfiniteQuery_successPreview() = runComposeUiTest {
+    fun testRememberInfiniteQuery_successPreview() = runUiTest {
         val key = TestInfiniteQueryKey()
         val client = SwrPreviewClient(
             query = QueryPreviewClient {
@@ -197,12 +196,12 @@ class InfiniteQueryComposableTest : UnitTest() {
             }
         }
 
-        waitForIdle()
-        onAllNodes(hasTestTag("query")).assertCountEquals(30)
+        waitUntilNodeCount(hasTestTag("query"), 30)
+        onAllNodes(hasTestTag("query")).assertAll(hasText("Item", substring = true))
     }
 
     @Test
-    fun testRememberInfiniteQuery_loadingErrorPreview() = runComposeUiTest {
+    fun testRememberInfiniteQuery_loadingErrorPreview() = runUiTest {
         val key = TestInfiniteQueryKey()
         val client = SwrPreviewClient(
             query = QueryPreviewClient {
@@ -222,12 +221,12 @@ class InfiniteQueryComposableTest : UnitTest() {
             }
         }
 
-        waitForIdle()
+        waitUntilExactlyOneExists(hasTestTag("query"))
         onNodeWithTag("query").assertTextEquals("Error")
     }
 
     @Test
-    fun testRememberInfiniteQuery_refreshErrorPreview() = runComposeUiTest {
+    fun testRememberInfiniteQuery_refreshErrorPreview() = runUiTest {
         val key = TestInfiniteQueryKey()
         val client = SwrPreviewClient(
             query = QueryPreviewClient {
@@ -251,14 +250,14 @@ class InfiniteQueryComposableTest : UnitTest() {
             }
         }
 
-        waitForIdle()
+        waitUntilExactlyOneExists(hasTestTag("query"))
         onNodeWithTag("query").assertTextEquals("ChunkSize: 1")
     }
 
     @Test
-    fun testRememberInfiniteQueryIf() = runComposeUiTest {
+    fun testRememberInfiniteQueryIf() = runUiTest {
         val key = TestInfiniteQueryKey()
-        val client = SwrCache(coroutineScope = SwrCacheScope()).test()
+        val client = SwrCache(coroutineScope = it).test()
         setContent {
             SwrClientProvider(client) {
                 var enabled by remember { mutableStateOf(false) }
@@ -283,19 +282,17 @@ class InfiniteQueryComposableTest : UnitTest() {
             }
         }
 
-        waitForIdle()
         onNodeWithTag("query").assertDoesNotExist()
         onNodeWithTag("toggle").performClick()
 
-        waitForIdle()
-        waitUntil { client.isIdleNow() }
+        waitUntilExactlyOneExists(hasTestTag("query"))
         onNodeWithTag("query").assertTextEquals("Size: 10 - Page: 0")
     }
 
     @Test
-    fun testRememberInfiniteQueryIf_select() = runComposeUiTest {
+    fun testRememberInfiniteQueryIf_select() = runUiTest {
         val key = TestInfiniteQueryKey()
-        val client = SwrCache(coroutineScope = SwrCacheScope()).test()
+        val client = SwrCache(coroutineScope = it).test()
         setContent {
             SwrClientProvider(client) {
                 var enabled by remember { mutableStateOf(false) }
@@ -320,13 +317,11 @@ class InfiniteQueryComposableTest : UnitTest() {
             }
         }
 
-        waitForIdle()
         onNodeWithTag("query").assertDoesNotExist()
         onNodeWithTag("toggle").performClick()
 
-        waitForIdle()
-        waitUntil { client.isIdleNow() }
-        onAllNodes(hasTestTag("query")).assertCountEquals(10)
+        waitUntilNodeCount(hasTestTag("query"), 10)
+        onAllNodes(hasTestTag("query")).assertAll(hasText("Item", substring = true))
     }
 
 

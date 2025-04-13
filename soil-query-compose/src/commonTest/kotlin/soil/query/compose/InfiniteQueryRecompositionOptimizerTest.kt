@@ -10,8 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasTestTag
-import androidx.compose.ui.test.runComposeUiTest
-import androidx.compose.ui.test.waitUntilAtLeastOneExists
+import androidx.compose.ui.test.waitUntilExactlyOneExists
 import kotlinx.coroutines.delay
 import soil.query.InfiniteQueryId
 import soil.query.InfiniteQueryKey
@@ -20,7 +19,6 @@ import soil.query.QueryFetchStatus
 import soil.query.QueryState
 import soil.query.QueryStatus
 import soil.query.SwrCache
-import soil.query.SwrCacheScope
 import soil.query.buildInfiniteQueryKey
 import soil.query.core.Reply
 import soil.query.emptyChunks
@@ -35,14 +33,16 @@ import kotlin.time.Duration.Companion.milliseconds
 class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
 
     @Test
-    fun testRecompositionCount_default() = runComposeUiTest {
+    fun testRecompositionCount_default() = runUiTest {
         val key = TestInfiniteQueryKey()
-        val client = SwrCache(coroutineScope = SwrCacheScope()).test()
+        val client = SwrCache(coroutineScope = it).test()
         var recompositionCount = 0
         setContent {
             SwrClientProvider(client) {
                 val query = rememberInfiniteQuery(key)
-                SideEffect { recompositionCount++ }
+                SideEffect {
+                    recompositionCount++
+                }
                 when (val reply = query.reply) {
                     is Reply.Some -> {
                         Column {
@@ -60,16 +60,16 @@ class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
             }
         }
 
-        waitUntilAtLeastOneExists(hasTestTag("query"))
+        waitUntilExactlyOneExists(hasTestTag("query"))
 
         // pending -> success
         assertEquals(2, recompositionCount)
     }
 
     @Test
-    fun testRecompositionCount_disabled() = runComposeUiTest {
+    fun testRecompositionCount_disabled() = runUiTest {
         val key = TestInfiniteQueryKey()
-        val client = SwrCache(coroutineScope = SwrCacheScope()).test()
+        val client = SwrCache(coroutineScope = it).test()
         var recompositionCount = 0
         setContent {
             SwrClientProvider(client) {
@@ -94,7 +94,7 @@ class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
             }
         }
 
-        waitUntilAtLeastOneExists(hasTestTag("query"))
+        waitUntilExactlyOneExists(hasTestTag("query"))
 
         // pending -> pending(fetching) -> success
         assertEquals(3, recompositionCount)

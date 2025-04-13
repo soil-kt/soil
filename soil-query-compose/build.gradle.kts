@@ -64,8 +64,23 @@ kotlin {
             }
         }
 
-        jvmTest.dependencies {
-            implementation(compose.desktop.currentOs)
+        val skikoTest by creating {
+            dependsOn(commonTest.get())
+        }
+
+        iosTest {
+            dependsOn(skikoTest)
+        }
+
+        jvmTest {
+            dependsOn(skikoTest)
+            dependencies {
+                implementation(compose.desktop.currentOs)
+            }
+        }
+
+        wasmJsTest {
+            dependsOn(skikoTest)
         }
     }
 }
