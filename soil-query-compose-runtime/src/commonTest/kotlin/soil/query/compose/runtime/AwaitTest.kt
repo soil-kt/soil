@@ -10,17 +10,14 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilExactlyOneExists
 import kotlinx.coroutines.CompletableDeferred
 import soil.query.InfiniteQueryId
 import soil.query.InfiniteQueryKey
 import soil.query.QueryId
 import soil.query.QueryKey
-import soil.query.QueryOptionsOverride
 import soil.query.QueryState
 import soil.query.SwrCache
-import soil.query.SwrCacheScope
 import soil.query.buildInfiniteQueryKey
 import soil.query.buildQueryKey
 import soil.query.compose.QueryObject
@@ -29,7 +26,6 @@ import soil.query.compose.rememberInfiniteQuery
 import soil.query.compose.rememberQuery
 import soil.query.compose.tooling.QueryPreviewClient
 import soil.query.compose.tooling.SwrPreviewClient
-import soil.query.copy
 import soil.query.test.test
 import soil.testing.UnitTest
 import kotlin.test.Test
@@ -38,16 +34,13 @@ import kotlin.time.Duration
 @OptIn(ExperimentalTestApi::class)
 class AwaitTest : UnitTest() {
 
-    // TODO flaky test: CalledFromWrongThreadException
-    //  https://issuetracker.google.com/issues?q=CalledFromWrongThreadException
     @Test
-    fun testAwait() = runComposeUiTest {
+    fun testAwait() = runUiTest {
         val deferred = CompletableDeferred<String>()
         val key = TestQueryKey("foo")
-        val client = SwrCache(coroutineScope = SwrCacheScope()).test {
+        val client = SwrCache(coroutineScope = it).test {
             on(key.id) { deferred.await() }
         }
-        useIdlingResource(client)
         setContent {
             SwrClientProvider(client) {
                 val query = rememberQuery(key)
@@ -65,16 +58,15 @@ class AwaitTest : UnitTest() {
     }
 
     @Test
-    fun testAwait_pair() = runComposeUiTest {
+    fun testAwait_pair() = runUiTest {
         val deferred1 = CompletableDeferred<String>()
         val deferred2 = CompletableDeferred<String>()
         val key1 = TestQueryKey("foo")
         val key2 = TestQueryKey("bar")
-        val client = SwrCache(coroutineScope = SwrCacheScope()).test {
+        val client = SwrCache(coroutineScope = it).test {
             on(key1.id) { deferred1.await() }
             on(key2.id) { deferred2.await() }
         }
-        useIdlingResource(client)
         setContent {
             SwrClientProvider(client) {
                 val query1 = rememberQuery(key1)
@@ -97,19 +89,18 @@ class AwaitTest : UnitTest() {
     }
 
     @Test
-    fun testAwait_triple() = runComposeUiTest {
+    fun testAwait_triple() = runUiTest {
         val deferred1 = CompletableDeferred<String>()
         val deferred2 = CompletableDeferred<String>()
         val deferred3 = CompletableDeferred<Int>()
         val key1 = TestQueryKey("foo")
         val key2 = TestQueryKey("bar")
         val key3 = TestInfiniteQueryKey()
-        val client = SwrCache(coroutineScope = SwrCacheScope()).test {
+        val client = SwrCache(coroutineScope = it).test {
             on(key1.id) { deferred1.await() }
             on(key2.id) { deferred2.await() }
             on(key3.id) { deferred3.await() }
         }
-        useIdlingResource(client)
         setContent {
             SwrClientProvider(client) {
                 val query1 = rememberQuery(key1)
@@ -137,7 +128,7 @@ class AwaitTest : UnitTest() {
     }
 
     @Test
-    fun testAwait_withSuspense() = runComposeUiTest {
+    fun testAwait_withSuspense() = runUiTest {
         val key1 = TestQueryKey("foo")
         val key2 = TestQueryKey("bar")
         val client = SwrPreviewClient(
@@ -159,14 +150,13 @@ class AwaitTest : UnitTest() {
                 }
             }
         }
-        waitForIdle()
         waitUntilExactlyOneExists(hasTestTag("fallback"))
         onNodeWithTag("fallback").assertTextEquals("Loading...")
         onNodeWithTag("await").assertDoesNotExist()
     }
 
     @Test
-    fun testAwait_error() = runComposeUiTest {
+    fun testAwait_error() = runUiTest {
         val key1 = TestQueryKey("foo")
         val key2 = TestQueryKey("bar")
         val client = SwrPreviewClient(
@@ -192,7 +182,7 @@ class AwaitTest : UnitTest() {
     }
 
     @Test
-    fun testAwait_errorWithReply() = runComposeUiTest {
+    fun testAwait_errorWithReply() = runUiTest {
         val key1 = TestQueryKey("foo")
         val key2 = TestQueryKey("bar")
         val client = SwrPreviewClient(
@@ -218,7 +208,7 @@ class AwaitTest : UnitTest() {
     }
 
     @Test
-    fun testAwait_errorWithErrorBoundary() = runComposeUiTest {
+    fun testAwait_errorWithErrorBoundary() = runUiTest {
         val key1 = TestQueryKey("foo")
         val key2 = TestQueryKey("bar")
         val client = SwrPreviewClient(
@@ -246,7 +236,7 @@ class AwaitTest : UnitTest() {
     }
 
     @Test
-    fun testAwait_orNone() = runComposeUiTest {
+    fun testAwait_orNone() = runUiTest {
         setContent {
             val query: QueryObject<String>? = null /* rememberQueryIf(..) */
             Suspense(
@@ -264,7 +254,7 @@ class AwaitTest : UnitTest() {
     }
 
     @Test
-    fun testAwait_orPending() = runComposeUiTest {
+    fun testAwait_orPending() = runUiTest {
         setContent {
             val query: QueryObject<String>? = null /* rememberQueryIf(..) */
             Suspense(
@@ -276,7 +266,7 @@ class AwaitTest : UnitTest() {
                 }
             }
         }
-        waitForIdle()
+        waitUntilExactlyOneExists(hasTestTag("fallback"))
         onNodeWithTag("await").assertDoesNotExist()
         onNodeWithTag("fallback").assertExists()
     }
@@ -285,12 +275,6 @@ class AwaitTest : UnitTest() {
         id = Id(variant),
         fetch = { "Hello, Soil!" }
     ) {
-
-        override fun onConfigureOptions(): QueryOptionsOverride = { options ->
-            // NOTE: To investigate flaky tests.
-            options.copy(logger = { println(it) })
-        }
-
         class Id(variant: String) : QueryId<String>("test/query", "variant" to variant)
     }
 

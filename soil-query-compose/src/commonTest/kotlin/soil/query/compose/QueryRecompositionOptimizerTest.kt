@@ -9,7 +9,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasTestTag
-import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilExactlyOneExists
 import kotlinx.coroutines.delay
 import soil.query.QueryFetchStatus
@@ -18,7 +17,6 @@ import soil.query.QueryKey
 import soil.query.QueryState
 import soil.query.QueryStatus
 import soil.query.SwrCache
-import soil.query.SwrCacheScope
 import soil.query.buildQueryKey
 import soil.query.core.Reply
 import soil.query.test.test
@@ -32,9 +30,9 @@ import kotlin.time.Duration.Companion.milliseconds
 class QueryRecompositionOptimizerTest : UnitTest() {
 
     @Test
-    fun testRecompositionCount_default() = runComposeUiTest {
+    fun testRecompositionCount_default() = runUiTest {
         val key = TestQueryKey()
-        val client = SwrCache(coroutineScope = SwrCacheScope()).test()
+        val client = SwrCache(coroutineScope = it).test()
         var recompositionCount = 0
         setContent {
             SwrClientProvider(client) {
@@ -54,9 +52,9 @@ class QueryRecompositionOptimizerTest : UnitTest() {
     }
 
     @Test
-    fun testRecompositionCount_disabled() = runComposeUiTest {
+    fun testRecompositionCount_disabled() = runUiTest {
         val key = TestQueryKey()
-        val client = SwrCache(coroutineScope = SwrCacheScope()).test()
+        val client = SwrCache(coroutineScope = it).test()
         var recompositionCount = 0
         setContent {
             SwrClientProvider(client) {

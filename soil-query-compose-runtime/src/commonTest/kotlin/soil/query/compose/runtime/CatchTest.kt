@@ -13,14 +13,13 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.runComposeUiTest
+import androidx.compose.ui.test.waitUntilDoesNotExist
 import androidx.compose.ui.test.waitUntilExactlyOneExists
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import soil.query.QueryId
 import soil.query.QueryKey
 import soil.query.SwrCache
-import soil.query.SwrCacheScope
 import soil.query.buildQueryKey
 import soil.query.compose.SwrClientProvider
 import soil.query.compose.rememberQuery
@@ -32,12 +31,12 @@ import kotlin.test.Test
 class CatchTest : UnitTest() {
 
     @Test
-    fun testCatch() = runComposeUiTest {
+    fun testCatch() = runUiTest {
         val deferred1 = CompletableDeferred<String>()
         val deferred2 = CompletableDeferred<String>()
         var isFirst = true
         val key = TestQueryKey("foo")
-        val client = SwrCache(coroutineScope = SwrCacheScope()).test {
+        val client = SwrCache(coroutineScope = it).test {
             on(key.id) {
                 if (isFirst) {
                     isFirst = false
@@ -47,7 +46,6 @@ class CatchTest : UnitTest() {
                 }
             }
         }
-        useIdlingResource(client)
         setContent {
             SwrClientProvider(client) {
                 val query = rememberQuery(key)
@@ -72,17 +70,17 @@ class CatchTest : UnitTest() {
 
         onNodeWithTag("refresh").performClick()
         deferred2.complete("Hello, Soil!")
-        waitForIdle()
-        onNodeWithTag("catch").assertDoesNotExist()
+        waitUntilDoesNotExist(hasTestTag("catch"))
     }
 
+
     @Test
-    fun testCatch_withErrorBoundary() = runComposeUiTest {
+    fun testCatch_withErrorBoundary() = runUiTest {
         val deferred1 = CompletableDeferred<String>()
         val deferred2 = CompletableDeferred<String>()
         var isFirst = true
         val key = TestQueryKey("foo")
-        val client = SwrCache(coroutineScope = SwrCacheScope()).test {
+        val client = SwrCache(coroutineScope = it).test {
             on(key.id) {
                 if (isFirst) {
                     isFirst = false
@@ -92,7 +90,6 @@ class CatchTest : UnitTest() {
                 }
             }
         }
-        useIdlingResource(client)
         setContent {
             SwrClientProvider(client) {
                 val query = rememberQuery(key)
@@ -119,8 +116,7 @@ class CatchTest : UnitTest() {
 
         onNodeWithTag("refresh").performClick()
         deferred2.complete("Hello, Soil!")
-        waitForIdle()
-        onNodeWithTag("fallback").assertDoesNotExist()
+        waitUntilDoesNotExist(hasTestTag("fallback"))
     }
 
     private class TestQueryKey(val variant: String) : QueryKey<String> by buildQueryKey(
