@@ -39,7 +39,7 @@ import soil.query.buildSubscriptionKey
  * @param mutate The mutation function that sends a request to the server.
  */
 inline fun <T, S> buildKtorMutationKey(
-    id: MutationId<T, S> = MutationId.auto(),
+    id: MutationId<T, S>,
     crossinline mutate: suspend HttpClient.(variable: S) -> T
 ): MutationKey<T, S> = buildMutationKey(
     id = id,
@@ -134,7 +134,7 @@ inline fun <T, S> buildKtorInfiniteQueryKey(
  * @param subscribe The subscription function for receiving data, such as from a server.
  */
 inline fun <T> buildKtorSubscriptionKey(
-    id: SubscriptionId<T> = SubscriptionId.auto(),
+    id: SubscriptionId<T>,
     crossinline subscribe: HttpClient.() -> Flow<T>
 ): SubscriptionKey<T> = buildSubscriptionKey(
     id = id,

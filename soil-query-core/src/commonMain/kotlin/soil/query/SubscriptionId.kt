@@ -6,7 +6,6 @@ package soil.query
 import soil.query.core.SurrogateKey
 import soil.query.core.TestTag
 import soil.query.core.UniqueId
-import soil.query.core.uuid
 
 /**
  * Unique identifier for [SubscriptionKey].
@@ -34,21 +33,7 @@ open class SubscriptionId<T>(
         return "SubscriptionId(namespace='$namespace', tags=${tags.contentToString()})"
     }
 
-    companion object {
-        @Deprecated(
-            """
-            This function is deprecated because it does not retain automatically generated values when used within Compose.
-            As a result, values are regenerated after configuration changes, leading to different values.
-            Consider using an alternative approach that preserves state across recompositions.
-        """, ReplaceWith("SubscriptionId(namespace, *tags)", "soil.query.SubscriptionId")
-        )
-        fun <T> auto(
-            namespace: String = "auto/${uuid()}",
-            vararg tags: SurrogateKey
-        ): SubscriptionId<T> {
-            return SubscriptionId(namespace, *tags)
-        }
-    }
+    companion object
 }
 
 /**

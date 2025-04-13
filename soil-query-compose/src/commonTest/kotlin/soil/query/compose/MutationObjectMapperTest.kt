@@ -3,6 +3,7 @@
 
 package soil.query.compose
 
+import soil.query.MutationId
 import soil.query.MutationKey
 import soil.query.MutationState
 import soil.query.MutationStatus
@@ -165,10 +166,15 @@ class MutationObjectMapperTest : UnitTest() {
     }
 
     private class TestMutationKey : MutationKey<String, TestForm> by buildMutationKey(
+        id = Id,
         mutate = { form ->
             "${form.name} - ${form.age}"
         }
-    )
+    ) {
+        object Id : MutationId<String, TestForm>(
+            namespace = "test/mutation"
+        )
+    }
 
     private data class TestForm(
         val name: String,

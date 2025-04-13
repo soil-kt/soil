@@ -20,6 +20,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.waitUntilExactlyOneExists
 import kotlinx.coroutines.launch
+import soil.query.MutationId
 import soil.query.MutationKey
 import soil.query.MutationState
 import soil.query.SwrCache
@@ -282,10 +283,15 @@ class MutationComposableTest : UnitTest() {
     }
 
     private class TestMutationKey : MutationKey<String, TestForm> by buildMutationKey(
+        id = Id,
         mutate = { form ->
             "${form.name} - ${form.age}"
         }
-    )
+    ) {
+        object Id : MutationId<String, TestForm>(
+            namespace = "test/mutation"
+        )
+    }
 
     private data class TestForm(
         val name: String,

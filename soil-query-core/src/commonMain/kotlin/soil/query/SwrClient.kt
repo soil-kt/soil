@@ -41,12 +41,6 @@ interface SwrClient : MutationClient, QueryClient {
     /**
      * Executes side effects for queries.
      */
-    @Deprecated("Use effect(block: Effect) instead.", ReplaceWith("effect(block)"))
-    fun perform(sideEffects: QueryEffect): Job
-
-    /**
-     * Executes side effects for queries.
-     */
     fun effect(block: Effect): Job
 
     /**
