@@ -65,8 +65,7 @@ class KeepAliveTest : UnitTest() {
                 policy = SwrCachePolicy(
                     coroutineScope = swrScope,
                     queryOptions = QueryOptions(
-                        keepAliveTime = keepAliveTime,
-                        logger = { println(it) }
+                        keepAliveTime = keepAliveTime
                     )
                 )
             )
