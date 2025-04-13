@@ -27,9 +27,17 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
+        useEsModules()
         browser {
-            // TODO: We will consider using wasm tests when we update to 'org.jetbrains.compose.ui:ui:1.7.0' or later.
-            //  - https://slack-chats.kotlinlang.org/t/22883390/wasmjs-unit-testing-what-is-the-status-of-unit-testing-on-wa
+            // TODO: Add WASM tests
+            //  Karma doesn't work
+            //
+            // > ./gradlew :soil-query-compose-runtime:wasmJsBrowserTest
+            // Karma v6.4.4 server started at http://localhost:9876/
+            // Launching browsers ChromeHeadless with concurrency unlimited
+            // Starting browser ChromeHeadless
+            // Connected on socket iqr25QfS_tnsIguBAAAB with id 19492594
+            // Disconnected (0 times) reconnect failed before timeout of 2000ms (ping timeout)
             testTask {
                 enabled = false
             }
