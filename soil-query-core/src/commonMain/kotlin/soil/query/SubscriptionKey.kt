@@ -103,7 +103,7 @@ interface SubscriptionKey<T> {
  * ```
  */
 fun <T> buildSubscriptionKey(
-    id: SubscriptionId<T> = SubscriptionId.auto(),
+    id: SubscriptionId<T>,
     subscribe: SubscriptionReceiver.() -> Flow<T>
 ): SubscriptionKey<T> {
     return object : SubscriptionKey<T> {

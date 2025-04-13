@@ -125,11 +125,6 @@ class SwrCache internal constructor(
         resetMutations()
     }
 
-    @Deprecated("Use effect(block: Effect) instead.", replaceWith = ReplaceWith("effect(block)"))
-    override fun perform(sideEffects: QueryEffect): Job {
-        return launch(sideEffects)
-    }
-
     override fun effect(block: Effect): Job {
         return launch(block)
     }

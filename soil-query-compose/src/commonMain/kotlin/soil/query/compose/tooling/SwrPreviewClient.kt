@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import soil.query.MutationClient
 import soil.query.QueryClient
-import soil.query.QueryEffect
 import soil.query.SubscriptionClient
 import soil.query.SwrClient
 import soil.query.SwrClientPlus
@@ -50,7 +49,6 @@ class SwrPreviewClient(
     override fun purgeAll() = Unit
 
     @Deprecated("Use effect(block: Effect) instead.", replaceWith = ReplaceWith("effect(block)"))
-    override fun perform(sideEffects: QueryEffect): Job = Job()
     override fun effect(block: Effect): Job = Job()
     override fun onMount(id: String) = Unit
     override fun onUnmount(id: String) = Unit

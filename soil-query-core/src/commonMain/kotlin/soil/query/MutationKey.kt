@@ -55,26 +55,6 @@ interface MutationKey<T, S> {
     fun onConfigureOptions(): MutationOptionsOverride? = null
 
     /**
-     * Function to update the query cache after the mutation is executed.
-     *
-     * This is often referred to as ["Pessimistic Updates"](https://redux-toolkit.js.org/rtk-query/usage/manual-cache-updates#pessimistic-updates).
-     *
-     * ```kotlin
-     * override fun onQueryUpdate(variable: PostForm, data: Post): QueryEffect = {
-     *     invalidateQueriesBy(GetPostsKey.Id())
-     * }
-     * ```
-     *
-     * @param variable The variable to be mutated.
-     * @param data The data returned by the mutation.
-     */
-    @Deprecated(
-        "Use onMutateEffect instead.",
-        ReplaceWith("onMutateEffect(variable, data)")
-    )
-    fun onQueryUpdate(variable: S, data: T): QueryEffect? = null
-
-    /**
      * Function to handle side effects after the mutation is executed.
      *
      * This is often referred to as ["Pessimistic Updates"](https://redux-toolkit.js.org/rtk-query/usage/manual-cache-updates#pessimistic-updates).
@@ -105,7 +85,7 @@ interface MutationKey<T, S> {
  * ```
  */
 fun <T, S> buildMutationKey(
-    id: MutationId<T, S> = MutationId.auto(),
+    id: MutationId<T, S>,
     mutate: suspend MutationReceiver.(variable: S) -> T
 ): MutationKey<T, S> {
     return object : MutationKey<T, S> {

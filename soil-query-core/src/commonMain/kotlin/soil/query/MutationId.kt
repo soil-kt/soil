@@ -6,7 +6,6 @@ package soil.query
 import soil.query.core.SurrogateKey
 import soil.query.core.TestTag
 import soil.query.core.UniqueId
-import soil.query.core.uuid
 
 /**
  * Unique identifier for [MutationKey].
@@ -34,29 +33,7 @@ open class MutationId<T, S>(
         return "MutationId(namespace='$namespace', tags=${tags.contentToString()})"
     }
 
-    companion object {
-
-        /**
-         * Automatically generates a [MutationId].
-         *
-         * Generates an ID for one-time use, so it cannot be shared among multiple places of use.
-         *
-         * FIXME: Since this function is for automatic ID assignment, it might be better not to have arguments.
-         */
-        @Deprecated(
-            """
-            This function is deprecated because it does not retain automatically generated values when used within Compose.
-            As a result, values are regenerated after configuration changes, leading to different values.
-            Consider using an alternative approach that preserves state across recompositions.
-        """, ReplaceWith("MutationId(namespace, *tags)", "soil.query.MutationId")
-        )
-        fun <T, S> auto(
-            namespace: String = "auto/${uuid()}",
-            vararg tags: SurrogateKey
-        ): MutationId<T, S> {
-            return MutationId(namespace, *tags)
-        }
-    }
+    companion object
 }
 
 /**
