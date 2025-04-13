@@ -40,6 +40,7 @@ kotlin {
         }
 
         androidMain.dependencies {
+            api(libs.kotlinx.coroutines.android)
             implementation(libs.androidx.annotation)
             implementation(libs.androidx.lifecycle.process)
         }
@@ -54,6 +55,9 @@ kotlin {
 
         jvmMain {
             dependsOn(skikoMain)
+            dependencies {
+                api(libs.kotlinx.coroutines.swing)
+            }
         }
 
         wasmJsMain {
