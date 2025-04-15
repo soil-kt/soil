@@ -14,6 +14,8 @@ import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.take
 import kotlin.jvm.JvmInline
+import kotlin.DeprecationLevel
+import kotlin.ReplaceWith
 
 /**
  * Provides a [LaunchedEffect] to perform additional loading for [soil.query.compose.InfiniteQueryObject].
@@ -30,6 +32,14 @@ import kotlin.jvm.JvmInline
  * @param computeVisibleItemIndex A function that calculates the index of the visible item used as the reference for additional loading.
  */
 @Composable
+@Deprecated(
+    message = "This implementation is deprecated. Please use the new LazyLoad from soil-experimental:soil-lazyload module instead.",
+    replaceWith = ReplaceWith(
+        "LazyLoad(state, loadMore, loadMoreParam)",
+        "soil.plant.compose.lazy.LazyLoad"
+    ),
+    level = DeprecationLevel.WARNING
+)
 inline fun <T : Any> LazyLoadEffect(
     state: LazyListState,
     noinline loadMore: suspend (T) -> Unit,
@@ -67,6 +77,14 @@ inline fun <T : Any> LazyLoadEffect(
  * @param computeVisibleItemIndex A function that calculates the index of the visible item used as the reference for additional loading.
  */
 @Composable
+@Deprecated(
+    message = "This implementation is deprecated. Please use the new LazyLoad from soil-experimental:soil-lazyload module instead.",
+    replaceWith = ReplaceWith(
+        "LazyLoad(state, loadMore, loadMoreParam)",
+        "soil.plant.compose.lazy.LazyLoad"
+    ),
+    level = DeprecationLevel.WARNING
+)
 inline fun <T : Any> LazyLoadEffect(
     state: LazyGridState,
     noinline loadMore: suspend (T) -> Unit,
