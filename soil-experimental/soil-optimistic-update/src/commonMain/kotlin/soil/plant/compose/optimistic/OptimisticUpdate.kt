@@ -3,7 +3,7 @@
 
 @file:Suppress("NOTHING_TO_INLINE", "KotlinRedundantDiagnosticSuppress")
 
-package soil.optimistic.compose
+package soil.plant.compose.optimistic
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -70,7 +70,7 @@ typealias OptimisticCompletionHandle = (cause: Throwable?) -> Unit
 @Composable
 inline fun <T> rememberOptimistic(
     state: T,
-    policy: OptimisticUpdatePolicy = OptimisticUpdatePolicy.Default,
+    policy: OptimisticUpdatePolicy = OptimisticUpdatePolicy,
 ): OptimisticObject<T, T> {
     return rememberOptimistic(
         state = state,
@@ -124,7 +124,7 @@ inline fun <T> rememberOptimistic(
 @Composable
 fun <T, D> rememberOptimistic(
     state: T,
-    policy: OptimisticUpdatePolicy = OptimisticUpdatePolicy.Default,
+    policy: OptimisticUpdatePolicy = OptimisticUpdatePolicy,
     updateFn: OptimisticUpdate<T, D>
 ): OptimisticObject<T, D> {
 

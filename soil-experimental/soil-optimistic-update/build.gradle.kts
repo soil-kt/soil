@@ -65,7 +65,7 @@ kotlin {
 }
 
 android {
-    namespace = "soil.optimistic"
+    namespace = "soil.plant.compose.optimistic"
     compileSdk = buildTarget.androidCompileSdk.get()
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
