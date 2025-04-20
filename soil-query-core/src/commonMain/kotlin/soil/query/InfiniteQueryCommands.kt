@@ -33,11 +33,12 @@ object InfiniteQueryCommands {
                 callback?.invoke(Result.failure(CancellationException("skip fetch")))
                 return
             }
-            ctx.dispatch(QueryAction.Fetching())
             val chunks = ctx.state.reply.getOrNull()
             if (chunks.isNullOrEmpty()) {
+                ctx.dispatch(QueryAction.Fetching())
                 ctx.dispatchFetchChunksResult(key, key.initialParam(), marker, callback)
             } else {
+                ctx.dispatch(QueryAction.Fetching(isValidating = true))
                 ctx.dispatchRevalidateChunksResult(key, chunks, marker, callback)
             }
         }

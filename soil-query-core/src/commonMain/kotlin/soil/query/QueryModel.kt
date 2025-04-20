@@ -59,7 +59,12 @@ interface QueryModel<out T> : DataModel<T> {
     /**
      * Returns `true` if the query is fetching, `false` otherwise.
      */
-    val isFetching: Boolean get() = fetchStatus == QueryFetchStatus.Fetching
+    val isFetching: Boolean get() = fetchStatus is QueryFetchStatus.Fetching
+
+    /**
+     * Returns `true` if the query is validating, `false` otherwise.
+     */
+    val isValidating: Boolean get() = (fetchStatus as? QueryFetchStatus.Fetching)?.isValidating ?: false
 
     /**
      * Returns `true` if the query is staled, `false` otherwise.
@@ -106,7 +111,10 @@ enum class QueryStatus {
 sealed class QueryFetchStatus {
 
     data object Idle : QueryFetchStatus()
-    data object Fetching : QueryFetchStatus()
+    data class Fetching(
+        val isValidating: Boolean = false
+    ) : QueryFetchStatus()
+
     data class Paused(
         val unpauseAt: Long
     ) : QueryFetchStatus()
