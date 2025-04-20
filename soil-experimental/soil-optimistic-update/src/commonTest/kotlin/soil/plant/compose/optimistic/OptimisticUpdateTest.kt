@@ -1,7 +1,7 @@
 // Copyright 2025 Soil Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-package soil.optimistic.compose
+package soil.plant.compose.optimistic
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.Button
