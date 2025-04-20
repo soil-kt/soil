@@ -94,6 +94,7 @@ kover {
 }
 
 dependencies {
+    kover(projects.soilExperimental.soilLazyload)
     kover(projects.soilExperimental.soilOptimisticUpdate)
     kover(projects.soilExperimental.soilReacty)
     kover(projects.soilQueryCore)
