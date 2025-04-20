@@ -14,8 +14,10 @@ Simplify Compose, Accelerate Development :rocket:
 - **Space** -
   A flexible scoped state management. collaborating with the navigation library to create new scopes.
 
-
 The following example demonstrates the basic usage of a Query to fetch the number of GitHub stars for the Soil GitHub project itself.
+
+<details>
+<summary>Example</summary>
 
 ```kotlin
 private val swrClient = SwrCache(
@@ -52,6 +54,7 @@ data class Repo(
     val stargazersCount: Int
 )
 ```
+</details>
 
 
 ## Try It Online
@@ -64,9 +67,6 @@ If your browser supports [WasmGC](https://github.com/WebAssembly/gc), you can ru
 
 Source code: <https://github.com/soil-kt/soil/tree/main/sample/>
 
-> [!NOTE]
-> Currently, the only browsers that support WasmGC are Chrome and Firefox. For the latest compatibility information, please visit https://webassembly.org/features/.
-
 
 ## Download
 
@@ -74,14 +74,12 @@ Soil is available on `mavenCentral()`.
 
 ```kts
 dependencies {
-    val soil = "1.0.0-alpha09"
+    val soil = "1.0.0-alpha10"
 
     // Query
     implementation("com.soil-kt.soil:query-core:$soil")
     // Query for Compose
     implementation("com.soil-kt.soil:query-compose:$soil")
-    // optional - experimental helpers for Compose
-    implementation("com.soil-kt.soil:query-compose-runtime:$soil")
     // optional - receivers for Ktor (3.x)
     implementation("com.soil-kt.soil:query-receivers-ktor:$soil")
     // optional - Test helpers
@@ -92,6 +90,11 @@ dependencies {
 
     // Space
     implementation("com.soil-kt.soil:space:$soil")
+
+    // Experimental
+    implementation("com.soil-kt.soil:lazyload:$soil")
+    implementation("com.soil-kt.soil:optimistic-update:$soil")
+    implementation("com.soil-kt.soil:reacty:$soil")
 }
 ```
 
