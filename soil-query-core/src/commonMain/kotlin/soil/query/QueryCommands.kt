@@ -4,6 +4,7 @@
 package soil.query
 
 import soil.query.core.Marker
+import soil.query.core.isNone
 import soil.query.core.vvv
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -32,7 +33,7 @@ object QueryCommands {
                 callback?.invoke(Result.failure(CancellationException("skip fetch")))
                 return
             }
-            ctx.dispatch(QueryAction.Fetching())
+            ctx.dispatch(QueryAction.Fetching(isValidating = !ctx.state.reply.isNone))
             ctx.dispatchFetchResult(key, marker, callback)
         }
     }

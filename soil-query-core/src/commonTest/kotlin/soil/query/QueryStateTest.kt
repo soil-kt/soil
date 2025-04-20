@@ -19,7 +19,7 @@ class QueryStateTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 300,
             status = QueryStatus.Success,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(),
             isInvalidated = true
         )
         val actual = state.omit(

@@ -41,16 +41,12 @@ private object QueryRecompositionOptimizerEnabled : QueryRecompositionOptimizer 
 
                 QueryStatus.Success -> {
                     add(QueryState.OmitKey.errorUpdatedAt)
-                    if (!state.isInvalidated) {
+                    if (state.isValidating && !state.isInvalidated) {
                         add(QueryState.OmitKey.fetchStatus)
                     }
                 }
 
-                QueryStatus.Failure -> {
-                    if (!state.isInvalidated) {
-                        add(QueryState.OmitKey.fetchStatus)
-                    }
-                }
+                QueryStatus.Failure -> Unit
             }
         }
         return state.omit(keys)

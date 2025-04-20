@@ -16,9 +16,11 @@ sealed interface QueryAction<out T> {
      * Indicates that the query is fetching data.
      *
      * @param isInvalidated Indicates whether the query is invalidated.
+     * @param isValidating Indicates whether the query is validating existing data.
      */
     data class Fetching(
-        val isInvalidated: Boolean? = null
+        val isInvalidated: Boolean? = null,
+        val isValidating: Boolean = isInvalidated ?: false
     ) : QueryAction<Nothing>
 
     /**
@@ -74,7 +76,7 @@ fun <T> createQueryReducer(): QueryReducer<T> = { state, action ->
     when (action) {
         is QueryAction.Fetching -> {
             state.copy(
-                fetchStatus = QueryFetchStatus.Fetching,
+                fetchStatus = QueryFetchStatus.Fetching(isValidating = action.isValidating),
                 isInvalidated = action.isInvalidated ?: state.isInvalidated
             )
         }

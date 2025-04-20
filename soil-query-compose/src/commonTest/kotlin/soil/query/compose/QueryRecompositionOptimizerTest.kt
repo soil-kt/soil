@@ -83,7 +83,7 @@ class QueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 400,
             status = QueryStatus.Pending,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(),
             isInvalidated = false
         )
         val actual = QueryRecompositionOptimizer.Enabled.omit(state)
@@ -107,7 +107,31 @@ class QueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 400,
             status = QueryStatus.Success,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(),
+            isInvalidated = false
+        )
+        val actual = QueryRecompositionOptimizer.Enabled.omit(state)
+        val expected = QueryState.test(
+            reply = Reply.some(1),
+            replyUpdatedAt = 0,
+            errorUpdatedAt = 0,
+            staleAt = 0,
+            status = QueryStatus.Success,
+            fetchStatus = QueryFetchStatus.Fetching(),
+            isInvalidated = false
+        )
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun testOmit_default_success_isValidating() {
+        val state = QueryState.test(
+            reply = Reply.some(1),
+            replyUpdatedAt = 300,
+            errorUpdatedAt = 200,
+            staleAt = 400,
+            status = QueryStatus.Success,
+            fetchStatus = QueryFetchStatus.Fetching(isValidating = true),
             isInvalidated = false
         )
         val actual = QueryRecompositionOptimizer.Enabled.omit(state)
@@ -131,7 +155,7 @@ class QueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 400,
             status = QueryStatus.Success,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(isValidating = true),
             isInvalidated = true
         )
         val actual = QueryRecompositionOptimizer.Enabled.omit(state)
@@ -141,7 +165,7 @@ class QueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 0,
             staleAt = 0,
             status = QueryStatus.Success,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(isValidating = true),
             isInvalidated = true
         )
         assertEquals(expected, actual)
@@ -157,7 +181,7 @@ class QueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 400,
             status = QueryStatus.Failure,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(),
             isInvalidated = false
         )
         val actual = QueryRecompositionOptimizer.Enabled.omit(state)
@@ -168,7 +192,34 @@ class QueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 0,
             status = QueryStatus.Failure,
-            fetchStatus = QueryFetchStatus.Idle,
+            fetchStatus = QueryFetchStatus.Fetching(),
+            isInvalidated = false
+        )
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun testOmit_default_failure_isValidating() {
+        val error = RuntimeException("error")
+        val state = QueryState.test(
+            reply = Reply.some(1),
+            replyUpdatedAt = 300,
+            error = error,
+            errorUpdatedAt = 200,
+            staleAt = 400,
+            status = QueryStatus.Failure,
+            fetchStatus = QueryFetchStatus.Fetching(isValidating = true),
+            isInvalidated = false
+        )
+        val actual = QueryRecompositionOptimizer.Enabled.omit(state)
+        val expected = QueryState.test(
+            reply = Reply.some(1),
+            replyUpdatedAt = 0,
+            error = error,
+            errorUpdatedAt = 200,
+            staleAt = 0,
+            status = QueryStatus.Failure,
+            fetchStatus = QueryFetchStatus.Fetching(isValidating = true),
             isInvalidated = false
         )
         assertEquals(expected, actual)
@@ -184,7 +235,7 @@ class QueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 400,
             status = QueryStatus.Failure,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(isValidating = true),
             isInvalidated = true
         )
         val actual = QueryRecompositionOptimizer.Enabled.omit(state)
@@ -195,7 +246,7 @@ class QueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 0,
             status = QueryStatus.Failure,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(isValidating = true),
             isInvalidated = true
         )
         assertEquals(expected, actual)
@@ -209,7 +260,7 @@ class QueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 400,
             status = QueryStatus.Pending,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(),
             isInvalidated = false
         )
         val actual = QueryRecompositionOptimizer.Disabled.omit(expected)
@@ -224,7 +275,7 @@ class QueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 400,
             status = QueryStatus.Success,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(),
             isInvalidated = false
         )
         val actual = QueryRecompositionOptimizer.Disabled.omit(expected)
@@ -241,7 +292,7 @@ class QueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 400,
             status = QueryStatus.Failure,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(),
             isInvalidated = false
         )
         val actual = QueryRecompositionOptimizer.Disabled.omit(expected)

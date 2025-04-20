@@ -108,7 +108,7 @@ class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 400,
             status = QueryStatus.Pending,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(),
             isInvalidated = false
         )
         val actual = InfiniteQueryRecompositionOptimizer.Enabled.omit(state)
@@ -132,7 +132,31 @@ class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 400,
             status = QueryStatus.Success,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(),
+            isInvalidated = false
+        )
+        val actual = InfiniteQueryRecompositionOptimizer.Enabled.omit(state)
+        val expected = QueryState.test<QueryChunks<Int, Int>>(
+            reply = Reply.some(emptyChunks()),
+            replyUpdatedAt = 0,
+            errorUpdatedAt = 0,
+            staleAt = 0,
+            status = QueryStatus.Success,
+            fetchStatus = QueryFetchStatus.Fetching(),
+            isInvalidated = false
+        )
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun testOmit_default_success_isValidating() {
+        val state = QueryState.test<QueryChunks<Int, Int>>(
+            reply = Reply.some(emptyChunks()),
+            replyUpdatedAt = 300,
+            errorUpdatedAt = 200,
+            staleAt = 400,
+            status = QueryStatus.Success,
+            fetchStatus = QueryFetchStatus.Fetching(isValidating = true),
             isInvalidated = false
         )
         val actual = InfiniteQueryRecompositionOptimizer.Enabled.omit(state)
@@ -156,7 +180,7 @@ class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 400,
             status = QueryStatus.Success,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(isValidating = true),
             isInvalidated = true
         )
         val actual = InfiniteQueryRecompositionOptimizer.Enabled.omit(state)
@@ -166,7 +190,7 @@ class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 0,
             staleAt = 0,
             status = QueryStatus.Success,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(isValidating = true),
             isInvalidated = true
         )
         assertEquals(expected, actual)
@@ -182,7 +206,7 @@ class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 400,
             status = QueryStatus.Failure,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(),
             isInvalidated = false
         )
         val actual = InfiniteQueryRecompositionOptimizer.Enabled.omit(state)
@@ -193,7 +217,34 @@ class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 0,
             status = QueryStatus.Failure,
-            fetchStatus = QueryFetchStatus.Idle,
+            fetchStatus = QueryFetchStatus.Fetching(),
+            isInvalidated = false
+        )
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun testOmit_default_failure_isValidating() {
+        val error = RuntimeException("error")
+        val state = QueryState.test<QueryChunks<Int, Int>>(
+            reply = Reply.some(emptyChunks()),
+            replyUpdatedAt = 300,
+            error = error,
+            errorUpdatedAt = 200,
+            staleAt = 400,
+            status = QueryStatus.Failure,
+            fetchStatus = QueryFetchStatus.Fetching(isValidating = true),
+            isInvalidated = false
+        )
+        val actual = InfiniteQueryRecompositionOptimizer.Enabled.omit(state)
+        val expected = QueryState.test<QueryChunks<Int, Int>>(
+            reply = Reply.some(emptyChunks()),
+            replyUpdatedAt = 0,
+            error = error,
+            errorUpdatedAt = 200,
+            staleAt = 0,
+            status = QueryStatus.Failure,
+            fetchStatus = QueryFetchStatus.Fetching(isValidating = true),
             isInvalidated = false
         )
         assertEquals(expected, actual)
@@ -209,7 +260,7 @@ class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 400,
             status = QueryStatus.Failure,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(isValidating = true),
             isInvalidated = true
         )
         val actual = InfiniteQueryRecompositionOptimizer.Enabled.omit(state)
@@ -220,7 +271,7 @@ class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 0,
             status = QueryStatus.Failure,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(isValidating = true),
             isInvalidated = true
         )
         assertEquals(expected, actual)
@@ -234,7 +285,7 @@ class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 400,
             status = QueryStatus.Pending,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(),
             isInvalidated = false
         )
         val actual = InfiniteQueryRecompositionOptimizer.Disabled.omit(expected)
@@ -249,7 +300,7 @@ class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 400,
             status = QueryStatus.Success,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(),
             isInvalidated = false
         )
         val actual = InfiniteQueryRecompositionOptimizer.Disabled.omit(expected)
@@ -266,7 +317,7 @@ class InfiniteQueryRecompositionOptimizerTest : UnitTest() {
             errorUpdatedAt = 200,
             staleAt = 400,
             status = QueryStatus.Failure,
-            fetchStatus = QueryFetchStatus.Fetching,
+            fetchStatus = QueryFetchStatus.Fetching(),
             isInvalidated = false
         )
         val actual = InfiniteQueryRecompositionOptimizer.Disabled.omit(expected)
