@@ -1,6 +1,7 @@
 val publicModules = setOf(
     ":soil-experimental:soil-lazyload",
     ":soil-experimental:soil-optimistic-update",
+    ":soil-experimental:soil-reacty",
     ":soil-query-core",
     ":soil-query-compose",
     ":soil-query-compose-runtime",

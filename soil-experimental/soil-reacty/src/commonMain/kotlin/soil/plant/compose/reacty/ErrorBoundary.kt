@@ -1,7 +1,7 @@
-// Copyright 2024 Soil Contributors
+// Copyright 2025 Soil Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-package soil.query.compose.runtime
+package soil.plant.compose.reacty
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -64,14 +64,6 @@ import kotlinx.coroutines.flow.StateFlow
  * @see Catch
  */
 @Composable
-@Deprecated(
-    message = "This implementation is deprecated. Please use the new implementation from soil-reacty module instead.",
-    replaceWith = ReplaceWith(
-        "ErrorBoundary(modifier, fallback, onError, onReset, state, content)",
-        "soil.plant.compose.reacty.ErrorBoundary"
-    ),
-    level = DeprecationLevel.WARNING
-)
 fun ErrorBoundary(
     modifier: Modifier = Modifier,
     fallback: (@Composable BoxScope.(ctx: ErrorBoundaryContext) -> Unit)? = null,
@@ -114,14 +106,6 @@ fun ErrorBoundary(
  * @property reset The callback to invoke when the reset button placed within the content is clicked.
  */
 @Stable
-@Deprecated(
-    message = "This implementation is deprecated. Please use the new implementation from soil-reacty module instead.",
-    replaceWith = ReplaceWith(
-        "ErrorBoundaryContext",
-        "soil.plant.compose.reacty.ErrorBoundaryContext"
-    ),
-    level = DeprecationLevel.WARNING
-)
 class ErrorBoundaryContext(
     val err: Throwable,
     val reset: (() -> Unit)?
@@ -131,14 +115,6 @@ class ErrorBoundaryContext(
  * State of the [ErrorBoundary].
  */
 @Stable
-@Deprecated(
-    message = "This implementation is deprecated. Please use the new implementation from soil-reacty module instead.",
-    replaceWith = ReplaceWith(
-        "ErrorBoundaryState",
-        "soil.plant.compose.reacty.ErrorBoundaryState"
-    ),
-    level = DeprecationLevel.WARNING
-)
 class ErrorBoundaryState : CatchThrowHost {
     private val hostMap = mutableMapOf<Any, Throwable>()
 

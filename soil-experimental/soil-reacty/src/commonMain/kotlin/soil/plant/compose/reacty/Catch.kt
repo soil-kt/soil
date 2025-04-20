@@ -1,7 +1,7 @@
-// Copyright 2024 Soil Contributors
+// Copyright 2025 Soil Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-package soil.query.compose.runtime
+package soil.plant.compose.reacty
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -18,14 +18,6 @@ import soil.query.core.uuid
  * @param content The content to display when the query is rejected. By default, it [throws][CatchScope.Throw] the error.
  */
 @Composable
-@Deprecated(
-    message = "This implementation is deprecated. Please use the new implementation from soil-reacty module instead.",
-    replaceWith = ReplaceWith(
-        "Catch(states, filter, content)",
-        "soil.plant.compose.reacty.Catch"
-    ),
-    level = DeprecationLevel.WARNING
-)
 inline fun Catch(
     vararg states: DataModel<*>,
     filter: (DataModel<*>) -> Boolean = { true },
@@ -42,14 +34,6 @@ inline fun Catch(
 /**
  * A scope for handling error content within the [Catch] function.
  */
-@Deprecated(
-    message = "This implementation is deprecated. Please use the new implementation from soil-reacty module instead.",
-    replaceWith = ReplaceWith(
-        "CatchScope",
-        "soil.plant.compose.reacty.CatchScope"
-    ),
-    level = DeprecationLevel.WARNING
-)
 object CatchScope {
 
     /**
@@ -60,14 +44,6 @@ object CatchScope {
      * @param host The [CatchThrowHost] to manage the caught exception. By default, it uses the [LocalCatchThrowHost].
      */
     @Composable
-    @Deprecated(
-        message = "This implementation is deprecated. Please use the new implementation from soil-reacty module instead.",
-        replaceWith = ReplaceWith(
-            "Throw(error, key, host)",
-            "soil.plant.compose.reacty.CatchScope.Throw"
-        ),
-        level = DeprecationLevel.WARNING
-    )
     fun Throw(
         error: Throwable,
         key: Any? = null,

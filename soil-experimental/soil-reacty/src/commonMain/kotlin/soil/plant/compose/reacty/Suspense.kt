@@ -1,7 +1,7 @@
-// Copyright 2024 Soil Contributors
+// Copyright 2025 Soil Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-package soil.query.compose.runtime
+package soil.plant.compose.reacty
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -49,14 +49,6 @@ import kotlin.time.Duration.Companion.seconds
  * @see Await
  */
 @Composable
-@Deprecated(
-    message = "This implementation is deprecated. Please use the new implementation from soil-reacty module instead.",
-    replaceWith = ReplaceWith(
-        "Suspense(fallback, modifier, state, contentThreshold, content)",
-        "soil.plant.compose.reacty.Suspense"
-    ),
-    level = DeprecationLevel.WARNING
-)
 fun Suspense(
     fallback: @Composable BoxScope.() -> Unit,
     modifier: Modifier = Modifier,
@@ -86,14 +78,6 @@ fun Suspense(
  * State of the [Suspense].
  */
 @Stable
-@Deprecated(
-    message = "This implementation is deprecated. Please use the new implementation from soil-reacty module instead.",
-    replaceWith = ReplaceWith(
-        "SuspenseState",
-        "soil.plant.compose.reacty.SuspenseState"
-    ),
-    level = DeprecationLevel.WARNING
-)
 class SuspenseState : AwaitHost {
     private val hostMap = mutableMapOf<Any, Boolean>()
 
