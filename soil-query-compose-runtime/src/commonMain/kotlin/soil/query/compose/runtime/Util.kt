@@ -30,9 +30,25 @@ private sealed class Symbol<out T> : DataModel<T> {
 /**
  * Returns a [DataModel] that represents no data.
  */
+@Deprecated(
+    message = "This implementation is deprecated. Please use the new implementation from soil-reacty module instead.",
+    replaceWith = ReplaceWith(
+        "orNone()",
+        "soil.plant.compose.reacty.orNone"
+    ),
+    level = DeprecationLevel.WARNING
+)
 fun <T> DataModel<T>?.orNone(): DataModel<T> = this ?: Symbol.None
 
 /**
  * Returns a [DataModel] that represents pending data.
  */
+@Deprecated(
+    message = "This implementation is deprecated. Please use the new implementation from soil-reacty module instead.",
+    replaceWith = ReplaceWith(
+        "orPending()",
+        "soil.plant.compose.reacty.orPending"
+    ),
+    level = DeprecationLevel.WARNING
+)
 fun <T> DataModel<T>?.orPending(): DataModel<T> = this ?: Symbol.Pending

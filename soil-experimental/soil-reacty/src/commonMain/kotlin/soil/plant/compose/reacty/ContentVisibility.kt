@@ -1,11 +1,10 @@
-// Copyright 2024 Soil Contributors
+// Copyright 2025 Soil Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-package soil.query.compose.runtime
+package soil.plant.compose.reacty
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.semantics.invisibleToUser
@@ -22,16 +21,7 @@ import androidx.compose.ui.semantics.semantics
  * @param modifier The modifier to be applied to the layout.
  * @param content The content of the [ContentVisibility].
  */
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-@Deprecated(
-    message = "This implementation is deprecated. Please use the new implementation from soil-reacty module instead.",
-    replaceWith = ReplaceWith(
-        "ContentVisibility(hidden, modifier, content)",
-        "soil.plant.compose.reacty.ContentVisibility"
-    ),
-    level = DeprecationLevel.WARNING
-)
 fun ContentVisibility(
     hidden: Boolean,
     modifier: Modifier = Modifier,

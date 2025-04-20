@@ -1,7 +1,7 @@
-// Copyright 2024 Soil Contributors
+// Copyright 2025 Soil Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-package soil.query.compose.runtime
+package soil.plant.compose.reacty
 
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
@@ -12,14 +12,6 @@ import androidx.compose.runtime.compositionLocalOf
  * @see Await
  */
 @Stable
-@Deprecated(
-    message = "This implementation is deprecated. Please use the new implementation from soil-reacty module instead.",
-    replaceWith = ReplaceWith(
-        "AwaitHost",
-        "soil.plant.compose.reacty.AwaitHost"
-    ),
-    level = DeprecationLevel.WARNING
-)
 interface AwaitHost {
 
     /**
@@ -60,14 +52,6 @@ interface AwaitHost {
 /**
  * CompositionLocal for [AwaitHost].
  */
-@Deprecated(
-    message = "This implementation is deprecated. Please use the new implementation from soil-reacty module instead.",
-    replaceWith = ReplaceWith(
-        "LocalAwaitHost",
-        "soil.plant.compose.reacty.LocalAwaitHost"
-    ),
-    level = DeprecationLevel.WARNING
-)
 val LocalAwaitHost = compositionLocalOf<AwaitHost> {
     AwaitHost
 }

@@ -1,7 +1,7 @@
-// Copyright 2024 Soil Contributors
+// Copyright 2025 Soil Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-package soil.query.compose.runtime
+package soil.plant.compose.reacty
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -28,14 +28,6 @@ import soil.query.core.uuid
  * @param content The content to display when the query is fulfilled.
  */
 @Composable
-@Deprecated(
-    message = "This implementation is deprecated. Please use the new implementation from soil-reacty module instead.",
-    replaceWith = ReplaceWith(
-        "Await(state, key, host, errorPredicate, errorFallback, content)",
-        "soil.plant.compose.reacty.Await"
-    ),
-    level = DeprecationLevel.WARNING
-)
 inline fun <T> Await(
     state: DataModel<T>,
     key: Any? = null,
@@ -76,14 +68,6 @@ inline fun <T> Await(
  * @param content The content to display when the queries are fulfilled.
  */
 @Composable
-@Deprecated(
-    message = "This implementation is deprecated. Please use the new implementation from soil-reacty module instead.",
-    replaceWith = ReplaceWith(
-        "Await(state1, state2, key, host, errorPredicate, errorFallback, content)",
-        "soil.plant.compose.reacty.Await"
-    ),
-    level = DeprecationLevel.WARNING
-)
 inline fun <T1, T2> Await(
     state1: DataModel<T1>,
     state2: DataModel<T2>,
@@ -127,14 +111,6 @@ inline fun <T1, T2> Await(
  * @param content The content to display when the queries are fulfilled.
  */
 @Composable
-@Deprecated(
-    message = "This implementation is deprecated. Please use the new implementation from soil-reacty module instead.",
-    replaceWith = ReplaceWith(
-        "Await(state1, state2, state3, key, host, errorPredicate, errorFallback, content)",
-        "soil.plant.compose.reacty.Await"
-    ),
-    level = DeprecationLevel.WARNING
-)
 inline fun <T1, T2, T3> Await(
     state1: DataModel<T1>,
     state2: DataModel<T2>,
