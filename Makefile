@@ -28,7 +28,7 @@ kover:
 
 .PHONY: dokka
 dokka:
-	@$(GRADLE_CMD) dokkaHtmlMultiModule
+	@$(GRADLE_CMD) dokkaGeneratePublicationHtml
 
 .PHONY: publish
 publish:

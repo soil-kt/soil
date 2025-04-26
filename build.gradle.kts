@@ -93,16 +93,13 @@ kover {
     }
 }
 
+dokka {
+    moduleName.set("Soil")
+}
+
 dependencies {
-    kover(projects.soilExperimental.soilLazyload)
-    kover(projects.soilExperimental.soilOptimisticUpdate)
-    kover(projects.soilExperimental.soilReacty)
-    kover(projects.soilQueryCore)
-    kover(projects.soilQueryCompose)
-    kover(projects.soilQueryComposeRuntime)
-    kover(projects.soilQueryReceivers.ktor)
-    kover(projects.soilQueryTest)
-    kover(projects.soilSerializationBundle)
-    kover(projects.soilForm)
-    kover(projects.soilSpace)
+    for (module in publicModules) {
+        kover(project(module))
+        dokka(project(module))
+    }
 }
