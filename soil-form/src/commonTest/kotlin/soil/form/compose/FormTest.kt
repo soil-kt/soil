@@ -11,9 +11,12 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.mapSaver
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -27,7 +30,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilExactlyOneExists
 import kotlinx.coroutines.CompletableDeferred
-import soil.form.Field
 import soil.form.FieldName
 import soil.form.FieldNames
 import soil.form.ValidationRuleSet
@@ -44,10 +46,11 @@ class FormTest : UnitTest() {
         var submitCalled = false
         val mockSubmit = CompletableDeferred<Unit>()
         setContent {
-            val form = rememberForm(initialValue = FormData(), saver = FormData.saver()) {
+            var submitCount by remember { mutableIntStateOf(0) }
+            val form = rememberForm(initialValue = TestData(), saver = TestData.saver()) {
                 println("XXX/Debug: Submit=$it")
                 submitCalled = true
-                mockSubmit.join()
+                submitCount++
             }
             SideEffect {
                 println("XXX/Debug: SideEffect=$form")
@@ -56,9 +59,9 @@ class FormTest : UnitTest() {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 bottomBar = {
-                    form.Submit {
+                    form.Action {
                         Button(
-                            onClick = it.onSubmit,
+                            onClick = it::submit,
                             enabled = it.canSubmit,
                             modifier = Modifier.testTag("submit")
                         ) {
@@ -67,26 +70,28 @@ class FormTest : UnitTest() {
                     }
                 }
             ) {
-                val (firstName, lastName) = Field.names()
                 Column {
-                    form.FirstNameField(name = firstName) {
+                    form.FirstNameField(name = "firstName") {
                         BasicTextField(
                             value = it.value,
-                            onValueChange = it.onChange,
-                            modifier = Modifier.testTag("firstName")
+                            onValueChange = it::onValueChange,
+                            modifier = Modifier.onFocusChanged(it)
+                                .testTag("firstName")
+
                         )
                     }
 
-                    form.LastNameField(name = lastName) {
+                    form.LastNameField(name = "lastName") {
                         BasicTextField(
                             value = it.value,
-                            onValueChange = it.onChange,
-                            modifier = Modifier.testTag("lastName")
+                            onValueChange = it::onValueChange,
+                            modifier = Modifier.onFocusChanged(it)
+                                .testTag("lastName")
                         )
                     }
                 }
 
-                Text(form.state.submitCount.toString(), modifier = Modifier.testTag("count"))
+                Text(submitCount.toString(), modifier = Modifier.testTag("count"))
             }
         }
 
@@ -99,13 +104,13 @@ class FormTest : UnitTest() {
         waitUntilExactlyOneExists(hasTestTag("count") and hasText("1"))
     }
 
-    data class FormData(
+    data class TestData(
         val firstName: String = "",
         override val lastName: String = "",
         val age: Int = 0
     ) : LastNameField {
         companion object {
-            fun saver(): Saver<FormData, Any> = mapSaver(
+            fun saver(): Saver<TestData, Any> = mapSaver(
                 save = { value ->
                     mapOf(
                         "firstName" to value.firstName,
@@ -114,7 +119,7 @@ class FormTest : UnitTest() {
                     )
                 },
                 restore = { map ->
-                    FormData(
+                    TestData(
                         firstName = map["firstName"] as String,
                         lastName = map["lastName"] as String,
                         age = map["age"] as Int
@@ -129,54 +134,54 @@ class FormTest : UnitTest() {
     }
 
     @Composable
-    fun FormScope<FormData>.FirstNameField(
+    fun Form<TestData>.FirstNameField(
         name: FieldName? = null,
         dependsOn: FieldNames? = null,
-        enabled: Boolean = true,
-        content: @Composable (Field<String>) -> Unit
+        disabled: Boolean = false,
+        content: @Composable (FormFieldControl<String>) -> Unit
     ) {
         Field(
-            value = { it.firstName },
-            onChange = { copy(firstName = it) },
+            selector = { it.firstName },
+            updater = { copy(firstName = it) },
             rules = rememberNameFieldRules(),
             name = name,
             dependsOn = dependsOn,
-            enabled = enabled,
+            disabled = disabled,
             content = content
         )
     }
 
     @Composable
-    fun FormScope<FormData>.LastNameField(
+    fun Form<TestData>.LastNameField(
         name: FieldName? = null,
         dependsOn: FieldNames? = null,
-        enabled: Boolean = true,
-        content: @Composable (Field<String>) -> Unit
+        disabled: Boolean = false,
+        content: @Composable (FormFieldControl<String>) -> Unit
     ) {
         LastNameField(
-            onChange = { copy(lastName = it) },
+            updater = { copy(lastName = it) },
             name = name,
             dependsOn = dependsOn,
-            enabled = enabled,
+            disabled = disabled,
             content = content
         )
     }
 
     @Composable
-    fun <T> FormScope<T>.LastNameField(
-        onChange: T.(String) -> T,
+    fun <T> Form<T>.LastNameField(
+        updater: T.(String) -> T,
         name: FieldName? = null,
         dependsOn: FieldNames? = null,
-        enabled: Boolean = true,
-        content: @Composable (Field<String>) -> Unit
+        disabled: Boolean = false,
+        content: @Composable (FormFieldControl<String>) -> Unit
     ) where T : LastNameField {
         Field(
-            value = { it.lastName },
-            onChange = onChange,
+            selector = { it.lastName },
+            updater = updater,
             rules = rememberNameFieldRules(),
             name = name,
             dependsOn = dependsOn,
-            enabled = enabled,
+            disabled = disabled,
             content = content
         )
     }

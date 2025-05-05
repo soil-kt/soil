@@ -4,29 +4,22 @@
 package soil.form.compose
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.autoSaver
-import androidx.compose.runtime.saveable.mapSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.runtime.snapshots.Snapshot
 import soil.form.FieldErrors
+import soil.form.FieldMeta
 import soil.form.FieldName
 import soil.form.FieldValidateOn
-import soil.form.FormErrors
-import soil.form.FormFieldDependencies
-import soil.form.FieldNames
+import soil.form.FormData
+import soil.form.FormMeta
 import soil.form.FormPolicy
-import soil.form.FormRule
+import soil.form.noErrors
 
 /**
  * Remembers a form state for the given initial value.
@@ -34,148 +27,210 @@ import soil.form.FormRule
  * Usage:
  * ```kotlin
  * val formState = rememberFormState(
- *     initialValue = FormData(),
- *     policy = FormPolicy.Minimal,
- *     saver = serializationSaver()
+ *     initialValue = FormData()
  * )
  * ```
  *
  * @param T The type of the form value.
  * @param initialValue The initial value of the form.
- * @param policy The policy to apply to the form.
  * @param saver The saver to save and restore the form state.
- * @param key The key to reset the form state.
  * @return The remembered [form state][FormState].
  */
 @Composable
 fun <T : Any> rememberFormState(
     initialValue: T,
-    policy: FormPolicy = FormPolicy.Default,
     saver: Saver<T, Any> = autoSaver(),
-    key: Any? = null,
+    policy: FormPolicy = FormPolicy.Default
 ): FormState<T> {
-    val value = rememberSaveable(key, stateSaver = saver) {
-        mutableStateOf(initialValue)
+    return rememberSaveable(saver = FormState.Saver(formSaver = saver, formPolicy = policy)) {
+        formStateOf(value = initialValue, policy = policy)
     }
-    val errors = rememberSaveable(key, saver = errorsSaver) {
-        mutableStateMapOf()
+}
+
+@Composable
+fun <T : Any> rememberFormState(
+    initialValue: T,
+    initialMeta: FormMetaState<T>,
+    saver: Saver<T, Any> = autoSaver(),
+    policy: FormPolicy = FormPolicy.Default
+): FormState<T> {
+    return rememberSaveable(saver = FormState.Saver(formSaver = saver, formPolicy = policy)) {
+        formStateOf(value = initialValue, meta = initialMeta, policy = policy)
     }
-    val triggers = rememberSaveable(key, saver = triggersSaver) {
-        mutableStateMapOf()
-    }
-    val rules = remember(key) {
-        mutableStateMapOf<FieldName, FormRule<T>>()
-    }
-    val dependsOn = remember(key) {
-        mutableStateMapOf<FieldName, FieldNames>()
-    }
-    val watchers = remember(key) {
-        // NOTE: Dependency loop detection is not implemented
-        derivedStateOf {
-            dependsOn.keys.flatMap { key -> dependsOn[key]?.map { Pair(key, it) } ?: emptyList() }
-                .groupBy(keySelector = { it.second }, valueTransform = { it.first })
-                .mapValues { (_, value) -> value.toSet() }
+}
+
+fun <T : Any> formStateOf(
+    value: T,
+    meta: FormMetaState<T> = formMetaStateOf(defaultValue = value),
+    policy: FormPolicy = FormPolicy.Default
+): FormState<T> = FormState(
+    value = value,
+    meta = meta,
+    policy = policy
+)
+
+@Stable
+class FormState<T : Any> internal constructor(
+    value: T,
+    override val meta: FormMetaState<T>,
+    val policy: FormPolicy
+) : FormData<T> {
+
+    override var value: T by mutableStateOf(value)
+
+    fun reset(newValue: T = meta.defaultValue) {
+        Snapshot.withMutableSnapshot {
+            value = newValue
+            meta.defaultValue = newValue
+            meta.fields.forEach { (_, fieldMeta) ->
+                fieldMeta.errors = noErrors
+                fieldMeta.trigger = policy.field.validationTrigger.startAt
+                fieldMeta.isDirty = false
+                fieldMeta.isTouched = false
+                fieldMeta.hasBeenValidated = false
+            }
         }
     }
-    val isSubmitting = remember(key) { mutableStateOf(false) }
-    val isSubmitted = rememberSaveable(key) { mutableStateOf(false) }
-    val submitCount = rememberSaveable(key) { mutableIntStateOf(0) }
 
-    return remember(key) {
-        FormState(
-            policy = policy,
-            initialValue = initialValue,
-            value = value,
-            isSubmitting = isSubmitting,
-            isSubmitted = isSubmitted,
-            submitCount = submitCount,
-            errors = errors,
-            triggers = triggers,
-            rules = rules,
-            dependsOn = dependsOn,
-            watchers = watchers
+    fun setError(vararg pairs: Pair<FieldName, FieldErrors>) {
+        Snapshot.withMutableSnapshot {
+            pairs.forEach { (fieldName, fieldErrors) ->
+                meta.fields[fieldName]?.let { fieldMeta ->
+                    fieldMeta.errors = fieldErrors + fieldMeta.errors
+                }
+            }
+        }
+    }
+
+    companion object {
+        fun <T : Any> Saver(formSaver: Saver<T, Any>, formPolicy: FormPolicy) = Saver<FormState<T>, Any>(
+            save = { value ->
+                listOf(
+                    with(formSaver) {
+                        save(value.value)
+                    },
+                    with(FormMetaState.Saver(formSaver)) {
+                        save(value.meta)
+                    }
+                )
+            },
+            restore = {
+                val (value, meta) = it as List<*>
+                FormState(
+                    value = with(formSaver) {
+                        restore(checkNotNull(value)) as T
+                    },
+                    meta = with(FormMetaState.Saver(formSaver)) {
+                        restore(checkNotNull(meta)) as FormMetaState<T>
+                    },
+                    policy = formPolicy
+                )
+            }
         )
     }
 }
 
-@Suppress("UNCHECKED_CAST")
-private val errorsSaver = mapSaver(
-    save = { stateMap: SnapshotStateMap<FieldName, FieldErrors> -> stateMap.toMap() },
-    restore = { map: Map<String, Any?> ->
-        val result = mutableStateMapOf<FieldName, FieldErrors>()
-        (map as? Map<FieldName, FieldErrors>)?.forEach { (key, value) ->
-            result[key] = value
-        }
-        result
-    }
+fun <T : Any> formMetaStateOf(
+    fields: Map<FieldName, FieldMetaState> = emptyMap(),
+    defaultValue: T
+): FormMetaState<T> = FormMetaState(
+    fields = fields,
+    defaultValue = defaultValue
 )
 
-@Suppress("UNCHECKED_CAST")
-private val triggersSaver = mapSaver(
-    save = { stateMap: SnapshotStateMap<FieldName, FieldValidateOn> -> stateMap.toMap() },
-    restore = { map: Map<String, Any?> ->
-        val result = mutableStateMapOf<FieldName, FieldValidateOn>()
-        (map as? Map<FieldName, FieldValidateOn>)?.forEach { (key, value) ->
-            result[key] = value
-        }
-        result
-    }
-)
+class FormMetaState<T : Any> internal constructor(
+    fields: Map<FieldName, FieldMetaState>,
+    defaultValue: T
+) : FormMeta<T> {
 
-// TODO: TextStateとイメージ合わせるなら単独で使えたほうがVM保持にも対応できる
-@Stable
-class FormState<T>(
-    val policy: FormPolicy,
-    val initialValue: T,
-    value: MutableState<T>,
-    isSubmitting: MutableState<Boolean>,
-    isSubmitted: MutableState<Boolean>,
-    submitCount: MutableState<Int>,
-    errors: SnapshotStateMap<FieldName, FieldErrors>,
-    triggers: SnapshotStateMap<FieldName, FieldValidateOn>,
-    rules: SnapshotStateMap<FieldName, FormRule<T>>,
-    dependsOn: SnapshotStateMap<FieldName, FieldNames>,
-    watchers: State<FormFieldDependencies>,
-) {
-    var value by value
-    var isSubmitting: Boolean by isSubmitting
-        internal set
-    var isSubmitted: Boolean by isSubmitted
-        internal set
-    var submitCount: Int by submitCount
-        internal set
-    val errors: MutableMap<FieldName, FieldErrors> = errors
-    val triggers: MutableMap<FieldName, FieldValidateOn> = triggers
-    val rules: MutableMap<FieldName, FormRule<T>> = rules
-    val dependsOn: MutableMap<FieldName, FieldNames> = dependsOn
-    val watchers: FormFieldDependencies by watchers
+    override val fields: MutableMap<FieldName, FieldMetaState> =
+        mutableMapOf(*fields.map { (k, v) -> k to v }.toTypedArray())
 
-    val hasError: Boolean
-        get() = errors.values.any { it.isNotEmpty() }
+    override var defaultValue: T by mutableStateOf(defaultValue)
 
-    internal fun getTriggerFor(field: FieldName): FieldValidateOn {
-        return triggers[field] ?: policy.field.validationTrigger.startAt
-    }
-
-    internal fun updateError(
-        field: FieldName,
-        fieldErrors: FieldErrors,
-        validateOn: FieldValidateOn = getTriggerFor(field)
-    ) {
-        errors[field] = fieldErrors
-        triggers[field] = policy.field.validationTrigger.next(validateOn, fieldErrors.isEmpty())
-    }
-
-    internal fun forceError(errors: FormErrors, validateOn: FieldValidateOn) {
-        errors.forEach { (field, fieldErrors) -> updateError(field, fieldErrors, validateOn) }
-    }
-
-    internal fun revalidateDependsOn(name: FieldName) {
-        watchers[name]?.forEach { field ->
-            val hasValidatedOnce = errors.containsKey(field)
-            if (hasValidatedOnce) {
-                rules[field]?.test(value, dryRun = false)
+    companion object {
+        @Suppress("UNCHECKED_CAST")
+        fun <T : Any> Saver(formSaver: Saver<T, Any>) = Saver<FormMetaState<T>, Any>(
+            save = { value ->
+                listOf(
+                    value.fields.mapValues {
+                        with(FieldMetaState.Saver()) {
+                            save(it.value)
+                        }
+                    },
+                    with(formSaver) {
+                        save(value.defaultValue)
+                    }
+                )
+            },
+            restore = {
+                val (fields, defaultValue) = it as List<*>
+                FormMetaState(
+                    fields = with(FieldMetaState.Saver()) {
+                        fields as Map<FieldName, Any>
+                        fields.mapValues { (_, v) ->
+                            restore(v) as FieldMetaState
+                        }
+                    },
+                    defaultValue = with(formSaver) {
+                        restore(checkNotNull(defaultValue)) as T
+                    }
+                )
             }
-        }
+        )
+    }
+}
+
+fun fieldMetaStateOf(
+    errors: FieldErrors = noErrors,
+    trigger: FieldValidateOn = FieldValidateOn.Blur,
+    isDirty: Boolean = false,
+    isTouched: Boolean = false,
+    hasBeenValidated: Boolean = false
+): FieldMetaState = FieldMetaState(
+    errors = errors,
+    trigger = trigger,
+    isDirty = isDirty,
+    isTouched = isTouched,
+    hasBeenValidated = hasBeenValidated
+)
+
+class FieldMetaState internal constructor(
+    errors: FieldErrors,
+    trigger: FieldValidateOn,
+    isDirty: Boolean,
+    isTouched: Boolean,
+    hasBeenValidated: Boolean
+) : FieldMeta {
+
+    override var errors: FieldErrors by mutableStateOf(errors)
+    override var trigger: FieldValidateOn by mutableStateOf(trigger)
+    override var isDirty: Boolean by mutableStateOf(isDirty)
+    override var isTouched: Boolean by mutableStateOf(isTouched)
+    override var hasBeenValidated: Boolean by mutableStateOf(hasBeenValidated)
+
+    companion object {
+        @Suppress("UNCHECKED_CAST")
+        fun Saver() = Saver<FieldMetaState, Any>(
+            save = { value ->
+                listOf(
+                    value.errors,
+                    value.trigger,
+                    value.isDirty,
+                    value.isTouched,
+                    value.hasBeenValidated
+                )
+            },
+            restore = {
+                val (errors, trigger, isDirty, isTouched, hasBeenValidated) = it as List<*>
+                FieldMetaState(
+                    errors = errors as FieldErrors,
+                    trigger = trigger as FieldValidateOn,
+                    isDirty = isDirty as Boolean,
+                    isTouched = isTouched as Boolean,
+                    hasBeenValidated = hasBeenValidated as Boolean
+                )
+            }
+        )
     }
 }

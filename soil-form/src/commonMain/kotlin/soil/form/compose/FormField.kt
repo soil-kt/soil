@@ -1,38 +1,86 @@
-// Copyright 2025 Soil Contributors
-// SPDX-License-Identifier: Apache-2.0
-
 package soil.form.compose
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.currentCompositeKeyHash
-import soil.form.Field
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.scan
+import kotlinx.coroutines.launch
 import soil.form.FieldName
 import soil.form.FieldNames
+import soil.form.FieldValidateOn
 import soil.form.ValidationRuleSet
+import soil.form.annotation.InternalSoilFormApi
 
+@OptIn(FlowPreview::class, InternalSoilFormApi::class)
 @Composable
-fun <T : Any, V> FormScope<T>.Field(
-    value: (T) -> V,
-    // TODO: (V) -> Unit
-    //  state.update { }
-    onChange: T.(V) -> T,
+fun <T : Any, V> Form<T>.Field(
+    selector: (T) -> V,
+    updater: T.(V) -> T,
     rules: ValidationRuleSet<V> = emptySet(),
     name: FieldName? = null,
     dependsOn: FieldNames? = null,
-    enabled: Boolean = true,
-    content: @Composable (Field<V>) -> Unit
+    disabled: Boolean = false,
+    content: @Composable (FormFieldControl<V>) -> Unit
 ) {
-    Controller(
-        control = rememberFieldRuleControl(
-            name = name ?: auto,
-            select = { value(this) },
-            update = onChange,
-            enabled = { enabled },
-            dependsOn = dependsOn,
-            ruleSet = rules,
-        ),
-        content = content
-    )
+    val fieldName = name ?: auto
+    val control = remember(binding) {
+        FormFieldController(
+            form = binding,
+            selector = selector,
+            updater = updater,
+            rules = rules,
+            name = fieldName,
+            dependsOn = dependsOn.orEmpty()
+        )
+    }.apply { isDisabled = disabled }
+    content(control)
+    if (!disabled) {
+        DisposableEffect(control) {
+            control.register()
+            onDispose {
+                control.unregister()
+            }
+        }
+        LaunchedEffect(control) {
+            // validateOnMount
+            launch {
+                snapshotFlow { control.shouldTrigger(FieldValidateOn.Mount) }
+                    .filter { it }
+                    .debounce(control.policy.validationDelay.onMount)
+                    .collect {
+                        control.trigger(FieldValidateOn.Mount)
+                    }
+            }
+
+            // validateOnChange
+            launch {
+                snapshotFlow { control.value }
+                    .debounce(control.policy.validationDelay.onChange)
+                    .collect {
+                        control.trigger(FieldValidateOn.Change)
+                        control.revalidateDependents()
+                    }
+            }
+
+            // validateOnBlur
+            launch {
+                snapshotFlow { control.isFocused }
+                    .scan(Pair(false, false)) { acc, value -> Pair(acc.second, value) }
+                    // isFocused: true -> false
+                    .filter { it.first && !it.second }
+                    .debounce(control.policy.validationDelay.onBlur)
+                    .collect {
+                        control.trigger(FieldValidateOn.Blur)
+                    }
+            }
+        }
+    }
 }
 
 private val auto: FieldName
