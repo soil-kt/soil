@@ -64,6 +64,10 @@ class ObjectRuleChainer<V, S>(
     infix fun then(block: ValidationRuleBuilder<S>.() -> Unit) {
         ruleSet = rules(block)
     }
+
+    infix fun then(rules: Set<ValidationRule<S>>) {
+        ruleSet = rules
+    }
 }
 
 /**

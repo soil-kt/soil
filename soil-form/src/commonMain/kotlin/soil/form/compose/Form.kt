@@ -1,122 +1,104 @@
-// Copyright 2024 Soil Contributors
-// SPDX-License-Identifier: Apache-2.0
-
 package soil.form.compose
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.autoSaver
-import androidx.compose.ui.Modifier
-import androidx.core.bundle.Bundle
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.serializer
+import soil.form.FieldName
+import soil.form.FieldNames
+import soil.form.FormData
 import soil.form.FormPolicy
-import soil.serialization.bundle.Bundler
+import soil.form.FormRule
+import soil.form.FormRules
+import soil.form.annotation.InternalSoilFormApi
 
-/**
- * A Form to manage the state and actions of input fields, and create a child block of [FormScope].
- *
- * Usage:
- * ```kotlin
- * Form(
- *     onSubmit = {
- *         // Handle submit
- *     },
- *     initialValue = "",
- *     policy = FormPolicy.Minimal
- * ) { // this: FormScope<String>
- *   ..
- * }
- * ```
- *
- * **Note:**
- * If you are expecting state restoration on the Android platform, please check if the type specified in [initialValue] is restorable.
- * Inside the Form, `rememberSaveable` is used to manage input values, and runtime errors will be thrown from the API for unsupported types.
- *
- * @param T The type of the form value.
- * @param onSubmit The submit handler to call when the form is submit.
- * @param initialValue The initial value of the form.
- * @param modifier The modifier to apply to this layout node.
- * @param onError The error handler to call when an error occurs on submit.
- * @param saver The saver to save and restore the form state.
- * @param key The key to reset the form state.
- * @param policy The policy to apply to the form.
- * @param coroutineScope The coroutine scope to launch the submit handler.
- * @param content The content block to create the child block of [FormScope].
- */
-@Composable
-fun <T : Any> Form(
-    onSubmit: suspend (T) -> Unit,
-    initialValue: T,
-    modifier: Modifier = Modifier,
-    onError: ((err: Throwable) -> Unit)? = null,
-    saver: Saver<T, Any> = autoSaver(),
-    key: Any? = null,
-    policy: FormPolicy = FormPolicy.Default,
-    coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    content: @Composable FormScope<T>.() -> Unit
-) {
-    val formScope = rememberForm(
-        initialValue = initialValue,
-        policy = policy,
-        saver = saver,
-        key = key,
-        coroutineScope = coroutineScope,
-        onError = onError,
-        onSubmit = onSubmit
-    )
-    Box(modifier = modifier) {
-        with(formScope) { content() }
-    }
+@Stable
+interface Form<T : Any> : HasFormBinding<T> {
+    val state: FormData<T>
 }
 
-/**
- * Create an [Saver] for Kotlin Serialization.
- *
- * Usage:
- *
- * ```kotlin
- * @Serializable
- * data class FormData(
- *     val firstName: String = "",
- *     val lastName: String = "",
- *     val email: String = "",
- *     val mobileNumber: String = "",
- *     val title: Title? = null,
- *     val developer: Boolean? = null
- * )
- *
- * enum class Title {
- *     Mr,
- *     Mrs,
- *     Miss,
- *     Dr,
- * }
- *
- * Form(
- *     onSubmit = { .. },
- *     initialValue = FormData(),
- *     modifier = modifier,
- *     saver = serializationSaver()
- * ) { .. }
- * ```
- *
- * @param T The type of the value to save and restore.
- * @param serializer The serializer to use for the value.
- * @param bundler The bundler to encode and decode the value. Default is [Bundler].
- * @return The [Saver] for the value.
- */
-@ExperimentalSerializationApi
-inline fun <reified T> serializationSaver(
-    serializer: KSerializer<T> = serializer(),
-    bundler: Bundler = Bundler
-): Saver<T, Any> {
-    return Saver(
-        save = { value -> bundler.encodeToBundle(value, serializer) },
-        restore = { bundle -> bundler.decodeFromBundle(bundle as Bundle, serializer) }
-    )
+@Composable
+fun <T : Any> rememberForm(
+    initialValue: T,
+    saver: Saver<T, Any> = autoSaver(),
+    policy: FormPolicy = FormPolicy.Default,
+    onSubmit: (T) -> Unit
+): Form<T> = rememberForm(
+    state = rememberFormState(initialValue, saver, policy),
+    onSubmit = onSubmit
+)
+
+@Composable
+fun <T : Any> rememberForm(
+    state: FormState<T>,
+    onSubmit: (T) -> Unit
+): Form<T> = remember(state) {
+    FormController(state = state, onSubmit = onSubmit)
+}
+
+@OptIn(InternalSoilFormApi::class)
+internal class FormController<T : Any>(
+    override val state: FormState<T>,
+    private val onSubmit: (T) -> Unit
+) : Form<T>, FormBinding<T> {
+
+    override val binding: FormBinding<T> = this
+
+    private val _rules = mutableStateMapOf<FieldName, FormRule<T>>()
+    override val rules: FormRules<T> = _rules
+
+    private val dependencies = mutableStateMapOf<FieldName, FieldNames>()
+
+    private val watchers by derivedStateOf {
+        dependencies.keys.flatMap { key -> dependencies[key]?.map { Pair(key, it) } ?: emptyList() }
+            .groupBy(keySelector = { it.second }, valueTransform = { it.first })
+            .mapValues { (_, value) -> value.toSet() }
+    }
+
+    // ----- FormBinding ----- //
+
+    override val value: T get() = state.value
+
+    override val policy: FormPolicy get() = state.policy
+
+    override fun get(name: FieldName): FieldMetaState? {
+        return state.meta.fields[name]
+    }
+
+    override fun set(name: FieldName, fieldMeta: FieldMetaState) {
+        state.meta.fields[name] = fieldMeta
+    }
+
+    override fun register(name: FieldName, dependsOn: FieldNames, rule: FormRule<T>) {
+        _rules[name] = rule
+        dependencies[name] = dependsOn
+    }
+
+    override fun unregister(name: FieldName) {
+        _rules.remove(name)
+        dependencies.remove(name)
+    }
+
+    override fun revalidateDependents(name: FieldName) {
+        watchers[name]?.forEach { watcher ->
+            val hasBeenValidated = state.meta.fields[watcher]?.hasBeenValidated ?: false
+            if (hasBeenValidated) {
+                rules[watcher]?.test(state.value, dryRun = false)
+            }
+        }
+    }
+
+    override fun handleChange(updater: T.() -> T) {
+        state.value = with(state.value) { updater() }
+    }
+
+    override fun handleSubmit() {
+        if (policy.submission.validate(state.value, rules, false)) {
+            onSubmit(state.value)
+        }
+    }
 }

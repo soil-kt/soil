@@ -17,3 +17,5 @@ fun interface FormRule<T> {
      */
     fun test(value: T, dryRun: Boolean): Boolean
 }
+
+typealias FormRules<T> = Map<FieldName, FormRule<T>>

@@ -3,31 +3,31 @@
 
 package soil.form.compose
 
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.mapSaver
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.assertHasClickAction
-import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasTestTag
-import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isEnabled
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilExactlyOneExists
-import kotlinx.coroutines.CompletableDeferred
-import soil.form.Field
+import androidx.compose.ui.text.input.VisualTransformation
 import soil.form.FieldName
 import soil.form.FieldNames
 import soil.form.ValidationRuleSet
@@ -40,153 +40,156 @@ import kotlin.test.Test
 class FormTest : UnitTest() {
 
     @Test
-    fun testFormState() = runComposeUiTest {
-        var submitCalled = false
-        val mockSubmit = CompletableDeferred<Unit>()
+    fun testForm_submit() = runComposeUiTest {
+        val formState = formStateOf(value = TestData())
+        var submittedFormData: TestData? = null
         setContent {
-            val form = rememberForm(initialValue = FormData(), saver = FormData.saver()) {
+            val form = rememberForm(state = formState) {
+                submittedFormData = it
                 println("XXX/Debug: Submit=$it")
-                submitCalled = true
-                mockSubmit.join()
             }
-            SideEffect {
-                println("XXX/Debug: SideEffect=$form")
-            }
-
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 bottomBar = {
-                    form.Submit {
-                        Button(
-                            onClick = it.onSubmit,
-                            enabled = it.canSubmit,
-                            modifier = Modifier.testTag("submit")
-                        ) {
-                            Text("Submit")
-                        }
-                    }
+                    form.Submit(modifier = Modifier.testTag("submit"))
                 }
             ) {
-                val (firstName, lastName) = Field.names()
                 Column {
-                    form.FirstNameField(name = firstName) {
-                        BasicTextField(
-                            value = it.value,
-                            onValueChange = it.onChange,
-                            modifier = Modifier.testTag("firstName")
-                        )
-                    }
-
-                    form.LastNameField(name = lastName) {
-                        BasicTextField(
-                            value = it.value,
-                            onValueChange = it.onChange,
-                            modifier = Modifier.testTag("lastName")
-                        )
-                    }
+                    form.FirstName(modifier = Modifier.testTag("firstName"))
+                    form.LastName(modifier = Modifier.testTag("lastName"))
                 }
-
-                Text(form.state.submitCount.toString(), modifier = Modifier.testTag("count"))
             }
         }
 
-        onNodeWithTag("submit").assertHasClickAction().assertIsEnabled()
-        onNodeWithTag("submit").performClick()
-        waitUntil { submitCalled }
         onNodeWithTag("submit").assertIsNotEnabled()
-        mockSubmit.complete(Unit)
-        waitForIdle()
-        waitUntilExactlyOneExists(hasTestTag("count") and hasText("1"))
+
+        onNodeWithTag("firstName")
+            .requestFocus()
+            .performTextInput("Foo")
+
+        onNodeWithTag("lastName")
+            .requestFocus()
+            .performTextInput("Bar")
+
+        onNodeWithTag("submit")
+            .requestFocus()
+
+        waitUntilExactlyOneExists(hasTestTag("submit") and isEnabled())
+
+        onNodeWithTag("submit").performClick()
+
+        waitUntil { submittedFormData == formState.value }
     }
 
-    data class FormData(
+    data class TestData(
         val firstName: String = "",
-        override val lastName: String = "",
-        val age: Int = 0
-    ) : LastNameField {
+        val lastName: String = ""
+    ) {
         companion object {
-            fun saver(): Saver<FormData, Any> = mapSaver(
+            val Saver = listSaver(
                 save = { value ->
-                    mapOf(
-                        "firstName" to value.firstName,
-                        "lastName" to value.lastName,
-                        "age" to value.age
+                    listOf(
+                        value.firstName,
+                        value.lastName
                     )
                 },
-                restore = { map ->
-                    FormData(
-                        firstName = map["firstName"] as String,
-                        lastName = map["lastName"] as String,
-                        age = map["age"] as Int
+                restore = { list ->
+                    val (firstName, lastName) = list
+                    TestData(
+                        firstName = firstName as String,
+                        lastName = lastName as String
                     )
                 }
             )
         }
     }
 
-    interface LastNameField {
-        val lastName: String
-    }
-
     @Composable
-    fun FormScope<FormData>.FirstNameField(
-        name: FieldName? = null,
-        dependsOn: FieldNames? = null,
-        enabled: Boolean = true,
-        content: @Composable (Field<String>) -> Unit
+    fun Form<*>.Submit(
+        modifier: Modifier = Modifier
     ) {
-        Field(
-            value = { it.firstName },
-            onChange = { copy(firstName = it) },
-            rules = rememberNameFieldRules(),
-            name = name,
-            dependsOn = dependsOn,
-            enabled = enabled,
-            content = content
-        )
-    }
-
-    @Composable
-    fun FormScope<FormData>.LastNameField(
-        name: FieldName? = null,
-        dependsOn: FieldNames? = null,
-        enabled: Boolean = true,
-        content: @Composable (Field<String>) -> Unit
-    ) {
-        LastNameField(
-            onChange = { copy(lastName = it) },
-            name = name,
-            dependsOn = dependsOn,
-            enabled = enabled,
-            content = content
-        )
-    }
-
-    @Composable
-    fun <T> FormScope<T>.LastNameField(
-        onChange: T.(String) -> T,
-        name: FieldName? = null,
-        dependsOn: FieldNames? = null,
-        enabled: Boolean = true,
-        content: @Composable (Field<String>) -> Unit
-    ) where T : LastNameField {
-        Field(
-            value = { it.lastName },
-            onChange = onChange,
-            rules = rememberNameFieldRules(),
-            name = name,
-            dependsOn = dependsOn,
-            enabled = enabled,
-            content = content
-        )
-    }
-
-    @Composable
-    fun rememberNameFieldRules(): ValidationRuleSet<String> {
-        return remember {
-            rules {
-                notEmpty { "Must be not empty" }
+        Action {
+            Button(
+                onClick = it::submit,
+                enabled = it.canSubmit,
+                modifier = modifier.focusable()
+            ) {
+                Text("Submit")
             }
         }
+    }
+
+    @Composable
+    fun Form<TestData>.FirstName(
+        modifier: Modifier = Modifier,
+        name: FieldName? = null,
+        dependsOn: FieldNames? = null,
+        enabled: Boolean = true
+    ) {
+        Field(
+            selector = { it.firstName },
+            updater = { copy(firstName = it) },
+            rules = rules {
+                notEmpty { "Must be not empty" }
+            },
+            name = name,
+            dependsOn = dependsOn,
+            enabled = enabled
+        ) {
+            it.TextField(
+                modifier = modifier,
+                singleLine = true
+            )
+        }
+    }
+
+    @Composable
+    fun Form<TestData>.LastName(
+        modifier: Modifier = Modifier,
+        name: FieldName? = null,
+        dependsOn: FieldNames? = null,
+        enabled: Boolean = true
+    ) {
+        Field(
+            selector = { it.lastName },
+            updater = { copy(lastName = it) },
+            rules = rules {
+                notEmpty { "Must be not empty" }
+            },
+            name = name,
+            dependsOn = dependsOn,
+            enabled = enabled
+        ) {
+            it.TextField(
+                modifier = modifier,
+                singleLine = true
+            )
+        }
+    }
+
+    @Composable
+    fun FormFieldControl<String>.TextField(
+        modifier: Modifier = Modifier,
+        value: String = this.value,
+        onValueChange: (String) -> Unit = this::onValueChange,
+        keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+        keyboardActions: KeyboardActions = KeyboardActions.Default,
+        singleLine: Boolean = false,
+        maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
+        minLines: Int = 1,
+        visualTransformation: VisualTransformation = VisualTransformation.None,
+    ) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = modifier.onFocusChanged { state -> handleFocus(state.isFocused || state.hasFocus) },
+            enabled = isEnabled,
+            keyboardActions = keyboardActions,
+            keyboardOptions = keyboardOptions,
+            singleLine = singleLine,
+            maxLines = maxLines,
+            minLines = minLines,
+            visualTransformation = visualTransformation
+        )
     }
 }
