@@ -13,17 +13,15 @@ typealias FloatRuleBuilder = ValidationRuleBuilder<Float>
 /**
  * A rule that tests the float value.
  *
- * @property predicate The predicate to test the float value. Returns `true` if the test passes; `false` otherwise.
- * @property message The message to return when the test fails.
- * @constructor Creates a new instance of [FloatRuleTester].
+ * @param predicate The predicate to test the float value. Returns `true` if the test passes; `false` otherwise.
+ * @param message The message to return when the test fails.
+ * @return Creates a new instance of [FloatRule].
  */
-class FloatRuleTester(
-    val predicate: Float.() -> Boolean,
-    val message: () -> String
-) : FloatRule {
-    override fun test(value: Float): ValidationResult {
-        return if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
-    }
+fun FloatRule(
+    predicate: Float.() -> Boolean,
+    message: () -> String
+): FloatRule = { value ->
+    if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
 /**
@@ -40,7 +38,7 @@ class FloatRuleTester(
  * @param message The message to return when the test fails.
  */
 fun FloatRuleBuilder.minimum(limit: Float, message: () -> String) {
-    extend(FloatRuleTester({ this >= limit }, message))
+    extend(FloatRule({ this >= limit }, message))
 }
 
 /**
@@ -57,7 +55,7 @@ fun FloatRuleBuilder.minimum(limit: Float, message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun FloatRuleBuilder.maximum(limit: Float, message: () -> String) {
-    extend(FloatRuleTester({ this <= limit }, message))
+    extend(FloatRule({ this <= limit }, message))
 }
 
 /**
@@ -73,7 +71,7 @@ fun FloatRuleBuilder.maximum(limit: Float, message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun FloatRuleBuilder.isNaN(message: () -> String) {
-    extend(FloatRuleTester({ isNaN() }, message))
+    extend(FloatRule({ isNaN() }, message))
 }
 
 /**
@@ -89,5 +87,5 @@ fun FloatRuleBuilder.isNaN(message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun FloatRuleBuilder.notNaN(message: () -> String) {
-    extend(FloatRuleTester({ !isNaN() }, message))
+    extend(FloatRule({ !isNaN() }, message))
 }

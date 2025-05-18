@@ -13,17 +13,15 @@ typealias ArrayRuleBuilder<V> = ValidationRuleBuilder<Array<V>>
 /**
  * A rule that tests the array value.
  *
- * @property predicate The predicate to test the array value. Returns `true` if the test passes; `false` otherwise.
- * @property message The message to return when the test fails.
- * @constructor Creates a new instance of [ArrayRuleTester].
+ * @param predicate The predicate to test the array value. Returns `true` if the test passes; `false` otherwise.
+ * @param message The message to return when the test fails.
+ * @return Creates a new instance of [ArrayRule].
  */
-class ArrayRuleTester<V>(
-    val predicate: Array<V>.() -> Boolean,
-    val message: () -> String
-) : ArrayRule<V> {
-    override fun test(value: Array<V>): ValidationResult {
-        return if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
-    }
+fun <V> ArrayRule(
+    predicate: Array<V>.() -> Boolean,
+    message: () -> String
+): ArrayRule<V> = { value ->
+    if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
 /**
@@ -39,7 +37,7 @@ class ArrayRuleTester<V>(
  * @param message The message to return when the test fails.
  */
 fun <V> ArrayRuleBuilder<V>.notEmpty(message: () -> String) {
-    extend(ArrayRuleTester(Array<V>::isNotEmpty, message))
+    extend(ArrayRule(Array<V>::isNotEmpty, message))
 }
 
 /**
@@ -56,7 +54,7 @@ fun <V> ArrayRuleBuilder<V>.notEmpty(message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun <V> ArrayRuleBuilder<V>.minSize(limit: Int, message: () -> String) {
-    extend(ArrayRuleTester({ size >= limit }, message))
+    extend(ArrayRule({ size >= limit }, message))
 }
 
 /**
@@ -73,5 +71,5 @@ fun <V> ArrayRuleBuilder<V>.minSize(limit: Int, message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun <V> ArrayRuleBuilder<V>.maxSize(limit: Int, message: () -> String) {
-    extend(ArrayRuleTester({ size <= limit }, message))
+    extend(ArrayRule({ size <= limit }, message))
 }

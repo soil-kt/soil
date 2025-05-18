@@ -3,21 +3,7 @@
 
 package soil.form.core
 
-/**
- * Represents a validation rule for a form field.
- *
- * @param V The type of the value to be validated.
- */
-fun interface ValidationRule<V> {
-
-    /**
-     * Tests the given value against this rule.
-     *
-     * @param value The value to be tested.
-     * @return The errors found in the value. If the value is valid, this should be an empty list.
-     */
-    fun test(value: V): ValidationResult
-}
+typealias ValidationRule<V> = (value: V) -> ValidationResult
 
 /**
  * A set of validation rules.

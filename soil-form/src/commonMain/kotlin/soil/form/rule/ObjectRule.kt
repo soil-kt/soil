@@ -14,17 +14,15 @@ typealias ObjectRuleBuilder<V> = ValidationRuleBuilder<V>
 /**
  * A rule that tests the object value.
  *
- * @property predicate The predicate to test the object value. Returns `true` if the test passes; `false` otherwise.
- * @property message The message to return when the test fails.
- * @constructor Creates a new instance of [ObjectRuleTester].
+ * @param predicate The predicate to test the object value. Returns `true` if the test passes; `false` otherwise.
+ * @param message The message to return when the test fails.
+ * @return Creates a new instance of [ObjectRule].
  */
-class ObjectRuleTester<V>(
-    val predicate: V.() -> Boolean,
-    val message: () -> String
-) : ObjectRule<V> {
-    override fun test(value: V): ValidationResult {
-        return if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
-    }
+fun <V> ObjectRule(
+    predicate: V.() -> Boolean,
+    message: () -> String
+): ObjectRule<V> = { value ->
+    if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
 /**
@@ -35,19 +33,18 @@ class ObjectRuleTester<V>(
  */
 class ObjectRuleChainer<V, S>(
     val transform: (V) -> S
-) : ObjectRule<V> {
-
+) {
     private var ruleSet: Set<ValidationRule<S>> = emptySet()
 
-    override fun test(value: V): ValidationResult {
+    internal val chainedRule: ObjectRule<V> = { value ->
         val chainedValue = transform(value)
-        val errors = ruleSet.flatMap { rule ->
-            when (val result = rule.test(chainedValue)) {
+        val errorMessages = ruleSet.flatMap { rule ->
+            when (val result = rule.invoke(chainedValue)) {
                 is ValidationResult.Valid -> emptyList()
-                is ValidationResult.Invalid -> result.errors
+                is ValidationResult.Invalid -> result.messages
             }
         }
-        return if (errors.isEmpty()) ValidationResult.Valid else ValidationResult.Invalid(errors)
+        if (errorMessages.isEmpty()) ValidationResult.Valid else ValidationResult.Invalid(errorMessages)
     }
 
     /**
@@ -89,7 +86,7 @@ class ObjectRuleChainer<V, S>(
  * @param message The message to return when the test fails.
  */
 fun <V : Any> ObjectRuleBuilder<V>.test(predicate: V.() -> Boolean, message: () -> String) {
-    extend(ObjectRuleTester(predicate, message))
+    extend(ObjectRule(predicate, message))
 }
 
 /**
@@ -109,5 +106,5 @@ fun <V : Any> ObjectRuleBuilder<V>.test(predicate: V.() -> Boolean, message: () 
  * @param transform The transformation function to apply to the object value.
  */
 fun <V : Any, S> ObjectRuleBuilder<V>.cast(transform: (V) -> S): ObjectRuleChainer<V, S> {
-    return ObjectRuleChainer(transform).also { extend(it) }
+    return ObjectRuleChainer(transform).also { extend(it.chainedRule) }
 }

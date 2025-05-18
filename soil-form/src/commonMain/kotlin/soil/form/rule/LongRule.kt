@@ -13,17 +13,15 @@ typealias LongRuleBuilder = ValidationRuleBuilder<Long>
 /**
  * A rule that tests the long value.
  *
- * @property predicate The predicate to test the long value. Returns `true` if the test passes; `false` otherwise.
- * @property message The message to return when the test fails.
- * @constructor Creates a new instance of [LongRuleTester].
+ * @param predicate The predicate to test the long value. Returns `true` if the test passes; `false` otherwise.
+ * @param message The message to return when the test fails.
+ * @return Creates a new instance of [LongRule].
  */
-class LongRuleTester(
-    val predicate: Long.() -> Boolean,
-    val message: () -> String
-) : LongRule {
-    override fun test(value: Long): ValidationResult {
-        return if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
-    }
+fun LongRule(
+    predicate: Long.() -> Boolean,
+    message: () -> String
+): LongRule = { value ->
+    if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
 /**
@@ -40,7 +38,7 @@ class LongRuleTester(
  * @param message The message to return when the test fails.
  */
 fun LongRuleBuilder.minimum(limit: Long, message: () -> String) {
-    extend(LongRuleTester({ this >= limit }, message))
+    extend(LongRule({ this >= limit }, message))
 }
 
 /**
@@ -54,5 +52,5 @@ fun LongRuleBuilder.minimum(limit: Long, message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun LongRuleBuilder.maximum(limit: Long, message: () -> String) {
-    extend(LongRuleTester({ this <= limit }, message))
+    extend(LongRule({ this <= limit }, message))
 }

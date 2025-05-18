@@ -13,17 +13,15 @@ typealias StringRuleBuilder = ValidationRuleBuilder<String>
 /**
  * A rule that tests the string value.
  *
- * @property predicate The predicate to test the string value. Returns `true` if the test passes; `false` otherwise.
- * @property message The message to return when the test fails.
- * @constructor Creates a new instance of [StringRuleTester].
+ * @param predicate The predicate to test the string value. Returns `true` if the test passes; `false` otherwise.
+ * @param message The message to return when the test fails.
+ * @return Creates a new instance of [StringRule].
  */
-class StringRuleTester(
-    val predicate: String.() -> Boolean,
-    val message: () -> String
-) : StringRule {
-    override fun test(value: String): ValidationResult {
-        return if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
-    }
+fun StringRule(
+    predicate: String.() -> Boolean,
+    message: () -> String
+): StringRule = { value ->
+    if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
 /**
@@ -39,7 +37,7 @@ class StringRuleTester(
  * @param message The message to return when the test fails.
  */
 fun StringRuleBuilder.notEmpty(message: () -> String) {
-    extend(StringRuleTester(String::isNotEmpty, message))
+    extend(StringRule(String::isNotEmpty, message))
 }
 
 /**
@@ -55,7 +53,7 @@ fun StringRuleBuilder.notEmpty(message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun StringRuleBuilder.notBlank(message: () -> String) {
-    extend(StringRuleTester(String::isNotBlank, message))
+    extend(StringRule(String::isNotBlank, message))
 }
 
 /**
@@ -72,7 +70,7 @@ fun StringRuleBuilder.notBlank(message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun StringRuleBuilder.minLength(limit: Int, message: () -> String) {
-    extend(StringRuleTester({ length >= limit }, message))
+    extend(StringRule({ length >= limit }, message))
 }
 
 /**
@@ -89,7 +87,7 @@ fun StringRuleBuilder.minLength(limit: Int, message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun StringRuleBuilder.maxLength(limit: Int, message: () -> String) {
-    extend(StringRuleTester({ length <= limit }, message))
+    extend(StringRule({ length <= limit }, message))
 }
 
 /**
@@ -123,5 +121,5 @@ fun StringRuleBuilder.pattern(pattern: String, message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun StringRuleBuilder.pattern(pattern: Regex, message: () -> String) {
-    extend(StringRuleTester({ pattern.matches(this) }, message))
+    extend(StringRule({ pattern.matches(this) }, message))
 }

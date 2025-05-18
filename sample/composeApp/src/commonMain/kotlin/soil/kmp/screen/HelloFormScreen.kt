@@ -33,7 +33,7 @@ import soil.form.compose.rememberForm
 import soil.form.compose.rememberFormState
 import soil.form.compose.serializationSaver
 import soil.form.rule.StringRuleBuilder
-import soil.form.rule.StringRuleTester
+import soil.form.rule.StringRule
 import soil.form.rule.notBlank
 import soil.form.rule.notNull
 import soil.playground.LocalFeedbackHost
@@ -242,5 +242,5 @@ private fun Form<FormData>.Submit(
 // Basic custom validation rule for email addresses
 private fun StringRuleBuilder.email(message: () -> String) {
     val pattern = Regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\$")
-    extend(StringRuleTester({ pattern.matches(this) }, message))
+    extend(StringRule({ pattern.matches(this) }, message))
 }

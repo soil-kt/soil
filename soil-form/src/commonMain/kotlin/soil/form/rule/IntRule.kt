@@ -13,17 +13,15 @@ typealias IntRuleBuilder = ValidationRuleBuilder<Int>
 /**
  * A rule that tests the integer value.
  *
- * @property predicate The predicate to test the integer value. Returns `true` if the test passes; `false` otherwise.
- * @property message The message to return when the test fails.
- * @constructor Creates a new instance of [IntRuleTester].
+ * @param predicate The predicate to test the integer value. Returns `true` if the test passes; `false` otherwise.
+ * @param message The message to return when the test fails.
+ * @return Creates a new instance of [IntRule].
  */
-class IntRuleTester(
-    val predicate: Int.() -> Boolean,
-    val message: () -> String
-) : IntRule {
-    override fun test(value: Int): ValidationResult {
-        return if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
-    }
+fun IntRule(
+    predicate: Int.() -> Boolean,
+    message: () -> String
+): IntRule = { value ->
+    if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
 /**
@@ -40,7 +38,7 @@ class IntRuleTester(
  * @param message The message to return when the test fails.
  */
 fun IntRuleBuilder.minimum(limit: Int, message: () -> String) {
-    extend(IntRuleTester({ this >= limit }, message))
+    extend(IntRule({ this >= limit }, message))
 }
 
 /**
@@ -57,5 +55,5 @@ fun IntRuleBuilder.minimum(limit: Int, message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun IntRuleBuilder.maximum(limit: Int, message: () -> String) {
-    extend(IntRuleTester({ this <= limit }, message))
+    extend(IntRule({ this <= limit }, message))
 }

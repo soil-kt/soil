@@ -188,7 +188,8 @@ class FormTest : UnitTest() {
             singleLine = singleLine,
             maxLines = maxLines,
             minLines = minLines,
-            visualTransformation = visualTransformation
+            visualTransformation = visualTransformation,
+            isError = hasError,
         )
     }
 }

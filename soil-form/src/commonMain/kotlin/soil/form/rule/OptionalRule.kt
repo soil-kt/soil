@@ -19,21 +19,22 @@ typealias OptionalRuleBuilder<V> = ValidationRuleBuilder<V?>
  */
 class OptionalRuleChainer<V>(
     val message: () -> String
-) : OptionalRule<V> {
+) {
 
     private var ruleSet: Set<ValidationRule<V>> = emptySet()
 
-    override fun test(value: V?): ValidationResult {
+    internal val chainedRule: OptionalRule<V> = { value ->
         if (value == null) {
-            return ValidationResult.Invalid(message())
-        }
-        val errors = ruleSet.flatMap { rule ->
-            when (val result = rule.test(value)) {
-                is ValidationResult.Valid -> emptyList()
-                is ValidationResult.Invalid -> result.errors
+            ValidationResult.Invalid(message())
+        } else {
+            val errorMessages = ruleSet.flatMap { rule ->
+                when (val result = rule.invoke(value)) {
+                    is ValidationResult.Valid -> emptyList()
+                    is ValidationResult.Invalid -> result.messages
+                }
             }
+            if (errorMessages.isEmpty()) ValidationResult.Valid else ValidationResult.Invalid(errorMessages)
         }
-        return if (errors.isEmpty()) ValidationResult.Valid else ValidationResult.Invalid(errors)
     }
 
     /**
@@ -68,5 +69,5 @@ class OptionalRuleChainer<V>(
  * @return The rule chainer to chain the non-optional rules.
  */
 fun <V : Any> OptionalRuleBuilder<V?>.notNull(message: () -> String): OptionalRuleChainer<V> {
-    return OptionalRuleChainer<V>(message).also { extend(it) }
+    return OptionalRuleChainer<V>(message).also { extend(it.chainedRule) }
 }

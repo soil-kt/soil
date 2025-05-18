@@ -32,7 +32,7 @@ fun <T : Any> FormFieldControl<T?>.SelectField(
     },
     supportingText: @Composable (() -> Unit)? = {
         if (hasError) {
-            Text(text = errors.first(), color = AppTheme.colorScheme.error)
+            Text(text = error.messages.first(), color = AppTheme.colorScheme.error)
         }
     },
     isError: Boolean = hasError,
@@ -88,7 +88,7 @@ inline fun <reified T : Enum<T>> FormFieldControl<T?>.SelectField(
     },
     noinline supportingText: @Composable (() -> Unit)? = {
         if (hasError) {
-            Text(text = errors.first(), color = AppTheme.colorScheme.error)
+            Text(text = error.messages.first(), color = AppTheme.colorScheme.error)
         }
     },
     isError: Boolean = hasError,

@@ -13,17 +13,15 @@ typealias DoubleRuleBuilder = ValidationRuleBuilder<Double>
 /**
  * A rule that tests the double value.
  *
- * @property predicate The predicate to test the double value. Returns `true` if the test passes; `false` otherwise.
- * @property message The message to return when the test fails.
- * @constructor Creates a new instance of [DoubleRuleTester].
+ * @param predicate The predicate to test the double value. Returns `true` if the test passes; `false` otherwise.
+ * @param message The message to return when the test fails.
+ * @return Creates a new instance of [DoubleRule].
  */
-class DoubleRuleTester(
-    val predicate: Double.() -> Boolean,
-    val message: () -> String
-) : DoubleRule {
-    override fun test(value: Double): ValidationResult {
-        return if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
-    }
+fun DoubleRule(
+    predicate: Double.() -> Boolean,
+    message: () -> String
+): DoubleRule = { value ->
+    if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
 /**
@@ -40,7 +38,7 @@ class DoubleRuleTester(
  * @param message The message to return when the test fails.
  */
 fun DoubleRuleBuilder.minimum(limit: Double, message: () -> String) {
-    extend(DoubleRuleTester({ this >= limit }, message))
+    extend(DoubleRule({ this >= limit }, message))
 }
 
 /**
@@ -57,7 +55,7 @@ fun DoubleRuleBuilder.minimum(limit: Double, message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun DoubleRuleBuilder.maximum(limit: Double, message: () -> String) {
-    extend(DoubleRuleTester({ this <= limit }, message))
+    extend(DoubleRule({ this <= limit }, message))
 }
 
 /**
@@ -73,7 +71,7 @@ fun DoubleRuleBuilder.maximum(limit: Double, message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun DoubleRuleBuilder.isNaN(message: () -> String) {
-    extend(DoubleRuleTester({ isNaN() }, message))
+    extend(DoubleRule({ isNaN() }, message))
 }
 
 /**
@@ -89,5 +87,5 @@ fun DoubleRuleBuilder.isNaN(message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun DoubleRuleBuilder.notNaN(message: () -> String) {
-    extend(DoubleRuleTester({ !isNaN() }, message))
+    extend(DoubleRule({ !isNaN() }, message))
 }

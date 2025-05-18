@@ -15,17 +15,15 @@ typealias CollectionRuleBuilder<V> = ValidationRuleBuilder<Collection<V>>
 /**
  * A rule that tests the collection value.
  *
- * @property predicate The predicate to test the collection value. Returns `true` if the test passes; `false` otherwise.
- * @property message The message to return when the test fails.
- * @constructor Creates a new instance of [CollectionRuleTester].
+ * @param predicate The predicate to test the collection value. Returns `true` if the test passes; `false` otherwise.
+ * @param message The message to return when the test fails.
+ * @return Creates a new instance of [CollectionRule].
  */
-class CollectionRuleTester<V>(
-    val predicate: Collection<V>.() -> Boolean,
-    val message: () -> String
-) : CollectionRule<V> {
-    override fun test(value: Collection<V>): ValidationResult {
-        return if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
-    }
+fun <V> CollectionRule(
+    predicate: Collection<V>.() -> Boolean,
+    message: () -> String
+): CollectionRule<V> = { value ->
+    if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
 /**
@@ -41,7 +39,7 @@ class CollectionRuleTester<V>(
  * @param message The message to return when the test fails.
  */
 fun <V> CollectionRuleBuilder<V>.notEmpty(message: () -> String) {
-    extend(CollectionRuleTester(Collection<V>::isNotEmpty, message))
+    extend(CollectionRule(Collection<V>::isNotEmpty, message))
 }
 
 /**
@@ -58,7 +56,7 @@ fun <V> CollectionRuleBuilder<V>.notEmpty(message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun <V> CollectionRuleBuilder<V>.minSize(limit: Int, message: () -> String) {
-    extend(CollectionRuleTester({ size >= limit }, message))
+    extend(CollectionRule({ size >= limit }, message))
 }
 
 /**
@@ -75,5 +73,5 @@ fun <V> CollectionRuleBuilder<V>.minSize(limit: Int, message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun <V> CollectionRuleBuilder<V>.maxSize(limit: Int, message: () -> String) {
-    extend(CollectionRuleTester({ size <= limit }, message))
+    extend(CollectionRule({ size <= limit }, message))
 }

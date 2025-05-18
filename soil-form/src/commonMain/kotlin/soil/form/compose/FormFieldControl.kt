@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
-import soil.form.FieldErrors
+import soil.form.FieldError
 import soil.form.FieldName
 import soil.form.FieldNames
 import soil.form.FieldPolicy
@@ -23,13 +23,13 @@ import soil.form.FieldTypeAdapter
 import soil.form.FieldValidateOn
 import soil.form.FieldValidator
 import soil.form.annotation.InternalSoilFormApi
-import soil.form.noErrors
+import soil.form.noFieldError
 
 @Stable
 interface FormFieldControl<V> {
     val name: FieldName
     val value: V
-    val errors: FieldErrors
+    val error: FieldError
     val isDirty: Boolean
     val isTouched: Boolean
     val isFocused: Boolean
@@ -43,7 +43,7 @@ interface FormFieldControl<V> {
 }
 
 inline val FormFieldControl<*>.hasError
-    get() = errors.isNotEmpty()
+    get() = error != noFieldError
 
 
 @OptIn(InternalSoilFormApi::class, FlowPreview::class)
@@ -131,12 +131,12 @@ internal class FormFieldController<T : Any, V, S, U>(
         trigger = fieldPolicy.validationTrigger.startAt
     )
 
-    override val value: U by derivedStateOf { adapter.toRawInput(fieldValue) }
+    override val value: U by derivedStateOf { adapter.toInput(fieldValue) }
 
-    override var errors: FieldErrors
-        get() = meta.errors
+    override var error: FieldError
+        get() = meta.error
         set(value) {
-            meta.errors = value
+            meta.error = value
         }
 
     override var isDirty: Boolean
@@ -169,7 +169,7 @@ internal class FormFieldController<T : Any, V, S, U>(
     }
 
     override fun onValueChange(value: U) {
-        form.handleChange { updater(adapter.fromRawInput(value, fieldValue)) }
+        form.handleChange { updater(adapter.fromInput(value, fieldValue)) }
         isDirty = true
     }
 
@@ -201,10 +201,10 @@ internal class FormFieldController<T : Any, V, S, U>(
     }
 
     private fun validate(value: V, dryRun: Boolean = false): Boolean {
-        val error = validator?.invoke(adapter.toValidationTarget(value)) ?: noErrors
-        val isValid = error.isEmpty()
+        val error = validator?.invoke(adapter.toValidationTarget(value)) ?: noFieldError
+        val isValid = error == noFieldError
         if (!dryRun) {
-            meta.errors = error
+            meta.error = error
             meta.trigger = fieldPolicy.validationTrigger.next(meta.trigger, isValid)
             meta.hasBeenValidated = true
         }

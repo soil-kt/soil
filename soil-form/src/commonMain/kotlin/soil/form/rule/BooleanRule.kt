@@ -13,17 +13,15 @@ typealias BooleanRuleBuilder = ValidationRuleBuilder<Boolean>
 /**
  * A rule that tests the boolean value.
  *
- * @property predicate The predicate to test the boolean value. Returns `true` if the test passes; `false` otherwise.
- * @property message The message to return when the test fails.
- * @constructor Creates a new instance of [BooleanRuleTester].
+ * @param predicate The predicate to test the boolean value. Returns `true` if the test passes; `false` otherwise.
+ * @param message The message to return when the test fails.
+ * @return Creates a new instance of [BooleanRule].
  */
-class BooleanRuleTester(
-    val predicate: Boolean.() -> Boolean,
-    val message: () -> String
-) : BooleanRule {
-    override fun test(value: Boolean): ValidationResult {
-        return if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
-    }
+fun BooleanRule(
+    predicate: Boolean.() -> Boolean,
+    message: () -> String
+): BooleanRule = { value ->
+    if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
 /**
@@ -39,7 +37,7 @@ class BooleanRuleTester(
  * @param message The message to return when the test fails.
  */
 fun BooleanRuleBuilder.isTrue(message: () -> String) {
-    extend(BooleanRuleTester({ this }, message))
+    extend(BooleanRule({ this }, message))
 }
 
 /**
@@ -55,5 +53,5 @@ fun BooleanRuleBuilder.isTrue(message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun BooleanRuleBuilder.isFalse(message: () -> String) {
-    extend(BooleanRuleTester({ !this }, message))
+    extend(BooleanRule({ !this }, message))
 }

@@ -1,27 +1,17 @@
 package soil.form
 
-/**
- * Represents a single error message in the field.
- */
-typealias FieldError = String
+import kotlin.jvm.JvmInline
 
-/**
- * Represents multiple error messages in the field.
- */
-typealias FieldErrors = List<FieldError>
+@JvmInline
+value class FieldError(val messages: List<String>) {
+    constructor(message: String) : this(listOf(message))
 
-/**
- * Creates error messages for a field.
- *
- * @param messages Error messages. There must be at least one error message.
- * @return The generated error messages for the field.
- */
-fun fieldError(vararg messages: String): FieldErrors {
-    require(messages.isNotEmpty())
-    return listOf(*messages)
+    operator fun plus(other: FieldError): FieldError {
+        return FieldError(messages + other.messages)
+    }
 }
 
 /**
  * Syntax sugar representing that there are no errors in the field.
  */
-val noErrors: FieldErrors = emptyList()
+val noFieldError: FieldError = FieldError(emptyList())

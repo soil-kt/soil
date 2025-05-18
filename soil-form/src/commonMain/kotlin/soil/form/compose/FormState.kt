@@ -12,14 +12,14 @@ import androidx.compose.runtime.saveable.autoSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.Snapshot
-import soil.form.FieldErrors
+import soil.form.FieldError
 import soil.form.FieldMeta
 import soil.form.FieldName
 import soil.form.FieldValidateOn
 import soil.form.FormData
 import soil.form.FormMeta
 import soil.form.FormPolicy
-import soil.form.noErrors
+import soil.form.noFieldError
 
 /**
  * Remembers a form state for the given initial value.
@@ -83,7 +83,7 @@ class FormState<T : Any> internal constructor(
             value = newValue
             meta.defaultValue = newValue
             meta.fields.forEach { (_, fieldMeta) ->
-                fieldMeta.errors = noErrors
+                fieldMeta.error = noFieldError
                 fieldMeta.trigger = policy.field.validationTrigger.startAt
                 fieldMeta.isDirty = false
                 fieldMeta.isTouched = false
@@ -92,11 +92,11 @@ class FormState<T : Any> internal constructor(
         }
     }
 
-    fun setError(vararg pairs: Pair<FieldName, FieldErrors>) {
+    fun setError(vararg pairs: Pair<FieldName, FieldError>) {
         Snapshot.withMutableSnapshot {
-            pairs.forEach { (fieldName, fieldErrors) ->
+            pairs.forEach { (fieldName, fieldError) ->
                 meta.fields[fieldName]?.let { fieldMeta ->
-                    fieldMeta.errors = fieldErrors + fieldMeta.errors
+                    fieldMeta.error = fieldError + fieldMeta.error
                 }
             }
         }
@@ -182,13 +182,13 @@ class FormMetaState<T : Any> internal constructor(
 }
 
 fun fieldMetaStateOf(
-    errors: FieldErrors = noErrors,
+    error: FieldError = noFieldError,
     trigger: FieldValidateOn = FieldValidateOn.Blur,
     isDirty: Boolean = false,
     isTouched: Boolean = false,
     hasBeenValidated: Boolean = false
 ): FieldMetaState = FieldMetaState(
-    errors = errors,
+    error = error,
     trigger = trigger,
     isDirty = isDirty,
     isTouched = isTouched,
@@ -196,14 +196,14 @@ fun fieldMetaStateOf(
 )
 
 class FieldMetaState internal constructor(
-    errors: FieldErrors,
+    error: FieldError,
     trigger: FieldValidateOn,
     isDirty: Boolean,
     isTouched: Boolean,
     hasBeenValidated: Boolean
 ) : FieldMeta {
 
-    override var errors: FieldErrors by mutableStateOf(errors)
+    override var error: FieldError by mutableStateOf(error)
     override var trigger: FieldValidateOn by mutableStateOf(trigger)
     override var isDirty: Boolean by mutableStateOf(isDirty)
     override var isTouched: Boolean by mutableStateOf(isTouched)
@@ -214,7 +214,7 @@ class FieldMetaState internal constructor(
         fun Saver() = Saver<FieldMetaState, Any>(
             save = { value ->
                 listOf(
-                    value.errors,
+                    value.error.messages,
                     value.trigger,
                     value.isDirty,
                     value.isTouched,
@@ -224,7 +224,7 @@ class FieldMetaState internal constructor(
             restore = {
                 val (errors, trigger, isDirty, isTouched, hasBeenValidated) = it as List<*>
                 FieldMetaState(
-                    errors = errors as FieldErrors,
+                    error = FieldError(errors as List<String>),
                     trigger = trigger as FieldValidateOn,
                     isDirty = isDirty as Boolean,
                     isTouched = isTouched as Boolean,

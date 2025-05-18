@@ -11,7 +11,7 @@ interface FormMeta<T : Any> {
 }
 
 interface FieldMeta {
-    val errors: FieldErrors
+    val error: FieldError
     val trigger: FieldValidateOn
     val isDirty: Boolean
     val isTouched: Boolean

@@ -24,7 +24,7 @@ fun FormFieldControl<String>.InputField(
     trailingIcon: @Composable (() -> Unit)? = null,
     supportingText: @Composable (() -> Unit)? = {
         if (hasError) {
-            Text(text = errors.first(), color = AppTheme.colorScheme.error)
+            Text(text = error.messages.first(), color = AppTheme.colorScheme.error)
         }
     },
     isError: Boolean = hasError,

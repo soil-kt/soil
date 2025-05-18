@@ -77,7 +77,7 @@ fun <T : Any> FormFieldControl<T?>.RadioGroup(
                 }
             }
         }
-        ErrorMessage(errors = errors, modifier = Modifier.padding(top = 4.dp))
+        ErrorMessage(error = error, modifier = Modifier.padding(top = 4.dp))
     }
 }
 
