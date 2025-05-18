@@ -24,7 +24,7 @@ interface FormActionControl<T> {
 
 @OptIn(FlowPreview::class, InternalSoilFormApi::class)
 @Composable
-internal fun <T : Any> Form<T>.rememberFormActionControl(): FormActionControl<T> {
+internal fun <T : Any> Form<T>.rememberActionControl(): FormActionControl<T> {
     val control = remember(binding) {
         FormActionController(binding)
     }

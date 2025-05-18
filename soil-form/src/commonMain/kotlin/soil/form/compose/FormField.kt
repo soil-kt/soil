@@ -6,26 +6,26 @@ import soil.form.FieldName
 import soil.form.FieldNames
 import soil.form.FieldPassthroughAdapter
 import soil.form.FieldTypeAdapter
-import soil.form.ValidationRuleSet
+import soil.form.FieldValidator
 
 
 @Composable
 fun <T : Any, V> Form<T>.Field(
     selector: (T) -> V,
     updater: T.(V) -> T,
+    validator: FieldValidator<V>? = null,
     name: FieldName? = null,
     dependsOn: FieldNames? = null,
-    rules: ValidationRuleSet<V> = emptySet(),
     enabled: Boolean = true,
     content: @Composable (FormFieldControl<V>) -> Unit
 ) {
-    val control = rememberFormFieldControl(
+    val control = rememberFieldControl(
         selector = selector,
         updater = updater,
         adapter = FieldPassthroughAdapter(),
+        validator = validator,
         name = name ?: auto,
         dependsOn = dependsOn.orEmpty(),
-        rules = rules,
         enabled = enabled
     )
     content(control)
@@ -36,17 +36,17 @@ fun <T : Any, V, S, U> Form<T>.Field(
     selector: (T) -> V,
     updater: T.(V) -> T,
     adapter: FieldTypeAdapter<V, S, U>,
+    validator: FieldValidator<S>? = null,
     name: FieldName? = null,
     dependsOn: FieldNames? = null,
-    rules: ValidationRuleSet<S> = emptySet(),
     enabled: Boolean = true,
     content: @Composable (FormFieldControl<U>) -> Unit
 ) {
-    val control = rememberFormFieldControl(
+    val control = rememberFieldControl(
         selector = selector,
         updater = updater,
         adapter = adapter,
-        rules = rules,
+        validator = validator,
         name = name ?: auto,
         dependsOn = dependsOn.orEmpty(),
         enabled = enabled

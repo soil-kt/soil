@@ -1,7 +1,7 @@
 // Copyright 2024 Soil Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-package soil.form
+package soil.form.core
 
 /**
  * Represents a validation rule for a form field.
@@ -16,7 +16,7 @@ fun interface ValidationRule<V> {
      * @param value The value to be tested.
      * @return The errors found in the value. If the value is valid, this should be an empty list.
      */
-    fun test(value: V): FieldErrors
+    fun test(value: V): ValidationResult
 }
 
 /**

@@ -30,9 +30,8 @@ import androidx.compose.ui.test.waitUntilExactlyOneExists
 import androidx.compose.ui.text.input.VisualTransformation
 import soil.form.FieldName
 import soil.form.FieldNames
-import soil.form.ValidationRuleSet
+import soil.form.FieldValidator
 import soil.form.rule.notEmpty
-import soil.form.rules
 import soil.testing.UnitTest
 import kotlin.test.Test
 
@@ -129,7 +128,7 @@ class FormTest : UnitTest() {
         Field(
             selector = { it.firstName },
             updater = { copy(firstName = it) },
-            rules = rules {
+            validator = FieldValidator {
                 notEmpty { "Must be not empty" }
             },
             name = name,
@@ -153,7 +152,7 @@ class FormTest : UnitTest() {
         Field(
             selector = { it.lastName },
             updater = { copy(lastName = it) },
-            rules = rules {
+            validator = FieldValidator {
                 notEmpty { "Must be not empty" }
             },
             name = name,

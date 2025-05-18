@@ -3,11 +3,9 @@
 
 package soil.form.rule
 
-import soil.form.FieldErrors
-import soil.form.ValidationRule
-import soil.form.ValidationRuleBuilder
-import soil.form.fieldError
-import soil.form.noErrors
+import soil.form.core.ValidationResult
+import soil.form.core.ValidationRule
+import soil.form.core.ValidationRuleBuilder
 
 typealias StringRule = ValidationRule<String>
 typealias StringRuleBuilder = ValidationRuleBuilder<String>
@@ -23,8 +21,8 @@ class StringRuleTester(
     val predicate: String.() -> Boolean,
     val message: () -> String
 ) : StringRule {
-    override fun test(value: String): FieldErrors {
-        return if (value.predicate()) noErrors else fieldError(message())
+    override fun test(value: String): ValidationResult {
+        return if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
     }
 }
 

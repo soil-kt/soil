@@ -21,8 +21,9 @@ import soil.form.FieldNames
 import soil.form.FieldPolicy
 import soil.form.FieldTypeAdapter
 import soil.form.FieldValidateOn
-import soil.form.ValidationRuleSet
+import soil.form.FieldValidator
 import soil.form.annotation.InternalSoilFormApi
+import soil.form.noErrors
 
 @Stable
 interface FormFieldControl<V> {
@@ -47,13 +48,13 @@ inline val FormFieldControl<*>.hasError
 
 @OptIn(InternalSoilFormApi::class, FlowPreview::class)
 @Composable
-internal fun <T : Any, V, S, U> Form<T>.rememberFormFieldControl(
+internal fun <T : Any, V, S, U> Form<T>.rememberFieldControl(
     selector: (T) -> V,
     updater: T.(V) -> T,
     adapter: FieldTypeAdapter<V, S, U>,
+    validator: FieldValidator<S>?,
     name: FieldName,
     dependsOn: FieldNames,
-    rules: ValidationRuleSet<S>,
     enabled: Boolean,
 ): FormFieldControl<U> {
     val control = remember(binding) {
@@ -62,9 +63,9 @@ internal fun <T : Any, V, S, U> Form<T>.rememberFormFieldControl(
             selector = selector,
             updater = updater,
             adapter = adapter,
+            validator = validator,
             name = name,
             dependsOn = dependsOn,
-            rules = rules
         )
     }.apply { isEnabled = enabled }
     if (enabled) {
@@ -117,9 +118,9 @@ internal class FormFieldController<T : Any, V, S, U>(
     private val selector: (T) -> V,
     private val updater: T.(V) -> T,
     private val adapter: FieldTypeAdapter<V, S, U>,
+    private val validator: FieldValidator<S>?,
     override val name: FieldName,
-    private val dependsOn: FieldNames,
-    private val rules: ValidationRuleSet<S>
+    private val dependsOn: FieldNames
 ) : FormFieldControl<U> {
 
     val fieldPolicy: FieldPolicy get() = form.policy.field
@@ -200,7 +201,7 @@ internal class FormFieldController<T : Any, V, S, U>(
     }
 
     private fun validate(value: V, dryRun: Boolean = false): Boolean {
-        val error = rules.flatMap { it.test(adapter.toValidationTarget(value)) }
+        val error = validator?.invoke(adapter.toValidationTarget(value)) ?: noErrors
         val isValid = error.isEmpty()
         if (!dryRun) {
             meta.errors = error

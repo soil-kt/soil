@@ -6,6 +6,6 @@ import androidx.compose.runtime.Composable
 fun <T : Any> Form<T>.Action(
     content: @Composable (FormActionControl<T>) -> Unit
 ) {
-    val control = rememberFormActionControl()
+    val control = rememberActionControl()
     content(control)
 }

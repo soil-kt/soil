@@ -3,11 +3,10 @@
 
 package soil.form.rule
 
-import soil.form.FieldErrors
-import soil.form.ValidationRule
-import soil.form.ValidationRuleBuilder
-import soil.form.fieldError
-import soil.form.rules
+import soil.form.core.ValidationResult
+import soil.form.core.ValidationRule
+import soil.form.core.ValidationRuleBuilder
+import soil.form.core.rules
 
 typealias OptionalRule<V> = ValidationRule<V?>
 typealias OptionalRuleBuilder<V> = ValidationRuleBuilder<V?>
@@ -24,12 +23,17 @@ class OptionalRuleChainer<V>(
 
     private var ruleSet: Set<ValidationRule<V>> = emptySet()
 
-    override fun test(value: V?): FieldErrors {
-        return if (value != null) {
-            ruleSet.flatMap { rule -> rule.test(value) }
-        } else {
-            fieldError(message())
+    override fun test(value: V?): ValidationResult {
+        if (value == null) {
+            return ValidationResult.Invalid(message())
         }
+        val errors = ruleSet.flatMap { rule ->
+            when (val result = rule.test(value)) {
+                is ValidationResult.Valid -> emptyList()
+                is ValidationResult.Invalid -> result.errors
+            }
+        }
+        return if (errors.isEmpty()) ValidationResult.Valid else ValidationResult.Invalid(errors)
     }
 
     /**

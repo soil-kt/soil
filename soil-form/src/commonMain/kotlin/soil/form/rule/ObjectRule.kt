@@ -3,12 +3,10 @@
 
 package soil.form.rule
 
-import soil.form.FieldErrors
-import soil.form.ValidationRule
-import soil.form.ValidationRuleBuilder
-import soil.form.fieldError
-import soil.form.noErrors
-import soil.form.rules
+import soil.form.core.ValidationResult
+import soil.form.core.ValidationRule
+import soil.form.core.ValidationRuleBuilder
+import soil.form.core.rules
 
 typealias ObjectRule<V> = ValidationRule<V>
 typealias ObjectRuleBuilder<V> = ValidationRuleBuilder<V>
@@ -24,8 +22,8 @@ class ObjectRuleTester<V>(
     val predicate: V.() -> Boolean,
     val message: () -> String
 ) : ObjectRule<V> {
-    override fun test(value: V): FieldErrors {
-        return if (value.predicate()) noErrors else fieldError(message())
+    override fun test(value: V): ValidationResult {
+        return if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
     }
 }
 
@@ -41,8 +39,15 @@ class ObjectRuleChainer<V, S>(
 
     private var ruleSet: Set<ValidationRule<S>> = emptySet()
 
-    override fun test(value: V): FieldErrors {
-        return transform(value).let { ruleSet.flatMap { rule -> rule.test(it) } }
+    override fun test(value: V): ValidationResult {
+        val chainedValue = transform(value)
+        val errors = ruleSet.flatMap { rule ->
+            when (val result = rule.test(chainedValue)) {
+                is ValidationResult.Valid -> emptyList()
+                is ValidationResult.Invalid -> result.errors
+            }
+        }
+        return if (errors.isEmpty()) ValidationResult.Valid else ValidationResult.Invalid(errors)
     }
 
     /**

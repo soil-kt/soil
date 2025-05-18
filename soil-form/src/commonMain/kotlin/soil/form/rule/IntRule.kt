@@ -3,11 +3,9 @@
 
 package soil.form.rule
 
-import soil.form.FieldErrors
-import soil.form.ValidationRule
-import soil.form.ValidationRuleBuilder
-import soil.form.fieldError
-import soil.form.noErrors
+import soil.form.core.ValidationResult
+import soil.form.core.ValidationRule
+import soil.form.core.ValidationRuleBuilder
 
 typealias IntRule = ValidationRule<Int>
 typealias IntRuleBuilder = ValidationRuleBuilder<Int>
@@ -23,8 +21,8 @@ class IntRuleTester(
     val predicate: Int.() -> Boolean,
     val message: () -> String
 ) : IntRule {
-    override fun test(value: Int): FieldErrors {
-        return if (value.predicate()) noErrors else fieldError(message())
+    override fun test(value: Int): ValidationResult {
+        return if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
     }
 }
 

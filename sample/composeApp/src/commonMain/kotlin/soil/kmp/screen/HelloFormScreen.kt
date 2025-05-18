@@ -16,17 +16,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
+import soil.form.FieldValidator
 import soil.form.compose.Action
 import soil.form.compose.Field
 import soil.form.compose.Form
@@ -37,13 +36,12 @@ import soil.form.rule.StringRuleBuilder
 import soil.form.rule.StringRuleTester
 import soil.form.rule.notBlank
 import soil.form.rule.notNull
-import soil.form.rules
 import soil.playground.LocalFeedbackHost
 import soil.playground.form.FormData
+import soil.playground.form.compose.InputField
 import soil.playground.form.compose.RadioGroup
 import soil.playground.form.compose.SelectField
 import soil.playground.form.compose.SubmitButton
-import soil.playground.form.compose.InputField
 import soil.playground.style.withAppTheme
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -100,7 +98,7 @@ private fun Form<FormData>.FirstName(
     Field(
         selector = { it.firstName },
         updater = { copy(firstName = it) },
-        rules = rules {
+        validator = FieldValidator {
             notBlank { "must be not blank" }
         }
     ) {
@@ -123,7 +121,7 @@ private fun Form<FormData>.LastName(
     Field(
         selector = { it.lastName },
         updater = { copy(lastName = it) },
-        rules = rules {
+        validator = FieldValidator {
             notBlank { "must be not blank" }
         }
     ) {
@@ -146,7 +144,7 @@ private fun Form<FormData>.Email(
     Field(
         selector = { it.email },
         updater = { copy(email = it) },
-        rules = rules {
+        validator = FieldValidator {
             notBlank { "must be not blank" }
             email { "must be valid email address" }
         }
@@ -170,7 +168,7 @@ private fun Form<FormData>.MobileNumber(
     Field(
         selector = { it.mobileNumber },
         updater = { copy(mobileNumber = it) },
-        rules = rules {
+        validator = FieldValidator {
             notBlank { "must be not blank" }
         }
     ) {
@@ -191,7 +189,7 @@ private fun Form<FormData>.Title(
     Field(
         selector = { it.title },
         updater = { copy(title = it) },
-        rules = rules {
+        validator = FieldValidator {
             notNull { "must be selected" }
         }
     ) {
@@ -216,7 +214,7 @@ private fun Form<FormData>.Developer(
     Field(
         selector = { it.developer },
         updater = { copy(developer = it) },
-        rules = rules {
+        validator = FieldValidator {
             notNull { "must be selected" }
         }
     ) {

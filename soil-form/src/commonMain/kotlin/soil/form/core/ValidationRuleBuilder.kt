@@ -1,7 +1,7 @@
 // Copyright 2024 Soil Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-package soil.form
+package soil.form.core
 
 /**
  * Builder for creating a set of validation rules.
