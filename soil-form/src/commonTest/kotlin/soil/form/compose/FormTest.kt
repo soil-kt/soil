@@ -40,7 +40,7 @@ class FormTest : UnitTest() {
 
     @Test
     fun testForm_submit() = runComposeUiTest {
-        val formState = formStateOf(value = TestData())
+        val formState = FormState(value = TestData())
         var submittedFormData: TestData? = null
         setContent {
             val form = rememberForm(state = formState) {
@@ -107,14 +107,12 @@ class FormTest : UnitTest() {
     fun Form<*>.Submit(
         modifier: Modifier = Modifier
     ) {
-        Action {
-            Button(
-                onClick = it::submit,
-                enabled = it.canSubmit,
-                modifier = modifier.focusable()
-            ) {
-                Text("Submit")
-            }
+        Button(
+            onClick = ::handleSubmit,
+            enabled = state.meta.canSubmit,
+            modifier = modifier.focusable()
+        ) {
+            Text("Submit")
         }
     }
 

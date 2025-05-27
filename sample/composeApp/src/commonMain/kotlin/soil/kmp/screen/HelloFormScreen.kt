@@ -26,14 +26,13 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import soil.form.FieldValidator
-import soil.form.compose.Action
 import soil.form.compose.Field
 import soil.form.compose.Form
 import soil.form.compose.rememberForm
 import soil.form.compose.rememberFormState
 import soil.form.compose.serializationSaver
-import soil.form.rule.StringRuleBuilder
 import soil.form.rule.StringRule
+import soil.form.rule.StringRuleBuilder
 import soil.form.rule.notBlank
 import soil.form.rule.notNull
 import soil.playground.LocalFeedbackHost
@@ -55,7 +54,7 @@ fun HelloFormScreen() {
         coroutineScope.launch {
             feedback.showAlert("Form submitted successfully")
             focusManager.clearFocus()
-            formState.reset()
+            formState.reset(FormData())
         }
     }
     HelloFormContent(
@@ -230,12 +229,10 @@ private fun Form<FormData>.Developer(
 private fun Form<FormData>.Submit(
     modifier: Modifier = Modifier
 ) {
-    Action {
-        it.SubmitButton(
-            modifier = modifier
-        ) {
-            Text(text = "Submit")
-        }
+    SubmitButton(
+        modifier = modifier
+    ) {
+        Text(text = "Submit")
     }
 }
 

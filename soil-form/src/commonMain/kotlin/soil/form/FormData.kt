@@ -1,19 +1,19 @@
 package soil.form
 
-interface FormData<T : Any> {
+interface FormData<T> {
     val value: T
-    val meta: FormMeta<T>
+    val meta: FormMeta
 }
 
-interface FormMeta<T : Any> {
+interface FormMeta {
     val fields: Map<FieldName, FieldMeta>
-    val defaultValue: T
+    val canSubmit: Boolean
 }
 
 interface FieldMeta {
     val error: FieldError
-    val trigger: FieldValidateOn
+    val mode: FieldValidationMode
     val isDirty: Boolean
     val isTouched: Boolean
-    val hasBeenValidated: Boolean
+    val isValidated: Boolean
 }

@@ -10,7 +10,7 @@ import soil.form.FieldValidator
 
 
 @Composable
-fun <T : Any, V> Form<T>.Field(
+fun <T, V> Form<T>.Field(
     selector: (T) -> V,
     updater: T.(V) -> T,
     validator: FieldValidator<V>? = null,
@@ -32,7 +32,7 @@ fun <T : Any, V> Form<T>.Field(
 }
 
 @Composable
-fun <T : Any, V, S, U> Form<T>.Field(
+fun <T, V, S, U> Form<T>.Field(
     selector: (T) -> V,
     updater: T.(V) -> T,
     adapter: FieldTypeAdapter<V, S, U>,

@@ -14,14 +14,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import soil.form.compose.FormActionControl
+import soil.form.compose.Form
 import soil.playground.style.withAppTheme
 
 @Composable
-fun FormActionControl<*>.SubmitButton(
+fun Form<*>.SubmitButton(
     modifier: Modifier = Modifier,
-    onClick: () -> Unit = ::submit,
-    enabled: Boolean = canSubmit,
+    onClick: () -> Unit = ::handleSubmit,
+    enabled: Boolean = state.meta.canSubmit,
     isSubmitting: Boolean = false,
     content: @Composable () -> Unit
 ) = withAppTheme {

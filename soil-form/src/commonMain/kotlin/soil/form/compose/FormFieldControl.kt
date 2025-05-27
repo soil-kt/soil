@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.snapshots.Snapshot
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
@@ -18,9 +19,9 @@ import kotlinx.coroutines.launch
 import soil.form.FieldError
 import soil.form.FieldName
 import soil.form.FieldNames
-import soil.form.FieldPolicy
+import soil.form.FieldOptions
 import soil.form.FieldTypeAdapter
-import soil.form.FieldValidateOn
+import soil.form.FieldValidationMode
 import soil.form.FieldValidator
 import soil.form.annotation.InternalSoilFormApi
 import soil.form.noFieldError
@@ -39,7 +40,7 @@ interface FormFieldControl<V> {
     fun onFocus()
     fun onBlur()
     fun handleFocus(hasFocus: Boolean)
-    fun trigger(validateOn: FieldValidateOn)
+    fun trigger(mode: FieldValidationMode)
 }
 
 inline val FormFieldControl<*>.hasError
@@ -48,7 +49,7 @@ inline val FormFieldControl<*>.hasError
 
 @OptIn(InternalSoilFormApi::class, FlowPreview::class)
 @Composable
-internal fun <T : Any, V, S, U> Form<T>.rememberFieldControl(
+internal fun <T, V, S, U> Form<T>.rememberFieldControl(
     selector: (T) -> V,
     updater: T.(V) -> T,
     adapter: FieldTypeAdapter<V, S, U>,
@@ -78,20 +79,20 @@ internal fun <T : Any, V, S, U> Form<T>.rememberFieldControl(
         LaunchedEffect(control) {
             // validateOnMount
             launch {
-                snapshotFlow { control.shouldTrigger(FieldValidateOn.Mount) }
+                snapshotFlow { control.shouldTrigger(FieldValidationMode.Mount) }
                     .filter { it }
-                    .debounce(control.fieldPolicy.validationDelay.onMount)
+                    .debounce(control.options.validationDelayOnMount)
                     .collect {
-                        control.trigger(FieldValidateOn.Mount)
+                        control.trigger(FieldValidationMode.Mount)
                     }
             }
 
             // validateOnChange
             launch {
-                snapshotFlow { adapter.toValidationTarget(control.fieldValue) }
-                    .debounce(control.fieldPolicy.validationDelay.onChange)
+                snapshotFlow { control.validationTarget }
+                    .debounce(control.options.validationDelayOnChange)
                     .collect {
-                        control.trigger(FieldValidateOn.Change)
+                        control.trigger(FieldValidationMode.Change)
                         control.revalidateDependents()
                     }
             }
@@ -102,9 +103,9 @@ internal fun <T : Any, V, S, U> Form<T>.rememberFieldControl(
                     .scan(Pair(false, false)) { acc, value -> Pair(acc.second, value) }
                     // isFocused: true -> false
                     .filter { it.first && !it.second }
-                    .debounce(control.fieldPolicy.validationDelay.onBlur)
+                    .debounce(control.options.validationDelayOnBlur)
                     .collect {
-                        control.trigger(FieldValidateOn.Blur)
+                        control.trigger(FieldValidationMode.Blur)
                     }
             }
         }
@@ -113,7 +114,7 @@ internal fun <T : Any, V, S, U> Form<T>.rememberFieldControl(
 }
 
 @InternalSoilFormApi
-internal class FormFieldController<T : Any, V, S, U>(
+internal class FormFieldController<T, V, S, U>(
     private val form: FormBinding<T>,
     private val selector: (T) -> V,
     private val updater: T.(V) -> T,
@@ -123,15 +124,17 @@ internal class FormFieldController<T : Any, V, S, U>(
     private val dependsOn: FieldNames
 ) : FormFieldControl<U> {
 
-    val fieldPolicy: FieldPolicy get() = form.policy.field
+    private val rawValue: V get() = selector(form.value)
 
-    val fieldValue: V get() = selector(form.value)
-
-    private val meta: FieldMetaState = form[name] ?: fieldMetaStateOf(
-        trigger = fieldPolicy.validationTrigger.startAt
+    private val meta: FieldMetaState = form[name] ?: FieldMetaState(
+        mode = options.validationStrategy.initial
     )
 
-    override val value: U by derivedStateOf { adapter.toInput(fieldValue) }
+    override val value: U by derivedStateOf { adapter.toInput(rawValue) }
+
+    val options: FieldOptions get() = form.policy.fieldOptions
+
+    val validationTarget: S get() = adapter.toValidationTarget(rawValue)
 
     override var error: FieldError
         get() = meta.error
@@ -169,7 +172,7 @@ internal class FormFieldController<T : Any, V, S, U>(
     }
 
     override fun onValueChange(value: U) {
-        form.handleChange { updater(adapter.fromInput(value, fieldValue)) }
+        form.handleChange { updater(adapter.fromInput(value, rawValue)) }
         isDirty = true
     }
 
@@ -190,23 +193,25 @@ internal class FormFieldController<T : Any, V, S, U>(
         }
     }
 
-    override fun trigger(validateOn: FieldValidateOn) {
-        if (shouldTrigger(validateOn)) {
-            validate(fieldValue)
+    override fun trigger(mode: FieldValidationMode) {
+        if (shouldTrigger(mode)) {
+            validate(rawValue)
         }
     }
 
-    fun shouldTrigger(validateOn: FieldValidateOn): Boolean {
-        return validateOn == meta.trigger
+    fun shouldTrigger(mode: FieldValidationMode): Boolean {
+        return mode == meta.mode
     }
 
     private fun validate(value: V, dryRun: Boolean = false): Boolean {
         val error = validator?.invoke(adapter.toValidationTarget(value)) ?: noFieldError
         val isValid = error == noFieldError
         if (!dryRun) {
-            meta.error = error
-            meta.trigger = fieldPolicy.validationTrigger.next(meta.trigger, isValid)
-            meta.hasBeenValidated = true
+            Snapshot.withMutableSnapshot {
+                meta.error = error
+                meta.mode = options.validationStrategy.next(meta.mode, isValid)
+                meta.isValidated = true
+            }
         }
         return isValid
     }

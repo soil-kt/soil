@@ -1,6 +1,7 @@
 package soil.form.compose
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -8,48 +9,77 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.autoSaver
+import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.launch
 import soil.form.FieldName
 import soil.form.FieldNames
 import soil.form.FormData
-import soil.form.FormPolicy
+import soil.form.FormOptions
 import soil.form.FormRule
-import soil.form.FormRules
 import soil.form.annotation.InternalSoilFormApi
 
 @Stable
-interface Form<T : Any> : HasFormBinding<T> {
+interface Form<T> : HasFormBinding<T> {
     val state: FormData<T>
+
+    fun handleSubmit()
 }
 
 @Composable
-fun <T : Any> rememberForm(
+fun <T> rememberForm(
     initialValue: T,
     saver: Saver<T, Any> = autoSaver(),
-    policy: FormPolicy = FormPolicy.Default,
+    policy: FormPolicy = FormPolicy(),
     onSubmit: (T) -> Unit
 ): Form<T> = rememberForm(
     state = rememberFormState(initialValue, saver, policy),
     onSubmit = onSubmit
 )
 
+@OptIn(FlowPreview::class)
 @Composable
-fun <T : Any> rememberForm(
+fun <T> rememberForm(
     state: FormState<T>,
     onSubmit: (T) -> Unit
-): Form<T> = remember(state) {
-    FormController(state = state, onSubmit = onSubmit)
+): Form<T> {
+    val control = remember(state) {
+        FormController(state = state, onSubmit = onSubmit)
+    }
+    if (control.options.preValidation) {
+        LaunchedEffect(control) {
+            // validateOnMount
+            launch {
+                snapshotFlow { control.fields }
+                    .debounce(control.options.preValidationDelayOnMount)
+                    .collect {
+                        control.preValidate(value = state.value)
+                    }
+            }
+
+            // validateOnChange
+            launch {
+                snapshotFlow { state.value }
+                    .debounce(control.options.preValidationDelayOnChange)
+                    .collect {
+                        control.preValidate(value = it)
+                    }
+            }
+        }
+    }
+    return control
 }
 
 @OptIn(InternalSoilFormApi::class)
-internal class FormController<T : Any>(
+internal class FormController<T>(
     override val state: FormState<T>,
     private val onSubmit: (T) -> Unit
 ) : Form<T>, FormBinding<T> {
 
     override val binding: FormBinding<T> = this
 
-    private val _rules = mutableStateMapOf<FieldName, FormRule<T>>()
-    override val rules: FormRules<T> = _rules
+    private val rules = mutableStateMapOf<FieldName, FormRule<T>>()
 
     private val dependencies = mutableStateMapOf<FieldName, FieldNames>()
 
@@ -57,6 +87,19 @@ internal class FormController<T : Any>(
         dependencies.keys.flatMap { key -> dependencies[key]?.map { Pair(key, it) } ?: emptyList() }
             .groupBy(keySelector = { it.second }, valueTransform = { it.first })
             .mapValues { (_, value) -> value.toSet() }
+    }
+
+    val options: FormOptions get() = state.policy.formOptions
+    val fields: FieldNames get() = rules.keys
+
+    fun preValidate(value: T) {
+        state.meta.canSubmit = validate(value = value, dryRun = true)
+    }
+
+    override fun handleSubmit() {
+        if (validate(state.value, false)) {
+            onSubmit(state.value)
+        }
     }
 
     // ----- FormBinding ----- //
@@ -74,19 +117,28 @@ internal class FormController<T : Any>(
     }
 
     override fun register(name: FieldName, dependsOn: FieldNames, rule: FormRule<T>) {
-        _rules[name] = rule
+        rules[name] = rule
         dependencies[name] = dependsOn
     }
 
     override fun unregister(name: FieldName) {
-        _rules.remove(name)
+        rules.remove(name)
         dependencies.remove(name)
+    }
+
+    override fun validate(value: T, dryRun: Boolean): Boolean {
+        return if (dryRun) {
+            rules.values.all { it.test(value, dryRun = true) }
+        } else {
+            // NOTE: Related to FieldValidateOn, make sure to traverse all rules
+            rules.values.map { it.test(value, dryRun = false) }.all { it }
+        }
     }
 
     override fun revalidateDependents(name: FieldName) {
         watchers[name]?.forEach { watcher ->
-            val hasBeenValidated = state.meta.fields[watcher]?.hasBeenValidated ?: false
-            if (hasBeenValidated) {
+            val isValidated = state.meta.fields[watcher]?.isValidated ?: false
+            if (isValidated) {
                 rules[watcher]?.test(state.value, dryRun = false)
             }
         }
@@ -94,11 +146,5 @@ internal class FormController<T : Any>(
 
     override fun handleChange(updater: T.() -> T) {
         state.value = with(state.value) { updater() }
-    }
-
-    override fun handleSubmit() {
-        if (policy.submission.validate(state.value, rules, false)) {
-            onSubmit(state.value)
-        }
     }
 }
