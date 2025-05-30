@@ -1,3 +1,6 @@
+// Copyright 2025 Soil Contributors
+// SPDX-License-Identifier: Apache-2.0
+
 package soil.form.compose
 
 import androidx.compose.runtime.Composable
@@ -17,7 +20,6 @@ import soil.form.FieldName
 import soil.form.FieldNames
 import soil.form.FormData
 import soil.form.FormOptions
-import soil.form.FormRule
 import soil.form.annotation.InternalSoilFormApi
 
 @Stable
@@ -79,7 +81,7 @@ internal class FormController<T>(
 
     override val binding: FormBinding<T> = this
 
-    private val rules = mutableStateMapOf<FieldName, FormRule<T>>()
+    private val rules = mutableStateMapOf<FieldName, FieldRule<T>>()
 
     private val dependencies = mutableStateMapOf<FieldName, FieldNames>()
 
@@ -116,7 +118,7 @@ internal class FormController<T>(
         state.meta.fields[name] = fieldMeta
     }
 
-    override fun register(name: FieldName, dependsOn: FieldNames, rule: FormRule<T>) {
+    override fun register(name: FieldName, dependsOn: FieldNames, rule: FieldRule<T>) {
         rules[name] = rule
         dependencies[name] = dependsOn
     }

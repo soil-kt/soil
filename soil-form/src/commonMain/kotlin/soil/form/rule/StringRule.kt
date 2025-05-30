@@ -24,6 +24,12 @@ fun StringRule(
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
+@Deprecated("Legacy")
+class StringRuleTester(
+    predicate: String.() -> Boolean,
+    message: () -> String
+) : StringRule by StringRule(predicate, message)
+
 /**
  * Validates that the string value is not empty.
  *

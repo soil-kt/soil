@@ -24,6 +24,12 @@ fun DoubleRule(
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
+@Deprecated("Legacy")
+class DoubleRuleTester(
+    predicate: Double.() -> Boolean,
+    message: () -> String
+) : DoubleRule by DoubleRule(predicate, message)
+
 /**
  * Validates that the double value is greater than or equal to [limit].
  *

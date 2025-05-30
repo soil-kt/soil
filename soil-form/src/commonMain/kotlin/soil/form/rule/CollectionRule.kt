@@ -26,6 +26,12 @@ fun <V> CollectionRule(
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
+@Deprecated("Legacy")
+class CollectionRuleTester<V>(
+    predicate: Collection<V>.() -> Boolean,
+    message: () -> String
+) : CollectionRule<V> by CollectionRule(predicate, message)
+
 /**
  * Validates that the collection is not empty.
  *

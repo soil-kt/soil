@@ -25,6 +25,13 @@ fun <V> ObjectRule(
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
+@Deprecated("Legacy")
+class ObjectRuleTester<V>(
+    predicate: V.() -> Boolean,
+    message: () -> String
+) : ObjectRule<V> by ObjectRule(predicate, message)
+
+
 /**
  * A rule that chains a transformation function with a set of rules.
  *

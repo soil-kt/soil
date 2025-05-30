@@ -1,3 +1,6 @@
+// Copyright 2025 Soil Contributors
+// SPDX-License-Identifier: Apache-2.0
+
 package soil.form
 
 enum class FieldValidationMode {

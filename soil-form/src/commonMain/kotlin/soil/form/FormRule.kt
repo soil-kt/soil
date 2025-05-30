@@ -6,6 +6,7 @@ package soil.form
 /**
  * Represents a rule that can be applied to a form field.
  */
+@Deprecated("Legacy")
 fun interface FormRule<T> {
 
     /**
@@ -17,5 +18,3 @@ fun interface FormRule<T> {
      */
     fun test(value: T, dryRun: Boolean): Boolean
 }
-
-typealias FormRules<T> = Map<FieldName, FormRule<T>>

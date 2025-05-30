@@ -24,6 +24,12 @@ fun BooleanRule(
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
+@Deprecated("Legacy")
+class BooleanRuleTester(
+    predicate: Boolean.() -> Boolean,
+    message: () -> String
+) : BooleanRule by BooleanRule(predicate, message)
+
 /**
  * Validates that the boolean value is `true`.
  *

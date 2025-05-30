@@ -1,3 +1,6 @@
+// Copyright 2025 Soil Contributors
+// SPDX-License-Identifier: Apache-2.0
+
 package soil.form
 
 import kotlin.time.Duration
@@ -30,4 +33,3 @@ fun FieldOptions(
         override val validationDelayOnBlur: Duration = validationDelayOnBlur
     }
 }
-

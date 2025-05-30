@@ -24,6 +24,12 @@ fun <V> ArrayRule(
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
+@Deprecated("Legacy")
+class ArrayRuleTester<V>(
+    predicate: Array<V>.() -> Boolean,
+    message: () -> String
+) : ArrayRule<V> by ArrayRule(predicate, message)
+
 /**
  * Validates that the array is not empty.
  *
