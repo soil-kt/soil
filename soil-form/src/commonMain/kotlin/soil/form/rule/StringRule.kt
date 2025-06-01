@@ -7,7 +7,21 @@ import soil.form.core.ValidationResult
 import soil.form.core.ValidationRule
 import soil.form.core.ValidationRuleBuilder
 
+/**
+ * A type alias for validation rules that operate on String values.
+ *
+ * String rules are validation functions that take a String value and return
+ * a [ValidationResult] indicating whether the validation passed or failed.
+ */
 typealias StringRule = ValidationRule<String>
+
+/**
+ * A type alias for builders that create String validation rules.
+ *
+ * String rule builders provide a DSL for constructing validation rules
+ * specifically for String values, with convenient methods like [notEmpty],
+ * [notBlank], [minLength], [maxLength], and [pattern].
+ */
 typealias StringRuleBuilder = ValidationRuleBuilder<String>
 
 /**
@@ -24,7 +38,7 @@ fun StringRule(
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 class StringRuleTester(
     predicate: String.() -> Boolean,
     message: () -> String

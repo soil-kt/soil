@@ -37,7 +37,7 @@ import soil.form.core.rules
  * @param dependsOn The set of field names that this field depends on.
  * @param builder The block to build the rule set.
  */
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 @Composable
 fun <T : Any, V> FormScope<T>.rememberFieldRuleControl(
     name: FieldName,
@@ -83,7 +83,7 @@ fun <T : Any, V> FormScope<T>.rememberFieldRuleControl(
  * @param dependsOn The set of field names that this field depends on.
  * @param ruleSet The rule set to validate the field value.
  */
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 @Composable
 fun <T : Any, V> FormScope<T>.rememberFieldRuleControl(
     name: FieldName,
@@ -117,7 +117,7 @@ fun <T : Any, V> FormScope<T>.rememberFieldRuleControl(
 /**
  * Remembers a submission rule control that automatically controls state of the form.
  */
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 @Composable
 fun <T : Any> FormScope<T>.rememberSubmissionRuleAutoControl(): SubmissionControl<T> {
     return rememberSubmissionControl(validate = { rules, dryRun ->
@@ -137,7 +137,7 @@ fun <T : Any> FormScope<T>.rememberSubmissionRuleAutoControl(): SubmissionContro
  * @param V The type of the watch value.
  * @param select The function to select the watch value.
  */
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 @Composable
 fun <T : Any, V> FormScope<T>.rememberWatch(select: T.() -> V): V {
     val value by remember { derivedStateOf { with(formState.value) { select() } } }

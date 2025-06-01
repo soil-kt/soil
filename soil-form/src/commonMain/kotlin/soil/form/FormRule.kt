@@ -6,7 +6,7 @@ package soil.form
 /**
  * Represents a rule that can be applied to a form field.
  */
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 fun interface FormRule<T> {
 
     /**

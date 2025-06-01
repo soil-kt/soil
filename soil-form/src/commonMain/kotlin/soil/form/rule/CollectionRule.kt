@@ -9,7 +9,21 @@ import soil.form.core.ValidationRuleBuilder
 
 // TODO: ListRule, SetRule, MapRule
 
+/**
+ * A type alias for validation rules that operate on Collection values.
+ *
+ * Collection rules are validation functions that take a Collection value and return
+ * a [ValidationResult] indicating whether the validation passed or failed.
+ */
 typealias CollectionRule<V> = ValidationRule<Collection<V>>
+
+/**
+ * A type alias for builders that create Collection validation rules.
+ *
+ * Collection rule builders provide a DSL for constructing validation rules
+ * specifically for Collection values, with convenient methods like [notEmpty],
+ * [minSize], and [maxSize].
+ */
 typealias CollectionRuleBuilder<V> = ValidationRuleBuilder<Collection<V>>
 
 /**
@@ -26,7 +40,7 @@ fun <V> CollectionRule(
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 class CollectionRuleTester<V>(
     predicate: Collection<V>.() -> Boolean,
     message: () -> String

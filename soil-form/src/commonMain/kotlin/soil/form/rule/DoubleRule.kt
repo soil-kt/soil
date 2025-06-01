@@ -7,7 +7,21 @@ import soil.form.core.ValidationResult
 import soil.form.core.ValidationRule
 import soil.form.core.ValidationRuleBuilder
 
+/**
+ * A type alias for validation rules that operate on Double values.
+ *
+ * Double rules are validation functions that take a Double value and return
+ * a [ValidationResult] indicating whether the validation passed or failed.
+ */
 typealias DoubleRule = ValidationRule<Double>
+
+/**
+ * A type alias for builders that create Double validation rules.
+ *
+ * Double rule builders provide a DSL for constructing validation rules
+ * specifically for Double values, with convenient methods like [minimum],
+ * [maximum], [isNaN], and [notNaN].
+ */
 typealias DoubleRuleBuilder = ValidationRuleBuilder<Double>
 
 /**
@@ -24,7 +38,7 @@ fun DoubleRule(
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 class DoubleRuleTester(
     predicate: Double.() -> Boolean,
     message: () -> String

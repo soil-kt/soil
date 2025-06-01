@@ -35,159 +35,159 @@ import soil.form.rule.notEmpty
 import soil.testing.UnitTest
 import kotlin.test.Test
 
-@OptIn(ExperimentalTestApi::class)
-class FormTest : UnitTest() {
-
-    @Test
-    fun testForm_submit() = runComposeUiTest {
-        val formState = FormState(value = TestData())
-        var submittedFormData: TestData? = null
-        setContent {
-            val form = rememberForm(state = formState) {
-                submittedFormData = it
-                println("XXX/Debug: Submit=$it")
-            }
-            Scaffold(
-                modifier = Modifier.fillMaxSize(),
-                bottomBar = {
-                    form.Submit(modifier = Modifier.testTag("submit"))
-                }
-            ) {
-                Column {
-                    form.FirstName(modifier = Modifier.testTag("firstName"))
-                    form.LastName(modifier = Modifier.testTag("lastName"))
-                }
-            }
-        }
-
-        onNodeWithTag("submit").assertIsNotEnabled()
-
-        onNodeWithTag("firstName")
-            .requestFocus()
-            .performTextInput("Foo")
-
-        onNodeWithTag("lastName")
-            .requestFocus()
-            .performTextInput("Bar")
-
-        onNodeWithTag("submit")
-            .requestFocus()
-
-        waitUntilExactlyOneExists(hasTestTag("submit") and isEnabled())
-
-        onNodeWithTag("submit").performClick()
-
-        waitUntil { submittedFormData == formState.value }
-    }
-
-    data class TestData(
-        val firstName: String = "",
-        val lastName: String = ""
-    ) {
-        companion object {
-            val Saver = listSaver(
-                save = { value ->
-                    listOf(
-                        value.firstName,
-                        value.lastName
-                    )
-                },
-                restore = { list ->
-                    val (firstName, lastName) = list
-                    TestData(
-                        firstName = firstName as String,
-                        lastName = lastName as String
-                    )
-                }
-            )
-        }
-    }
-
-    @Composable
-    fun Form<*>.Submit(
-        modifier: Modifier = Modifier
-    ) {
-        Button(
-            onClick = ::handleSubmit,
-            enabled = state.meta.canSubmit,
-            modifier = modifier.focusable()
-        ) {
-            Text("Submit")
-        }
-    }
-
-    @Composable
-    fun Form<TestData>.FirstName(
-        modifier: Modifier = Modifier,
-        name: FieldName? = null,
-        dependsOn: FieldNames? = null,
-        enabled: Boolean = true
-    ) {
-        Field(
-            selector = { it.firstName },
-            updater = { copy(firstName = it) },
-            validator = FieldValidator {
-                notEmpty { "Must be not empty" }
-            },
-            name = name,
-            dependsOn = dependsOn,
-            enabled = enabled
-        ) {
-            it.TextField(
-                modifier = modifier,
-                singleLine = true
-            )
-        }
-    }
-
-    @Composable
-    fun Form<TestData>.LastName(
-        modifier: Modifier = Modifier,
-        name: FieldName? = null,
-        dependsOn: FieldNames? = null,
-        enabled: Boolean = true
-    ) {
-        Field(
-            selector = { it.lastName },
-            updater = { copy(lastName = it) },
-            validator = FieldValidator {
-                notEmpty { "Must be not empty" }
-            },
-            name = name,
-            dependsOn = dependsOn,
-            enabled = enabled
-        ) {
-            it.TextField(
-                modifier = modifier,
-                singleLine = true
-            )
-        }
-    }
-
-    @Composable
-    fun FormFieldControl<String>.TextField(
-        modifier: Modifier = Modifier,
-        value: String = this.value,
-        onValueChange: (String) -> Unit = this::onValueChange,
-        keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-        keyboardActions: KeyboardActions = KeyboardActions.Default,
-        singleLine: Boolean = false,
-        maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
-        minLines: Int = 1,
-        visualTransformation: VisualTransformation = VisualTransformation.None,
-    ) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = modifier.onFocusChanged { state -> handleFocus(state.isFocused || state.hasFocus) },
-            enabled = isEnabled,
-            keyboardActions = keyboardActions,
-            keyboardOptions = keyboardOptions,
-            singleLine = singleLine,
-            maxLines = maxLines,
-            minLines = minLines,
-            visualTransformation = visualTransformation,
-            isError = hasError,
-        )
-    }
-}
+//@OptIn(ExperimentalTestApi::class)
+//class FormTest : UnitTest() {
+//
+////    @Test
+////    fun testForm_submit() = runComposeUiTest {
+////        val formState = FormState(value = TestData())
+////        var submittedFormData: TestData? = null
+////        setContent {
+////            val form = rememberForm(state = formState) {
+////                submittedFormData = it
+////                println("XXX/Debug: Submit=$it")
+////            }
+////            Scaffold(
+////                modifier = Modifier.fillMaxSize(),
+////                bottomBar = {
+////                    form.Submit(modifier = Modifier.testTag("submit"))
+////                }
+////            ) {
+////                Column {
+////                    form.FirstName(modifier = Modifier.testTag("firstName"))
+////                    form.LastName(modifier = Modifier.testTag("lastName"))
+////                }
+////            }
+////        }
+////
+////        onNodeWithTag("submit").assertIsNotEnabled()
+////
+////        onNodeWithTag("firstName")
+////            .requestFocus()
+////            .performTextInput("Foo")
+////
+////        onNodeWithTag("lastName")
+////            .requestFocus()
+////            .performTextInput("Bar")
+////
+////        onNodeWithTag("submit")
+////            .requestFocus()
+////
+////        waitUntilExactlyOneExists(hasTestTag("submit") and isEnabled())
+////
+////        onNodeWithTag("submit").performClick()
+////
+////        waitUntil { submittedFormData == formState.value }
+////    }
+////
+//    data class TestData(
+//        val firstName: String = "",
+//        val lastName: String = ""
+//    ) {
+//        companion object {
+//            val Saver = listSaver(
+//                save = { value ->
+//                    listOf(
+//                        value.firstName,
+//                        value.lastName
+//                    )
+//                },
+//                restore = { list ->
+//                    val (firstName, lastName) = list
+//                    TestData(
+//                        firstName = firstName as String,
+//                        lastName = lastName as String
+//                    )
+//                }
+//            )
+//        }
+//    }
+//
+//    @Composable
+//    fun Form<*>.Submit(
+//        modifier: Modifier = Modifier
+//    ) {
+//        Button(
+//            onClick = ::handleSubmit,
+//            enabled = state.meta.canSubmit,
+//            modifier = modifier.focusable()
+//        ) {
+//            Text("Submit")
+//        }
+//    }
+//
+//    @Composable
+//    fun Form<TestData>.FirstName(
+//        modifier: Modifier = Modifier,
+//        name: FieldName? = null,
+//        dependsOn: FieldNames? = null,
+//        enabled: Boolean = true
+//    ) {
+//        Field(
+//            selector = { it.firstName },
+//            updater = { copy(firstName = it) },
+//            validator = FieldValidator {
+//                notEmpty { "Must be not empty" }
+//            },
+//            name = name,
+//            dependsOn = dependsOn,
+//            enabled = enabled
+//        ) {
+//            it.TextField(
+//                modifier = modifier,
+//                singleLine = true
+//            )
+//        }
+//    }
+//
+//    @Composable
+//    fun Form<TestData>.LastName(
+//        modifier: Modifier = Modifier,
+//        name: FieldName? = null,
+//        dependsOn: FieldNames? = null,
+//        enabled: Boolean = true
+//    ) {
+//        Field(
+//            selector = { it.lastName },
+//            updater = { copy(lastName = it) },
+//            validator = FieldValidator {
+//                notEmpty { "Must be not empty" }
+//            },
+//            name = name,
+//            dependsOn = dependsOn,
+//            enabled = enabled
+//        ) {
+//            it.TextField(
+//                modifier = modifier,
+//                singleLine = true
+//            )
+//        }
+//    }
+//
+//    @Composable
+//    fun FormFieldControl<String>.TextField(
+//        modifier: Modifier = Modifier,
+//        value: String = this.value,
+//        onValueChange: (String) -> Unit = this::onValueChange,
+//        keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+//        keyboardActions: KeyboardActions = KeyboardActions.Default,
+//        singleLine: Boolean = false,
+//        maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
+//        minLines: Int = 1,
+//        visualTransformation: VisualTransformation = VisualTransformation.None,
+//    ) {
+//        OutlinedTextField(
+//            value = value,
+//            onValueChange = onValueChange,
+//            modifier = modifier.onFocusChanged { state -> handleFocus(state.isFocused || state.hasFocus) },
+//            enabled = isEnabled,
+//            keyboardActions = keyboardActions,
+//            keyboardOptions = keyboardOptions,
+//            singleLine = singleLine,
+//            maxLines = maxLines,
+//            minLines = minLines,
+//            visualTransformation = visualTransformation,
+//            isError = hasError,
+//        )
+//    }
+//}

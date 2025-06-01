@@ -29,23 +29,116 @@ import soil.form.FieldValidator
 import soil.form.annotation.InternalSoilFormApi
 import soil.form.noFieldError
 
+/**
+ * A control interface for managing individual form field state and interactions.
+ *
+ * This interface provides access to field state (value, validation errors, focus state)
+ * and methods for handling user interactions (value changes, focus events, validation triggers).
+ * It serves as the bridge between the form field UI and the underlying form state management.
+ *
+ * Usage:
+ * ```kotlin
+ * form.Field(
+ *     selector = { it.email },
+ *     updater = { copy(email = it) }
+ * ) { fieldControl ->
+ *     TextField(
+ *         value = fieldControl.value,
+ *         onValueChange = fieldControl::onValueChange,
+ *         isError = fieldControl.hasError,
+ *         modifier = Modifier.onFocusChanged { state ->
+ *             fieldControl.handleFocus(state.isFocused)
+ *         }
+ *     )
+ * }
+ * ```
+ *
+ * @param V The type of the field value.
+ */
 @Stable
 interface FormFieldControl<V> {
+    /**
+     * The unique name identifier for this field within the form.
+     */
     val name: FieldName
+
+    /**
+     * The current value of the field.
+     */
     val value: V
+
+    /**
+     * The current validation error for this field, if any.
+     */
     val error: FieldError
+
+    /**
+     * Whether the field value has been modified from its initial value.
+     */
     val isDirty: Boolean
+
+    /**
+     * Whether the field has been touched (focused and then blurred) by the user.
+     */
     val isTouched: Boolean
+
+    /**
+     * Whether the field currently has focus.
+     */
     val isFocused: Boolean
+
+    /**
+     * Whether the field is enabled for user interaction.
+     */
     val isEnabled: Boolean
 
+    /**
+     * Updates the field value and triggers validation if configured.
+     *
+     * @param value The new value for the field.
+     */
     fun onValueChange(value: V)
+
+    /**
+     * Marks the field as focused.
+     */
     fun onFocus()
+
+    /**
+     * Marks the field as blurred (not focused) and touched.
+     */
     fun onBlur()
+
+    /**
+     * Handles focus state changes by calling onFocus() or onBlur() as appropriate.
+     *
+     * @param hasFocus Whether the field currently has focus.
+     */
     fun handleFocus(hasFocus: Boolean)
+
+    /**
+     * Manually triggers validation for this field with the specified mode.
+     *
+     * @param mode The validation mode to trigger.
+     */
     fun trigger(mode: FieldValidationMode)
 }
 
+/**
+ * Extension property that returns true if the field has any validation errors.
+ *
+ * This is a convenient way to check if a field has validation errors without
+ * having to compare against [noFieldError] directly.
+ *
+ * Usage:
+ * ```kotlin
+ * TextField(
+ *     value = fieldControl.value,
+ *     onValueChange = fieldControl::onValueChange,
+ *     isError = fieldControl.hasError
+ * )
+ * ```
+ */
 inline val FormFieldControl<*>.hasError
     get() = error != noFieldError
 

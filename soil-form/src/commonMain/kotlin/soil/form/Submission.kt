@@ -6,7 +6,7 @@ package soil.form
 /**
  * A submission represents the submission control of a form.
  */
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 interface Submission {
 
     /**

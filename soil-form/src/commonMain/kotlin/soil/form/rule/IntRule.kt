@@ -7,7 +7,20 @@ import soil.form.core.ValidationResult
 import soil.form.core.ValidationRule
 import soil.form.core.ValidationRuleBuilder
 
+/**
+ * A type alias for validation rules that operate on Int values.
+ *
+ * Int rules are validation functions that take an Int value and return
+ * a [ValidationResult] indicating whether the validation passed or failed.
+ */
 typealias IntRule = ValidationRule<Int>
+
+/**
+ * A type alias for builders that create Int validation rules.
+ *
+ * Int rule builders provide a DSL for constructing validation rules
+ * specifically for Int values, with convenient methods like [minimum] and [maximum].
+ */
 typealias IntRuleBuilder = ValidationRuleBuilder<Int>
 
 /**
@@ -24,7 +37,7 @@ fun IntRule(
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 class IntRuleTester(
     predicate: Int.() -> Boolean,
     message: () -> String

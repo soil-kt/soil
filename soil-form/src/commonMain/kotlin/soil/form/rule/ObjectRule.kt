@@ -8,7 +8,21 @@ import soil.form.core.ValidationRule
 import soil.form.core.ValidationRuleBuilder
 import soil.form.core.rules
 
+/**
+ * A type alias for validation rules that operate on any object type.
+ *
+ * Object rules are validation functions that take a value of any type and return
+ * a [ValidationResult] indicating whether the validation passed or failed.
+ * This is the most generic form of validation rule.
+ */
 typealias ObjectRule<V> = ValidationRule<V>
+
+/**
+ * A type alias for builders that create object validation rules.
+ *
+ * Object rule builders provide a DSL for constructing validation rules
+ * for any object type, with convenient methods like [test] and [cast].
+ */
 typealias ObjectRuleBuilder<V> = ValidationRuleBuilder<V>
 
 /**
@@ -25,7 +39,7 @@ fun <V> ObjectRule(
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 class ObjectRuleTester<V>(
     predicate: V.() -> Boolean,
     message: () -> String
@@ -33,10 +47,26 @@ class ObjectRuleTester<V>(
 
 
 /**
- * A rule that chains a transformation function with a set of rules.
+ * A rule chainer that allows applying validation rules to transformed object values.
  *
+ * This class enables validation of derived or transformed values from the original object.
+ * It provides a fluent API for chaining transformation functions with validation rules,
+ * allowing complex validation scenarios where you need to validate a computed property
+ * or transformed representation of the original value.
+ *
+ * Usage:
+ * ```kotlin
+ * rules<String> {
+ *     cast { it.length } then {
+ *         minimum(3) { "must be at least 3 characters" }
+ *         maximum(20) { "must be at most 20 characters" }
+ *     }
+ * }
+ * ```
+ *
+ * @param V The type of the original object value.
+ * @param S The type of the transformed value.
  * @property transform The transformation function to apply to the object value.
- * @constructor Creates a new instance of [ObjectRuleChainer].
  */
 class ObjectRuleChainer<V, S>(
     val transform: (V) -> S
@@ -55,7 +85,12 @@ class ObjectRuleChainer<V, S>(
     }
 
     /**
-     * Chains a set of rules to the transformation function.
+     * Chains a set of validation rules to be applied to the transformed value.
+     *
+     * This infix function allows you to specify validation rules that will be applied
+     * to the result of the transformation function. The original value is first
+     * transformed using the transform function, then the chained rules are applied
+     * to the transformed value.
      *
      * Usage:
      * ```kotlin
@@ -68,7 +103,7 @@ class ObjectRuleChainer<V, S>(
      * }
      * ```
      *
-     * @param block The block to build the set of rules.
+     * @param block A lambda that builds the validation rules using [ValidationRuleBuilder].
      */
     infix fun then(block: ValidationRuleBuilder<S>.() -> Unit) {
         ruleSet = rules(block)
@@ -97,7 +132,12 @@ fun <V : Any> ObjectRuleBuilder<V>.test(predicate: V.() -> Boolean, message: () 
 }
 
 /**
- * Chains a transformation function with a set of rules.
+ * Creates a transformation-based validation rule chain.
+ *
+ * This function allows you to validate a transformed or derived value from the original object.
+ * It's useful when you need to validate a computed property, extracted field, or any
+ * transformation of the original value. The transformation is applied first, then the
+ * chained validation rules are applied to the transformed result.
  *
  * Usage:
  * ```kotlin
@@ -110,7 +150,10 @@ fun <V : Any> ObjectRuleBuilder<V>.test(predicate: V.() -> Boolean, message: () 
  * }
  * ```
  *
+ * @param V The type of the original object value.
+ * @param S The type of the transformed value.
  * @param transform The transformation function to apply to the object value.
+ * @return An [ObjectRuleChainer] that allows chaining validation rules for the transformed value.
  */
 fun <V : Any, S> ObjectRuleBuilder<V>.cast(transform: (V) -> S): ObjectRuleChainer<V, S> {
     return ObjectRuleChainer(transform).also { extend(it.chainedRule) }

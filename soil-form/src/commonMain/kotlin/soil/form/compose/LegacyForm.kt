@@ -64,7 +64,7 @@ import soil.serialization.bundle.Bundler
  * @param coroutineScope The coroutine scope to launch the submit handler.
  * @param content The content block to create the child block of [FormScope].
  */
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 @Composable
 fun <T : Any> Form(
     onSubmit: suspend (T) -> Unit,

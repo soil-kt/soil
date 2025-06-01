@@ -10,7 +10,7 @@ package soil.form
  * @property submission Settings related to submission control.
  * @constructor Creates a new instance of [FormPolicy].
  */
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 data class FormPolicy(
     val field: FieldPolicy = FieldPolicy(),
     val submission: SubmissionPolicy = SubmissionPolicy()

@@ -7,7 +7,21 @@ import soil.form.core.ValidationResult
 import soil.form.core.ValidationRule
 import soil.form.core.ValidationRuleBuilder
 
+/**
+ * A type alias for validation rules that operate on Array values.
+ *
+ * Array rules are validation functions that take an Array value and return
+ * a [ValidationResult] indicating whether the validation passed or failed.
+ */
 typealias ArrayRule<V> = ValidationRule<Array<V>>
+
+/**
+ * A type alias for builders that create Array validation rules.
+ *
+ * Array rule builders provide a DSL for constructing validation rules
+ * specifically for Array values, with convenient methods like [notEmpty],
+ * [minSize], and [maxSize].
+ */
 typealias ArrayRuleBuilder<V> = ValidationRuleBuilder<Array<V>>
 
 /**
@@ -24,7 +38,7 @@ fun <V> ArrayRule(
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 class ArrayRuleTester<V>(
     predicate: Array<V>.() -> Boolean,
     message: () -> String

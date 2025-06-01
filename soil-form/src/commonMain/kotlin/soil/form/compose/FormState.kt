@@ -46,6 +46,23 @@ fun <T> rememberFormState(
     }
 }
 
+/**
+ * A mutable implementation of [FormData] that manages form state.
+ *
+ * This class provides a concrete implementation of form state management with
+ * support for state persistence, validation, and metadata tracking. It integrates
+ * with Compose's state system to provide reactive updates when form data changes.
+ *
+ * Usage:
+ * ```kotlin
+ * val formState = FormState(
+ *     value = UserData(name = "", email = ""),
+ *     policy = FormPolicy()
+ * )
+ * ```
+ *
+ * @param T The type of the form data.
+ */
 @Stable
 class FormState<T> internal constructor(
     value: T,
@@ -53,6 +70,12 @@ class FormState<T> internal constructor(
     val policy: FormPolicy
 ) : FormData<T> {
 
+    /**
+     * Creates a new FormState with the specified value and policy.
+     *
+     * @param value The initial form data value.
+     * @param policy The form policy that defines validation behavior.
+     */
     constructor(value: T, policy: FormPolicy = FormPolicy()) : this(
         value = value,
         meta = FormMetaState(canSubmit = !policy.formOptions.preValidation),
@@ -61,6 +84,20 @@ class FormState<T> internal constructor(
 
     override var value: T by mutableStateOf(value)
 
+    /**
+     * Resets the form to a new value and clears all field metadata.
+     *
+     * This function resets the form data to the specified value and clears all
+     * field-level state including errors, dirty flags, touched flags, and validation state.
+     * The form submission state is also reset based on the pre-validation policy.
+     *
+     * Usage:
+     * ```kotlin
+ * formState.reset(UserData(name = "", email = ""))
+     * ```
+     *
+     * @param newValue The new value to reset the form to.
+     */
     fun reset(newValue: T) {
         Snapshot.withMutableSnapshot {
             value = newValue
@@ -75,6 +112,23 @@ class FormState<T> internal constructor(
         }
     }
 
+    /**
+     * Sets validation errors for specific fields.
+     *
+     * This function allows you to programmatically set validation errors for
+     * specific fields, typically used for server-side validation errors or
+     * custom validation scenarios. Errors are combined with existing field errors.
+     *
+     * Usage:
+     * ```kotlin
+     * formState.setError(
+     *     "email" to FieldError("Email already exists"),
+     *     "username" to FieldError("Username is taken")
+     * )
+     * ```
+     *
+     * @param pairs Pairs of field names and their corresponding errors.
+     */
     fun setError(vararg pairs: Pair<FieldName, FieldError>) {
         Snapshot.withMutableSnapshot {
             pairs.forEach { (fieldName, fieldError) ->
@@ -118,6 +172,12 @@ class FormState<T> internal constructor(
     }
 }
 
+/**
+ * A mutable implementation of [FormMeta] that tracks form-level metadata.
+ *
+ * This class manages form-wide metadata including field states and submission readiness.
+ * It provides mutable access to form metadata for internal form management operations.
+ */
 class FormMetaState internal constructor(
     fields: Map<FieldName, FieldMetaState> = emptyMap(),
     canSubmit: Boolean = false
@@ -160,6 +220,13 @@ class FormMetaState internal constructor(
     }
 }
 
+/**
+ * A mutable implementation of [FieldMeta] that tracks field-level metadata.
+ *
+ * This class manages individual field metadata including validation errors,
+ * validation mode, and user interaction state. It provides mutable access
+ * to field metadata for internal form field management operations.
+ */
 class FieldMetaState internal constructor(
     error: FieldError = noFieldError,
     mode: FieldValidationMode = FieldValidationMode.Blur,

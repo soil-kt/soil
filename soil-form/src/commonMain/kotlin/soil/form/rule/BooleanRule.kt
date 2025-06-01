@@ -7,7 +7,20 @@ import soil.form.core.ValidationResult
 import soil.form.core.ValidationRule
 import soil.form.core.ValidationRuleBuilder
 
+/**
+ * A type alias for validation rules that operate on Boolean values.
+ *
+ * Boolean rules are validation functions that take a Boolean value and return
+ * a [ValidationResult] indicating whether the validation passed or failed.
+ */
 typealias BooleanRule = ValidationRule<Boolean>
+
+/**
+ * A type alias for builders that create Boolean validation rules.
+ *
+ * Boolean rule builders provide a DSL for constructing validation rules
+ * specifically for Boolean values, with convenient methods like [isTrue] and [isFalse].
+ */
 typealias BooleanRuleBuilder = ValidationRuleBuilder<Boolean>
 
 /**
@@ -24,7 +37,7 @@ fun BooleanRule(
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 class BooleanRuleTester(
     predicate: Boolean.() -> Boolean,
     message: () -> String

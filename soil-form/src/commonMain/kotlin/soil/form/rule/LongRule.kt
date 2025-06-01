@@ -7,7 +7,20 @@ import soil.form.core.ValidationResult
 import soil.form.core.ValidationRule
 import soil.form.core.ValidationRuleBuilder
 
+/**
+ * A type alias for validation rules that operate on Long values.
+ *
+ * Long rules are validation functions that take a Long value and return
+ * a [ValidationResult] indicating whether the validation passed or failed.
+ */
 typealias LongRule = ValidationRule<Long>
+
+/**
+ * A type alias for builders that create Long validation rules.
+ *
+ * Long rule builders provide a DSL for constructing validation rules
+ * specifically for Long values, with convenient methods like [minimum] and [maximum].
+ */
 typealias LongRuleBuilder = ValidationRuleBuilder<Long>
 
 /**
@@ -24,7 +37,7 @@ fun LongRule(
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 class LongRuleTester(
     predicate: Long.() -> Boolean,
     message: () -> String
@@ -50,9 +63,12 @@ fun LongRuleBuilder.minimum(limit: Long, message: () -> String) {
 /**
  * Validates that the long value is less than or equal to [limit].
  *
+ * Usage:
+ * ```kotlin
  * rules<Long> {
  *     maximum(20) { "must be less than or equal to 20" }
  * }
+ * ```
  *
  * @param limit The maximum value the long can have.
  * @param message The message to return when the test fails.

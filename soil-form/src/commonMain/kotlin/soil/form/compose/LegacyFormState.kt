@@ -26,7 +26,7 @@ import soil.form.FormTriggers
  * @param T The type of the form value.
  */
 @Stable
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 interface LegacyFormState<T> {
 
     /**
@@ -86,7 +86,7 @@ interface LegacyFormState<T> {
         get() = errors.values.any { it.isNotEmpty() }
 }
 
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 @Stable
 internal class LegacyFormStateImpl<T>(
     val policy: FormPolicy,

@@ -22,13 +22,61 @@ import soil.form.FormData
 import soil.form.FormOptions
 import soil.form.annotation.InternalSoilFormApi
 
+/**
+ * A form interface that provides form state management and submission handling.
+ *
+ * This interface represents a form with type-safe data binding and validation capabilities.
+ * It manages form state, field validation, and form submission logic.
+ *
+ * Usage:
+ * ```kotlin
+ * val form = rememberForm(
+ *     initialValue = FormData(),
+ *     onSubmit = { data -> /* handle submission */ }
+ * )
+ * ```
+ *
+ * @param T The type of the form data.
+ */
 @Stable
 interface Form<T> : HasFormBinding<T> {
+    /**
+     * The current state of the form including data and metadata.
+     */
     val state: FormData<T>
 
+    /**
+     * Handles form submission by validating all fields and calling the submit callback
+     * if validation passes.
+     */
     fun handleSubmit()
 }
 
+/**
+ * Remembers a form with the given initial value and submission handler.
+ *
+ * This function creates and remembers a form instance that manages form state,
+ * validation, and submission. The form state is automatically saved and restored
+ * across configuration changes.
+ *
+ * Usage:
+ * ```kotlin
+ * val form = rememberForm(
+ *     initialValue = UserData(name = "", email = ""),
+ *     onSubmit = { userData ->
+ *         // Handle form submission
+ *         submitUserData(userData)
+ *     }
+ * )
+ * ```
+ *
+ * @param T The type of the form data.
+ * @param initialValue The initial value for the form.
+ * @param saver The saver used to save and restore the form state across configuration changes.
+ * @param policy The form policy that defines validation behavior and options.
+ * @param onSubmit The callback function called when the form is submitted successfully.
+ * @return A [Form] instance that manages the form state and submission.
+ */
 @Composable
 fun <T> rememberForm(
     initialValue: T,
@@ -40,6 +88,29 @@ fun <T> rememberForm(
     onSubmit = onSubmit
 )
 
+/**
+ * Remembers a form with the given form state and submission handler.
+ *
+ * This overload allows you to provide your own form state instance, giving you
+ * more control over state management and persistence.
+ *
+ * Usage:
+ * ```kotlin
+ * val formState = rememberFormState(initialValue = UserData())
+ * val form = rememberForm(
+ *     state = formState,
+ *     onSubmit = { userData ->
+ *         // Handle form submission
+ *         submitUserData(userData)
+ *     }
+ * )
+ * ```
+ *
+ * @param T The type of the form data.
+ * @param state The form state to use for this form.
+ * @param onSubmit The callback function called when the form is submitted successfully.
+ * @return A [Form] instance that manages the form state and submission.
+ */
 @OptIn(FlowPreview::class)
 @Composable
 fun <T> rememberForm(

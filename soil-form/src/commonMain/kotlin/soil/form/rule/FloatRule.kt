@@ -7,7 +7,21 @@ import soil.form.core.ValidationResult
 import soil.form.core.ValidationRule
 import soil.form.core.ValidationRuleBuilder
 
+/**
+ * A type alias for validation rules that operate on Float values.
+ *
+ * Float rules are validation functions that take a Float value and return
+ * a [ValidationResult] indicating whether the validation passed or failed.
+ */
 typealias FloatRule = ValidationRule<Float>
+
+/**
+ * A type alias for builders that create Float validation rules.
+ *
+ * Float rule builders provide a DSL for constructing validation rules
+ * specifically for Float values, with convenient methods like [minimum],
+ * [maximum], [isNaN], and [notNaN].
+ */
 typealias FloatRuleBuilder = ValidationRuleBuilder<Float>
 
 /**
@@ -24,7 +38,7 @@ fun FloatRule(
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 class FloatRuleTester(
     predicate: Float.() -> Boolean,
     message: () -> String

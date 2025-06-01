@@ -3,13 +3,13 @@
 
 package soil.form
 
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 typealias FormFieldNames = Set<FieldName>
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 typealias FormFieldDependencies = Map<FieldName, FormFieldNames>
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 typealias FormErrors = Map<FieldName, FieldErrors>
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 typealias FormTriggers = Map<FieldName, FieldValidateOn>
-@Deprecated("Legacy")
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 typealias FormRules<T> = Map<FieldName, FormRule<T>>
