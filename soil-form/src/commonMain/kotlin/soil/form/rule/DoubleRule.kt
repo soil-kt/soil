@@ -20,7 +20,7 @@ typealias DoubleRule = ValidationRule<Double>
  *
  * Double rule builders provide a DSL for constructing validation rules
  * specifically for Double values, with convenient methods like [minimum],
- * [maximum], [isNaN], and [notNaN].
+ * [maximum], and [notNaN].
  */
 typealias DoubleRuleBuilder = ValidationRuleBuilder<Double>
 
@@ -76,22 +76,6 @@ fun DoubleRuleBuilder.minimum(limit: Double, message: () -> String) {
  */
 fun DoubleRuleBuilder.maximum(limit: Double, message: () -> String) {
     extend(DoubleRule({ this <= limit }, message))
-}
-
-/**
- * Validates that the double value is `NaN`.
- *
- * Usage:
- * ```kotlin
- * rules<Double> {
- *     isNaN { "must be NaN" }
- * }
- * ```
- *
- * @param message The message to return when the test fails.
- */
-fun DoubleRuleBuilder.isNaN(message: () -> String) {
-    extend(DoubleRule({ isNaN() }, message))
 }
 
 /**

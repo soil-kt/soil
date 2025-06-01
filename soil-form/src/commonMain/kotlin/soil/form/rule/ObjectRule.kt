@@ -127,7 +127,28 @@ class ObjectRuleChainer<V, S>(
  * @param predicate The predicate to test the object value. Returns `true` if the test passes; `false` otherwise.
  * @param message The message to return when the test fails.
  */
+@Deprecated(
+    "Use `satisfy` instead. This will be removed in a future version.",
+    ReplaceWith("satisfy(predicate, message)")
+)
 fun <V : Any> ObjectRuleBuilder<V>.test(predicate: V.() -> Boolean, message: () -> String) {
+    extend(ObjectRule(predicate, message))
+}
+
+/**
+ * Validates that the object value passes the given [predicate].
+ *
+ * Usage:
+ * ```kotlin
+ * rules<Post> {
+ *     satisfy({ title.isNotBlank() }) { "Title must be not blank" }
+ * }
+ * ```
+ *
+ * @param predicate The predicate to test the object value. Returns `true` if the test passes; `false` otherwise.
+ * @param message The message to return when the test fails.
+ */
+fun <V : Any> ObjectRuleBuilder<V>.satisfy(predicate: V.() -> Boolean, message: () -> String) {
     extend(ObjectRule(predicate, message))
 }
 

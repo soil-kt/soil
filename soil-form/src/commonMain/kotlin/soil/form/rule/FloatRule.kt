@@ -20,7 +20,7 @@ typealias FloatRule = ValidationRule<Float>
  *
  * Float rule builders provide a DSL for constructing validation rules
  * specifically for Float values, with convenient methods like [minimum],
- * [maximum], [isNaN], and [notNaN].
+ * [maximum], and [notNaN].
  */
 typealias FloatRuleBuilder = ValidationRuleBuilder<Float>
 
@@ -76,22 +76,6 @@ fun FloatRuleBuilder.minimum(limit: Float, message: () -> String) {
  */
 fun FloatRuleBuilder.maximum(limit: Float, message: () -> String) {
     extend(FloatRule({ this <= limit }, message))
-}
-
-/**
- * Validates that the float value is `NaN`.
- *
- * Usage:
- * ```kotlin
- * rules<Float> {
- *     isNaN { "must be NaN" }
- * }
- * ```
- *
- * @param message The message to return when the test fails.
- */
-fun FloatRuleBuilder.isNaN(message: () -> String) {
-    extend(FloatRule({ isNaN() }, message))
 }
 
 /**

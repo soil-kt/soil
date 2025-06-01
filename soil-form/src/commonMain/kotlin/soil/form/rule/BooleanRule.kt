@@ -55,7 +55,24 @@ class BooleanRuleTester(
  *
  * @param message The message to return when the test fails.
  */
+@Deprecated("Use `truthy` instead. This will be removed in a future version.", ReplaceWith("truthy(message)"))
 fun BooleanRuleBuilder.isTrue(message: () -> String) {
+    extend(BooleanRule({ this }, message))
+}
+
+/**
+ * Validates that the boolean value is `true`.
+ *
+ * Usage:
+ * ```kotlin
+ * rules<Boolean> {
+ *     truthy { "must be true" }
+ * }
+ * ```
+ *
+ * @param message The message to return when the test fails.
+ */
+fun BooleanRuleBuilder.truthy(message: () -> String) {
     extend(BooleanRule({ this }, message))
 }
 
@@ -71,6 +88,23 @@ fun BooleanRuleBuilder.isTrue(message: () -> String) {
  *
  * @param message The message to return when the test fails.
  */
+@Deprecated("Use `falsy` instead. This will be removed in a future version.", ReplaceWith("falsy(message)"))
 fun BooleanRuleBuilder.isFalse(message: () -> String) {
+    extend(BooleanRule({ !this }, message))
+}
+
+/**
+ * Validates that the boolean value is `false`.
+ *
+ * Usage:
+ * ```kotlin
+ * rules<Boolean> {
+ *     falsy { "must be false" }
+ * }
+ * ```
+ *
+ * @param message The message to return when the test fails.
+ */
+fun BooleanRuleBuilder.falsy(message: () -> String) {
     extend(BooleanRule({ !this }, message))
 }

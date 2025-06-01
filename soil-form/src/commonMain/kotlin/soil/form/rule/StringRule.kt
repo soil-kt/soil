@@ -123,6 +123,7 @@ fun StringRuleBuilder.maxLength(limit: Int, message: () -> String) {
  * @param pattern The regular expression pattern the string must match.
  * @param message The message to return when the test fails.
  */
+@Deprecated("Use `match` instead. This will be removed in a future version.", ReplaceWith("match(pattern, message)"))
 fun StringRuleBuilder.pattern(pattern: String, message: () -> String) {
     pattern(Regex(pattern), message)
 }
@@ -140,6 +141,41 @@ fun StringRuleBuilder.pattern(pattern: String, message: () -> String) {
  * @param pattern The regular expression pattern the string must match.
  * @param message The message to return when the test fails.
  */
+@Deprecated("Use `match` instead. This will be removed in a future version.", ReplaceWith("match(pattern, message)"))
 fun StringRuleBuilder.pattern(pattern: Regex, message: () -> String) {
+    extend(StringRule({ pattern.matches(this) }, message))
+}
+
+/**
+ * Validates that the string matches the [pattern].
+ *
+ * Usage:
+ * ```kotlin
+ * rules<String> {
+ *     match("^[A-Za-z]+$") { "must be alphabetic" }
+ * }
+ * ```
+ *
+ * @param pattern The regular expression pattern the string must match.
+ * @param message The message to return when the test fails.
+ */
+fun StringRuleBuilder.match(pattern: String, message: () -> String) {
+    match(Regex(pattern), message)
+}
+
+/**
+ * Validates that the string matches the [pattern].
+ *
+ * Usage:
+ * ```kotlin
+ * rules<String> {
+ *     match(Regex("^[A-Za-z]+$")) { "must be alphabetic" }
+ * }
+ * ```
+ *
+ * @param pattern The regular expression pattern the string must match.
+ * @param message The message to return when the test fails.
+ */
+fun StringRuleBuilder.match(pattern: Regex, message: () -> String) {
     extend(StringRule({ pattern.matches(this) }, message))
 }
