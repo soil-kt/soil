@@ -85,6 +85,10 @@ class FormState<T> internal constructor(
         }
     }
 
+    override fun toString(): String {
+        return "FormState(value=$value, meta=$meta, policy=$policy)"
+    }
+
     companion object {
         fun <T> Saver(formSaver: Saver<T, Any>, formPolicy: FormPolicy) = Saver<FormState<T>, Any>(
             save = { value ->
@@ -124,6 +128,10 @@ class FormMetaState internal constructor(
 
     override var canSubmit: Boolean by mutableStateOf(canSubmit)
 
+    override fun toString(): String {
+        return "FormMetaState(fields=$fields, canSubmit=$canSubmit)"
+    }
+
     companion object {
         @Suppress("UNCHECKED_CAST")
         fun Saver() = Saver<FormMetaState, Any>(
@@ -138,15 +146,14 @@ class FormMetaState internal constructor(
                 )
             },
             restore = {
-                val (fields, canSubmit) = it as List<*>
+                val value = it as List<*>
                 FormMetaState(
                     fields = with(FieldMetaState.Saver()) {
-                        fields as Map<FieldName, Any>
-                        fields.mapValues { (_, v) ->
+                        (value[0] as Map<FieldName, Any>).mapValues { (_, v) ->
                             restore(v) as FieldMetaState
                         }
                     },
-                    canSubmit = canSubmit as Boolean,
+                    canSubmit = value[1] as Boolean,
                 )
             }
         )
@@ -167,6 +174,10 @@ class FieldMetaState internal constructor(
     override var isTouched: Boolean by mutableStateOf(isTouched)
     override var isValidated: Boolean by mutableStateOf(isValidated)
 
+    override fun toString(): String {
+        return "FieldMetaState(error=$error, mode=$mode, isDirty=$isDirty, isTouched=$isTouched, isValidated=$isValidated)"
+    }
+
     companion object {
         @Suppress("UNCHECKED_CAST")
         fun Saver() = Saver<FieldMetaState, Any>(
@@ -180,13 +191,13 @@ class FieldMetaState internal constructor(
                 )
             },
             restore = {
-                val (errors, mode, isDirty, isTouched, isValidated) = it as List<*>
+                val value = it as List<*>
                 FieldMetaState(
-                    error = FieldError(errors as List<String>),
-                    mode = mode as FieldValidationMode,
-                    isDirty = isDirty as Boolean,
-                    isTouched = isTouched as Boolean,
-                    isValidated = isValidated as Boolean
+                    error = FieldError(value[0] as List<String>),
+                    mode = value[1] as FieldValidationMode,
+                    isDirty = value[2] as Boolean,
+                    isTouched = value[3] as Boolean,
+                    isValidated = value[4] as Boolean
                 )
             }
         )
