@@ -44,7 +44,7 @@ typealias FieldValidator<V> = (V) -> FieldError
  *
  * val emailValidator = FieldValidator<String> {
  *     notBlank { "Email is required" }
- *     pattern("^[^@]+@[^@]+\\.[^@]+$") { "Must be a valid email address" }
+ *     match("^[^@]+@[^@]+\\.[^@]+$") { "Must be a valid email address" }
  * }
  * ```
  *
