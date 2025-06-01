@@ -3,6 +3,8 @@
 
 package soil.form.core
 
+import soil.form.annotation.SoilFormDsl
+
 /**
  * A builder class for creating sets of validation rules using a DSL approach.
  *
@@ -25,6 +27,7 @@ package soil.form.core
  *
  * @param V The type of the value to be validated.
  */
+@SoilFormDsl
 class ValidationRuleBuilder<V> {
     private val rules: MutableSet<ValidationRule<V>> = mutableSetOf()
 
