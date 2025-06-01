@@ -14,7 +14,7 @@ import kotlin.test.assertTrue
 class FormControllerTest : UnitTest() {
 
     @Test
-    fun handleSubmit() {
+    fun testSubmit() {
         var submittedData: TestData? = null
         val formState = FormState(value = TestData())
         val formController = FormController(
@@ -27,7 +27,7 @@ class FormControllerTest : UnitTest() {
     }
 
     @Test
-    fun handleSubmit_withValidationError() {
+    fun testSubmit_validationError() {
         var submittedData: TestData? = null
         val formState = FormState(value = TestData())
         val formController = FormController(
@@ -43,7 +43,7 @@ class FormControllerTest : UnitTest() {
     }
 
     @Test
-    fun preValidate() {
+    fun testPreValidate() {
         val formState = FormState(value = TestData())
         val formController = FormController(
             state = formState,
@@ -55,7 +55,7 @@ class FormControllerTest : UnitTest() {
     }
 
     @Test
-    fun preValidate_withValidationError() {
+    fun testPreValidate_validationError() {
         val formState = FormState(value = TestData())
         val formController = FormController(
             state = formState,
@@ -72,7 +72,7 @@ class FormControllerTest : UnitTest() {
 
     @OptIn(InternalSoilFormApi::class)
     @Test
-    fun validate() {
+    fun testValidate() {
         val formState = FormState(value = TestData())
         val binding = FormController(
             state = formState,
@@ -100,7 +100,7 @@ class FormControllerTest : UnitTest() {
 
     @OptIn(InternalSoilFormApi::class)
     @Test
-    fun validate_withDryRun() {
+    fun testValidate_withDryRun() {
         val formState = FormState(value = TestData())
         val binding = FormController(
             state = formState,
@@ -127,7 +127,7 @@ class FormControllerTest : UnitTest() {
 
     @OptIn(InternalSoilFormApi::class)
     @Test
-    fun handleChange() {
+    fun testChange() {
         val formState = FormState(value = TestData())
         val binding = FormController(
             state = formState,
@@ -143,7 +143,7 @@ class FormControllerTest : UnitTest() {
 
     @OptIn(InternalSoilFormApi::class)
     @Test
-    fun revalidateDependents() {
+    fun testRevalidateDependents() {
         val formState = FormState(value = TestData())
         val binding = FormController(
             state = formState,
@@ -180,7 +180,6 @@ class FormControllerTest : UnitTest() {
         assertEquals(firstNameValidationCount, 0)
         assertEquals(lastNameValidationCount, 1)
     }
-
 
     data class TestData(
         val firstName: String = "",
