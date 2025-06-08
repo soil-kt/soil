@@ -3,19 +3,11 @@
 
 package soil.form.compose
 
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
-import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.isEnabled
@@ -27,11 +19,12 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilExactlyOneExists
-import androidx.compose.ui.text.input.VisualTransformation
 import soil.form.FieldName
 import soil.form.FieldNames
 import soil.form.FieldValidationMode
 import soil.form.FieldValidator
+import soil.form.compose.ui.Input
+import soil.form.compose.ui.Submit
 import soil.form.noFieldError
 import soil.form.rule.notEmpty
 import soil.testing.UnitTest
@@ -54,12 +47,16 @@ class FormTest : UnitTest() {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 bottomBar = {
-                    form.Submit(modifier = Modifier.testTag("submit"))
+                    form.Submit()
                 }
             ) {
                 Column {
-                    form.FirstName(modifier = Modifier.testTag("firstName"))
-                    form.LastName(modifier = Modifier.testTag("lastName"))
+                    form.FirstName(name = "firstName") { field ->
+                        field.Input()
+                    }
+                    form.LastName(name = "lastName") { field ->
+                        field.Input()
+                    }
                 }
             }
         }
@@ -99,12 +96,16 @@ class FormTest : UnitTest() {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 bottomBar = {
-                    form.Submit(modifier = Modifier.testTag("submit"))
+                    form.Submit()
                 }
             ) {
                 Column {
-                    form.FirstName(modifier = Modifier.testTag("firstName"), name = "firstName")
-                    form.LastName(modifier = Modifier.testTag("lastName"), name = "lastName")
+                    form.FirstName(name = "firstName") { field ->
+                        field.Input()
+                    }
+                    form.LastName(name = "lastName") { field ->
+                        field.Input()
+                    }
                 }
             }
         }
@@ -142,12 +143,16 @@ class FormTest : UnitTest() {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 bottomBar = {
-                    form.Submit(modifier = Modifier.testTag("submit"))
+                    form.Submit()
                 }
             ) {
                 Column {
-                    form.FirstName(modifier = Modifier.testTag("firstName"), name = "firstName")
-                    form.LastName(modifier = Modifier.testTag("lastName"), name = "lastName")
+                    form.FirstName(name = "firstName") { field ->
+                        field.Input()
+                    }
+                    form.LastName(name = "lastName") { field ->
+                        field.Input()
+                    }
                 }
             }
         }
@@ -181,24 +186,11 @@ class FormTest : UnitTest() {
     )
 
     @Composable
-    fun Form<*>.Submit(
-        modifier: Modifier = Modifier
-    ) {
-        Button(
-            onClick = ::handleSubmit,
-            enabled = state.meta.canSubmit,
-            modifier = modifier.focusable()
-        ) {
-            Text("Submit")
-        }
-    }
-
-    @Composable
     fun Form<TestData>.FirstName(
-        modifier: Modifier = Modifier,
         name: FieldName? = null,
         dependsOn: FieldNames? = null,
-        enabled: Boolean = true
+        enabled: Boolean = true,
+        content: @Composable (FormField<String>) -> Unit
     ) {
         Field(
             selector = { it.firstName },
@@ -208,21 +200,17 @@ class FormTest : UnitTest() {
             },
             name = name,
             dependsOn = dependsOn,
-            enabled = enabled
-        ) {
-            it.TextField(
-                modifier = modifier,
-                singleLine = true
-            )
-        }
+            enabled = enabled,
+            render = content
+        )
     }
 
     @Composable
     fun Form<TestData>.LastName(
-        modifier: Modifier = Modifier,
         name: FieldName? = null,
         dependsOn: FieldNames? = null,
-        enabled: Boolean = true
+        enabled: Boolean = true,
+        content: @Composable (FormField<String>) -> Unit,
     ) {
         Field(
             selector = { it.lastName },
@@ -232,39 +220,8 @@ class FormTest : UnitTest() {
             },
             name = name,
             dependsOn = dependsOn,
-            enabled = enabled
-        ) {
-            it.TextField(
-                modifier = modifier,
-                singleLine = true
-            )
-        }
-    }
-
-    @Composable
-    fun FormFieldControl<String>.TextField(
-        modifier: Modifier = Modifier,
-        value: String = this.value,
-        onValueChange: (String) -> Unit = this::onValueChange,
-        keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-        keyboardActions: KeyboardActions = KeyboardActions.Default,
-        singleLine: Boolean = false,
-        maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
-        minLines: Int = 1,
-        visualTransformation: VisualTransformation = VisualTransformation.None,
-    ) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = modifier.onFocusChanged { state -> handleFocus(state.isFocused || state.hasFocus) },
-            enabled = isEnabled,
-            keyboardActions = keyboardActions,
-            keyboardOptions = keyboardOptions,
-            singleLine = singleLine,
-            maxLines = maxLines,
-            minLines = minLines,
-            visualTransformation = visualTransformation,
-            isError = hasError,
+            enabled = enabled,
+            render = content
         )
     }
 }

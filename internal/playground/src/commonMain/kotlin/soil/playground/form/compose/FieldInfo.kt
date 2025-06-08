@@ -8,12 +8,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.invisibleToUser
-import soil.form.FieldError
+import soil.form.compose.FormField
 import soil.playground.style.withAppTheme
 
 @Composable
-fun ErrorMessage(
-    error: FieldError,
+fun FormField<*>.FieldInfo(
     modifier: Modifier = Modifier
 ) = withAppTheme {
     val hasError = error.messages.isNotEmpty()

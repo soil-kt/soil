@@ -3,6 +3,7 @@ package soil.playground.form.compose
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.progressSemantics
 import androidx.compose.material3.Button
@@ -18,18 +19,16 @@ import soil.form.compose.Form
 import soil.playground.style.withAppTheme
 
 @Composable
-fun Form<*>.SubmitButton(
+fun Form<*>.Submit(
     modifier: Modifier = Modifier,
-    onClick: () -> Unit = ::handleSubmit,
-    enabled: Boolean = state.meta.canSubmit,
     isSubmitting: Boolean = false,
     content: @Composable () -> Unit
 ) = withAppTheme {
     val btn = remember { MutableInteractionSource() }
     Button(
-        onClick = onClick,
+        onClick = ::handleSubmit,
         modifier = modifier.focusable(interactionSource = btn),
-        enabled = enabled,
+        enabled = state.meta.canSubmit,
         interactionSource = btn
     ) {
         Box(contentAlignment = Alignment.Center) {

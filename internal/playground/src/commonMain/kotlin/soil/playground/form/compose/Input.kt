@@ -8,47 +8,42 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.VisualTransformation
-import soil.form.compose.FormFieldControl
-import soil.form.compose.hasError
+import soil.form.compose.FormField
 import soil.playground.style.AppTheme
 
 @Composable
-fun FormFieldControl<String>.InputField(
+fun FormField<String>.Input(
     modifier: Modifier = Modifier,
-    value: String = this.value,
-    onValueChange: (String) -> Unit = this::onValueChange,
-    enabled: Boolean = isEnabled,
     label: @Composable (() -> Unit)? = null,
     placeholder: @Composable (() -> Unit)? = null,
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
-    supportingText: @Composable (() -> Unit)? = {
-        if (hasError) {
-            Text(text = error.messages.first(), color = AppTheme.colorScheme.error)
-        }
-    },
-    isError: Boolean = hasError,
+    supportingText: @Composable (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
-    singleLine: Boolean = false,
+    singleLine: Boolean = true,
     maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
     minLines: Int = 1,
 ) {
     OutlinedTextField(
         value = value,
-        onValueChange = onValueChange,
+        onValueChange = ::onValueChange,
         modifier = modifier.onFocusChanged { handleFocus(it.isFocused || it.hasFocus) },
         label = label,
         placeholder = placeholder,
         leadingIcon = leadingIcon,
         trailingIcon = trailingIcon,
-        enabled = enabled,
-        isError = isError,
+        enabled = isEnabled,
+        isError = hasError,
         singleLine = singleLine,
         maxLines = maxLines,
         minLines = minLines,
-        supportingText = supportingText,
+        supportingText = supportingText ?: {
+            if (hasError) {
+                Text(text = error.messages.first(), color = AppTheme.colorScheme.error)
+            }
+        },
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
         visualTransformation = visualTransformation

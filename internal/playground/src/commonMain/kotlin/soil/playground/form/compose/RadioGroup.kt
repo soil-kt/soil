@@ -20,81 +20,62 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import soil.form.compose.FormFieldControl
+import soil.form.compose.FormField
 import soil.playground.style.AppTheme
-import kotlin.enums.enumEntries
 
 @Composable
-fun <T : Any> FormFieldControl<T?>.RadioGroup(
-    options: Iterable<T>,
-    transform: (T) -> String,
+fun <T : Any> FormField<T?>.RadioGroup(
     modifier: Modifier = Modifier,
-    selected: (T) -> Boolean = { it == value },
-    onSelect: (T) -> Unit = this::onValueChange,
-    enabled: Boolean = isEnabled,
+    content: @Composable () -> Unit
 ) {
-    Column {
-        Row(
-            modifier = modifier
-                .selectableGroup()
-                .onFocusChanged { handleFocus(it.isFocused || it.hasFocus) },
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            val focusedColor = AppTheme.colorScheme.onBackground.copy(alpha = 0.1f)
-            options.forEach { option ->
-                key(option) {
-                    val interactionSource = remember { MutableInteractionSource() }
-                    val isFocused by interactionSource.collectIsFocusedAsState()
-                    val isSelected = selected(option)
-                    Row(
-                        modifier = Modifier.selectable(
-                            selected = isSelected,
-                            role = Role.RadioButton,
-                            interactionSource = interactionSource,
-                            indication = null,
-                            onClick = { onSelect(option) },
-                            enabled = enabled
-                        ),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(text = transform(option))
-                        RadioButton(
-                            selected = isSelected,
-                            onClick = null,
-                            modifier = Modifier.ifTrue(isFocused) {
-                                Modifier.drawBehind {
-                                    drawCircle(
-                                        focusedColor,
-                                        radius = size.maxDimension * 0.75f,
-                                        center = size.center
-                                    )
-                                }
-                            },
-                            interactionSource = interactionSource,
-                            enabled = enabled
-                        )
-                    }
-                }
-            }
-        }
-        ErrorMessage(error = error, modifier = Modifier.padding(top = 4.dp))
+    Column(
+        modifier = modifier
+            .selectableGroup()
+            .onFocusChanged { handleFocus(it.isFocused || it.hasFocus) },
+    ) {
+        content()
+        FieldInfo(modifier = Modifier.padding(top = 4.dp))
     }
 }
 
 @Composable
-inline fun <reified T : Enum<T>> FormFieldControl<T?>.RadioGroup(
-    modifier: Modifier = Modifier,
-    noinline transform: (T) -> String = { it.name },
-    noinline selected: (T) -> Boolean = { it == value },
-    noinline onSelect: (T) -> Unit = this::onValueChange,
-    enabled: Boolean = isEnabled
+fun <T : Any> FormField<T?>.RadioItem(
+    option: T,
+    transform: (T) -> String,
+    modifier: Modifier = Modifier
 ) {
-    RadioGroup(
-        options = enumEntries<T>(),
-        transform = transform,
-        modifier = modifier,
-        selected = selected,
-        onSelect = onSelect,
-        enabled = enabled
-    )
+    key(option) {
+        val interactionSource = remember { MutableInteractionSource() }
+        val isFocused by interactionSource.collectIsFocusedAsState()
+        val isSelected = option == value
+        val focusedColor = AppTheme.colorScheme.onBackground.copy(alpha = 0.1f)
+        Row(
+            modifier = modifier.selectable(
+                selected = isSelected,
+                role = Role.RadioButton,
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = { onValueChange(option) },
+                enabled = isEnabled
+            ),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(text = transform(option))
+            RadioButton(
+                selected = isSelected,
+                onClick = null,
+                modifier = Modifier.ifTrue(isFocused) {
+                    Modifier.drawBehind {
+                        drawCircle(
+                            focusedColor,
+                            radius = size.maxDimension * 0.75f,
+                            center = size.center
+                        )
+                    }
+                },
+                interactionSource = interactionSource,
+                enabled = isEnabled
+            )
+        }
+    }
 }

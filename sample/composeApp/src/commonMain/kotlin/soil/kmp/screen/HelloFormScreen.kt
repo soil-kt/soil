@@ -2,32 +2,29 @@ package soil.kmp.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import soil.form.FieldValidator
 import soil.form.compose.Field
 import soil.form.compose.Form
+import soil.form.compose.FormField
 import soil.form.compose.rememberForm
 import soil.form.compose.rememberFormState
 import soil.form.compose.serializationSaver
@@ -37,10 +34,12 @@ import soil.form.rule.notBlank
 import soil.form.rule.notNull
 import soil.playground.LocalFeedbackHost
 import soil.playground.form.FormData
-import soil.playground.form.compose.InputField
+import soil.playground.form.Title
+import soil.playground.form.compose.Input
 import soil.playground.form.compose.RadioGroup
-import soil.playground.form.compose.SelectField
-import soil.playground.form.compose.SubmitButton
+import soil.playground.form.compose.RadioItem
+import soil.playground.form.compose.Select
+import soil.playground.form.compose.Submit
 import soil.playground.style.withAppTheme
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -77,68 +76,93 @@ private fun HelloFormContent(
             .verticalScroll(rememberScrollState())
     ) {
         val (f1, f2, f3, f4, f5, f6, f7) = FocusRequester.createRefs()
-        form.FirstName(modifier = Modifier.fillMaxWidth().focusRequester(f1))
-        form.LastName(modifier = Modifier.fillMaxWidth().focusRequester(f2))
-        form.Email(modifier = Modifier.fillMaxWidth().focusRequester(f3))
-        form.MobileNumber(modifier = Modifier.fillMaxWidth().focusRequester(f4))
-        form.Title(modifier = Modifier.fillMaxWidth().focusRequester(f5))
-        form.Developer(modifier = Modifier.fillMaxWidth().focusRequester(f6))
-        form.Submit(modifier = Modifier.fillMaxWidth().focusRequester(f7))
+        form.FirstName { field ->
+            field.Input(
+                modifier = Modifier.fillMaxWidth().focusRequester(f1),
+                label = { Text("First name") }
+            )
+        }
+        form.LastName { field ->
+            field.Input(
+                modifier = Modifier.fillMaxWidth().focusRequester(f2),
+                label = { Text("Last name") }
+            )
+        }
+        form.Email { field ->
+            field.Input(
+                modifier = Modifier.fillMaxWidth().focusRequester(f3),
+                label = { Text("Email") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+            )
+        }
+        form.MobileNumber { field ->
+            field.Input(
+                modifier = Modifier.fillMaxWidth().focusRequester(f4),
+                label = { Text("Mobile number") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+        }
+        form.Title { field ->
+            field.Select(
+                modifier = Modifier.fillMaxWidth().focusRequester(f5),
+                label = { Text("Title") },
+            )
+        }
+        form.Developer { field ->
+            field.RadioGroup(
+                modifier = Modifier.fillMaxWidth().focusRequester(f6)
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    listOf(true, false).forEach { option ->
+                        field.RadioItem(
+                            option = option,
+                            transform = { if (it) "Yes" else "No" }
+                        )
+                    }
+                }
+            }
+        }
+        form.Submit {
+            Text(
+                text = "Submit",
+                modifier = Modifier.fillMaxWidth().focusRequester(f7),
+                textAlign = TextAlign.Center
+            )
+        }
     }
-    // form.focusRequest
 }
 
 @Composable
 private fun Form<FormData>.FirstName(
-    modifier: Modifier = Modifier,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default
+    content: @Composable (FormField<String>) -> Unit
 ) {
     Field(
         selector = { it.firstName },
         updater = { copy(firstName = it) },
         validator = FieldValidator {
             notBlank { "must be not blank" }
-        }
-    ) {
-        it.InputField(
-            modifier = modifier,
-            label = { Text("First name") },
-            singleLine = true,
-            keyboardActions = keyboardActions,
-            keyboardOptions = keyboardOptions
-        )
-    }
+        },
+        render = content
+    )
 }
 
 @Composable
 private fun Form<FormData>.LastName(
-    modifier: Modifier = Modifier,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default
+    content: @Composable (FormField<String>) -> Unit
 ) {
     Field(
         selector = { it.lastName },
         updater = { copy(lastName = it) },
         validator = FieldValidator {
             notBlank { "must be not blank" }
-        }
-    ) {
-        it.InputField(
-            modifier = modifier,
-            label = { Text("Last name") },
-            singleLine = true,
-            keyboardActions = keyboardActions,
-            keyboardOptions = keyboardOptions
-        )
-    }
+        },
+        render = content
+    )
 }
 
 @Composable
 private fun Form<FormData>.Email(
-    modifier: Modifier = Modifier,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default
+    content: @Composable (FormField<String>) -> Unit
 ) {
     Field(
         selector = { it.email },
@@ -146,94 +170,51 @@ private fun Form<FormData>.Email(
         validator = FieldValidator {
             notBlank { "must be not blank" }
             email { "must be valid email address" }
-        }
-    ) {
-        it.InputField(
-            modifier = modifier,
-            label = { Text("Email") },
-            singleLine = true,
-            keyboardActions = keyboardActions,
-            keyboardOptions = keyboardOptions.copy(keyboardType = KeyboardType.Email)
-        )
-    }
+        },
+        render = content
+    )
 }
 
 @Composable
 private fun Form<FormData>.MobileNumber(
-    modifier: Modifier = Modifier,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default
+    content: @Composable (FormField<String>) -> Unit
 ) {
     Field(
         selector = { it.mobileNumber },
         updater = { copy(mobileNumber = it) },
         validator = FieldValidator {
             notBlank { "must be not blank" }
-        }
-    ) {
-        it.InputField(
-            modifier = modifier,
-            label = { Text("Mobile number") },
-            singleLine = true,
-            keyboardActions = keyboardActions,
-            keyboardOptions = keyboardOptions.copy(keyboardType = KeyboardType.Number)
-        )
-    }
+        },
+        render = content
+    )
 }
 
 @Composable
 private fun Form<FormData>.Title(
-    modifier: Modifier = Modifier
+    content: @Composable (FormField<Title?>) -> Unit
 ) {
     Field(
         selector = { it.title },
         updater = { copy(title = it) },
         validator = FieldValidator {
             notNull { "must be selected" }
-        }
-    ) {
-        var isExpanded by remember { mutableStateOf(false) }
-        it.SelectField(
-            expanded = isExpanded,
-            onExpandedChange = { expanded -> isExpanded = expanded },
-            modifier = modifier.onFocusEvent { state ->
-                if (state.isFocused && it.value == null) {
-                    isExpanded = true
-                }
-            },
-            label = { Text("Title") },
-        )
-    }
+        },
+        render = content
+    )
 }
 
 @Composable
 private fun Form<FormData>.Developer(
-    modifier: Modifier = Modifier
+    content: @Composable (FormField<Boolean?>) -> Unit
 ) {
     Field(
         selector = { it.developer },
         updater = { copy(developer = it) },
         validator = FieldValidator {
             notNull { "must be selected" }
-        }
-    ) {
-        it.RadioGroup(
-            options = listOf(true, false),
-            transform = { option -> if (option) "Yes" else "No" },
-            modifier = modifier
-        )
-    }
-}
-
-@Composable
-private fun Form<FormData>.Submit(
-    modifier: Modifier = Modifier
-) {
-    SubmitButton(
-        modifier = modifier
-    ) {
-        Text(text = "Submit")
-    }
+        },
+        render = content
+    )
 }
 
 // Basic custom validation rule for email addresses
