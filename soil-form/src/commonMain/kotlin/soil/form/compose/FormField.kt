@@ -231,7 +231,7 @@ fun <T, V> Form<T>.Field(
  * @param name Optional custom name for the field. If null, an auto-generated name is used.
  * @param dependsOn Optional list of field names this field depends on for validation.
  * @param enabled Whether the field is enabled for input.
- * @param content The composable content that renders the field UI.
+ * @param render The composable content that renders the field UI.
  */
 @Composable
 fun <T, V, S, U> Form<T>.Field(
@@ -242,7 +242,7 @@ fun <T, V, S, U> Form<T>.Field(
     name: FieldName? = null,
     dependsOn: FieldNames? = null,
     enabled: Boolean = true,
-    content: @Composable (FormField<U>) -> Unit
+    render: @Composable (FormField<U>) -> Unit
 ) {
     val control = rememberField(
         selector = selector,
@@ -253,7 +253,7 @@ fun <T, V, S, U> Form<T>.Field(
         dependsOn = dependsOn,
         enabled = enabled
     )
-    content(control)
+    render(control)
 }
 
 /**

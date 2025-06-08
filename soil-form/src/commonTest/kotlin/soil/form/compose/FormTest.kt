@@ -19,8 +19,6 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilExactlyOneExists
-import soil.form.FieldName
-import soil.form.FieldNames
 import soil.form.FieldValidationMode
 import soil.form.FieldValidator
 import soil.form.compose.ui.Input
@@ -51,10 +49,10 @@ class FormTest : UnitTest() {
                 }
             ) {
                 Column {
-                    form.FirstName(name = "firstName") { field ->
+                    form.FirstName { field ->
                         field.Input()
                     }
-                    form.LastName(name = "lastName") { field ->
+                    form.LastName { field ->
                         field.Input()
                     }
                 }
@@ -100,10 +98,10 @@ class FormTest : UnitTest() {
                 }
             ) {
                 Column {
-                    form.FirstName(name = "firstName") { field ->
+                    form.FirstName { field ->
                         field.Input()
                     }
-                    form.LastName(name = "lastName") { field ->
+                    form.LastName { field ->
                         field.Input()
                     }
                 }
@@ -147,10 +145,10 @@ class FormTest : UnitTest() {
                 }
             ) {
                 Column {
-                    form.FirstName(name = "firstName") { field ->
+                    form.FirstName { field ->
                         field.Input()
                     }
-                    form.LastName(name = "lastName") { field ->
+                    form.LastName { field ->
                         field.Input()
                     }
                 }
@@ -187,8 +185,6 @@ class FormTest : UnitTest() {
 
     @Composable
     fun Form<TestData>.FirstName(
-        name: FieldName? = null,
-        dependsOn: FieldNames? = null,
         enabled: Boolean = true,
         content: @Composable (FormField<String>) -> Unit
     ) {
@@ -198,8 +194,7 @@ class FormTest : UnitTest() {
             validator = FieldValidator {
                 notEmpty { "Must be not empty" }
             },
-            name = name,
-            dependsOn = dependsOn,
+            name = "firstName",
             enabled = enabled,
             render = content
         )
@@ -207,8 +202,6 @@ class FormTest : UnitTest() {
 
     @Composable
     fun Form<TestData>.LastName(
-        name: FieldName? = null,
-        dependsOn: FieldNames? = null,
         enabled: Boolean = true,
         content: @Composable (FormField<String>) -> Unit,
     ) {
@@ -218,8 +211,7 @@ class FormTest : UnitTest() {
             validator = FieldValidator {
                 notEmpty { "Must be not empty" }
             },
-            name = name,
-            dependsOn = dependsOn,
+            name = "lastName",
             enabled = enabled,
             render = content
         )
