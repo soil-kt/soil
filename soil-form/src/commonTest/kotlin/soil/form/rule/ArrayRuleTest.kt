@@ -4,10 +4,10 @@
 package soil.form.rule
 
 import soil.form.core.ValidationResult
-import soil.form.core.rules
 import soil.testing.UnitTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 
 class ArrayRuleTest : UnitTest() {
 
@@ -55,7 +55,17 @@ class ArrayRuleTest : UnitTest() {
         assertEquals(ValidationResult.Invalid("All elements must be non-blank!"), rule(arrayOf("", "world")))
     }
 
-    private fun testRule(block: ArrayRuleBuilder<String>.() -> Unit): ArrayRule<String> {
-        return rules(block).first()
+    @Test
+    fun rule_complex_validation() {
+        val rule = testRule {
+            minSize(2) { "min" }
+            maxSize(4) { "max" }
+        }
+        assertEquals(ValidationResult.Valid, rule(arrayOf("a", "b")))
+        assertEquals(ValidationResult.Valid, rule(arrayOf("a", "b", "c", "d")))
+        assertEquals(ValidationResult.Invalid("min"), rule(arrayOf("a")))
+        assertEquals(ValidationResult.Invalid("max"), rule(arrayOf("a", "b", "c", "d", "e")))
     }
+
+    private fun testRule(block: ArrayRuleBuilder<String>.() -> Unit): ArrayRule<String> = createTestRule(block)
 }

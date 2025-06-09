@@ -43,7 +43,18 @@ class LongRuleTest : UnitTest() {
         assertEquals(ValidationResult.Invalid("Must be even!"), rule(-3L))
     }
 
-    private fun testRule(block: LongRuleBuilder.() -> Unit): LongRule {
-        return rules(block).first()
+    @Test
+    fun rule_complex_validation() {
+        val rule = testRule {
+            minimum(5L) { "min" }
+            maximum(10L) { "max" }
+        }
+        assertEquals(ValidationResult.Valid, rule(5L))
+        assertEquals(ValidationResult.Valid, rule(7L))
+        assertEquals(ValidationResult.Valid, rule(10L))
+        assertEquals(ValidationResult.Invalid("min"), rule(4L))
+        assertEquals(ValidationResult.Invalid("max"), rule(11L))
     }
+
+    private fun testRule(block: LongRuleBuilder.() -> Unit): LongRule = createTestRule(block)
 }

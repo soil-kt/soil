@@ -39,7 +39,5 @@ class BooleanRuleTest : UnitTest() {
         assertEquals(ValidationResult.Invalid("Must be true!"), rule(false))
     }
 
-    private fun testRule(block: BooleanRuleBuilder.() -> Unit): BooleanRule {
-        return rules(block).first()
-    }
+    private fun testRule(block: BooleanRuleBuilder.() -> Unit): BooleanRule = createTestRule(block)
 }

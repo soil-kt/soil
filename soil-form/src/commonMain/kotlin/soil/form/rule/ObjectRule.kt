@@ -69,19 +69,22 @@ class ObjectRuleTester<V>(
  * @property transform The transformation function to apply to the object value.
  */
 class ObjectRuleChainer<V, S>(
+    val builder: ObjectRuleBuilder<V>,
     val transform: (V) -> S
 ) {
-    private var ruleSet: Set<ValidationRule<S>> = emptySet()
 
-    internal val chainedRule: ObjectRule<V> = { value ->
-        val chainedValue = transform(value)
-        val errorMessages = ruleSet.flatMap { rule ->
-            when (val result = rule.invoke(chainedValue)) {
-                is ValidationResult.Valid -> emptyList()
-                is ValidationResult.Invalid -> result.messages
+    private fun createChainedRule(block: ValidationRuleBuilder<S>.() -> Unit): ObjectRule<V> {
+        val ruleSet = rules(block)
+        return { value ->
+            val chainedValue = transform(value)
+            val errorMessages = ruleSet.flatMap { rule ->
+                when (val result = rule.invoke(chainedValue)) {
+                    is ValidationResult.Valid -> emptyList()
+                    is ValidationResult.Invalid -> result.messages
+                }
             }
+            if (errorMessages.isEmpty()) ValidationResult.Valid else ValidationResult.Invalid(errorMessages)
         }
-        if (errorMessages.isEmpty()) ValidationResult.Valid else ValidationResult.Invalid(errorMessages)
     }
 
     /**
@@ -106,11 +109,7 @@ class ObjectRuleChainer<V, S>(
      * @param block A lambda that builds the validation rules using [ValidationRuleBuilder].
      */
     infix fun then(block: ValidationRuleBuilder<S>.() -> Unit) {
-        ruleSet = rules(block)
-    }
-
-    infix fun then(rules: Set<ValidationRule<S>>) {
-        ruleSet = rules
+        builder.extend(createChainedRule(block))
     }
 }
 
@@ -177,5 +176,5 @@ fun <V : Any> ObjectRuleBuilder<V>.satisfy(predicate: V.() -> Boolean, message: 
  * @return An [ObjectRuleChainer] that allows chaining validation rules for the transformed value.
  */
 fun <V : Any, S> ObjectRuleBuilder<V>.cast(transform: (V) -> S): ObjectRuleChainer<V, S> {
-    return ObjectRuleChainer(transform).also { extend(it.chainedRule) }
+    return ObjectRuleChainer(this, transform)
 }

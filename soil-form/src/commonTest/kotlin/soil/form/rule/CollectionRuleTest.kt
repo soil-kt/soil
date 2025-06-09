@@ -4,7 +4,6 @@
 package soil.form.rule
 
 import soil.form.core.ValidationResult
-import soil.form.core.rules
 import soil.testing.UnitTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -18,8 +17,8 @@ class CollectionRuleTest : UnitTest() {
         }
         assertEquals(ValidationResult.Valid, rule(listOf("hello", "world")))
         assertEquals(ValidationResult.Valid, rule(setOf("a", "b", "c")))
-        assertEquals(ValidationResult.Invalid("Invalid!"), rule(emptyList<String>()))
-        assertEquals(ValidationResult.Invalid("Invalid!"), rule(emptySet<String>()))
+        assertEquals(ValidationResult.Invalid("Invalid!"), rule(emptyList()))
+        assertEquals(ValidationResult.Invalid("Invalid!"), rule(emptySet()))
     }
 
     @Test
@@ -30,7 +29,7 @@ class CollectionRuleTest : UnitTest() {
         assertEquals(ValidationResult.Valid, rule(listOf("a", "b")))
         assertEquals(ValidationResult.Valid, rule(listOf("a", "b", "c")))
         assertEquals(ValidationResult.Invalid("Invalid!"), rule(listOf("a")))
-        assertEquals(ValidationResult.Invalid("Invalid!"), rule(emptyList<String>()))
+        assertEquals(ValidationResult.Invalid("Invalid!"), rule(emptyList()))
     }
 
     @Test
@@ -40,7 +39,7 @@ class CollectionRuleTest : UnitTest() {
         }
         assertEquals(ValidationResult.Valid, rule(listOf("a", "b", "c")))
         assertEquals(ValidationResult.Valid, rule(listOf("a", "b")))
-        assertEquals(ValidationResult.Valid, rule(emptyList<String>()))
+        assertEquals(ValidationResult.Valid, rule(emptyList()))
         assertEquals(ValidationResult.Invalid("Invalid!"), rule(listOf("a", "b", "c", "d")))
     }
 
@@ -51,12 +50,23 @@ class CollectionRuleTest : UnitTest() {
             extend(custom)
         }
         assertEquals(ValidationResult.Valid, rule(listOf("hello", "world")))
-        assertEquals(ValidationResult.Valid, rule(emptyList<String>()))
+        assertEquals(ValidationResult.Valid, rule(emptyList()))
         assertEquals(ValidationResult.Invalid("All elements must be non-blank!"), rule(listOf("hello", "")))
         assertEquals(ValidationResult.Invalid("All elements must be non-blank!"), rule(listOf("", "world")))
     }
 
-    private fun testRule(block: CollectionRuleBuilder<String>.() -> Unit): CollectionRule<String> {
-        return rules(block).first()
+    @Test
+    fun rule_complex_validation() {
+        val rule = testRule {
+            minSize(2) { "min" }
+            maxSize(5) { "max" }
+        }
+        assertEquals(ValidationResult.Valid, rule(listOf("a", "b")))
+        assertEquals(ValidationResult.Valid, rule(listOf("a", "b", "c", "d", "e")))
+        assertEquals(ValidationResult.Invalid("min"), rule(listOf("a")))
+        assertEquals(ValidationResult.Invalid("max"), rule(listOf("a", "b", "c", "d", "e", "f")))
     }
+
+    private fun testRule(block: CollectionRuleBuilder<String>.() -> Unit): CollectionRule<String> =
+        createTestRule(block)
 }

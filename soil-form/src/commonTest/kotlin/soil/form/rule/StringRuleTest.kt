@@ -4,10 +4,10 @@
 package soil.form.rule
 
 import soil.form.core.ValidationResult
-import soil.form.core.rules
 import soil.testing.UnitTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 
 class StringRuleTest : UnitTest() {
 
@@ -70,7 +70,21 @@ class StringRuleTest : UnitTest() {
         assertEquals(ValidationResult.Invalid("Invalid!"), rule("hello"))
     }
 
-    private fun testRule(block: StringRuleBuilder.() -> Unit): StringRule {
-        return rules(block).first()
+    @Test
+    fun rule_complex_validation() {
+        val rule = testRule {
+            notBlank { "blank" }
+            minLength(3) { "min" }
+            maxLength(10) { "max" }
+        }
+        assertEquals(ValidationResult.Valid, rule("abc"))
+        assertEquals(ValidationResult.Valid, rule("hello"))
+        assertEquals(ValidationResult.Valid, rule("1234567890"))
+        assertEquals(ValidationResult.Invalid(listOf("blank", "min")), rule(""))
+        assertEquals(ValidationResult.Invalid("blank"), rule("     "))
+        assertEquals(ValidationResult.Invalid("min"), rule("ab"))
+        assertEquals(ValidationResult.Invalid("max"), rule("12345678901"))
     }
+
+    private fun testRule(block: StringRuleBuilder.() -> Unit): StringRule = createTestRule(block)
 }

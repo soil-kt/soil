@@ -43,7 +43,18 @@ class IntRuleTest : UnitTest() {
         assertEquals(ValidationResult.Invalid("Invalid!"), rule(-3))
     }
 
-    private fun testRule(block: IntRuleBuilder.() -> Unit): IntRule {
-        return rules(block).first()
+    @Test
+    fun rule_complex_validation() {
+        val rule = testRule {
+            minimum(5) { "min" }
+            maximum(10) { "max" }
+        }
+        assertEquals(ValidationResult.Valid, rule(5))
+        assertEquals(ValidationResult.Valid, rule(7))
+        assertEquals(ValidationResult.Valid, rule(10))
+        assertEquals(ValidationResult.Invalid("min"), rule(4))
+        assertEquals(ValidationResult.Invalid("max"), rule(11))
     }
+
+    private fun testRule(block: IntRuleBuilder.() -> Unit): IntRule = createTestRule(block)
 }

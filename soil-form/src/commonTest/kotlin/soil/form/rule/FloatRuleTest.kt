@@ -4,7 +4,6 @@
 package soil.form.rule
 
 import soil.form.core.ValidationResult
-import soil.form.core.rules
 import soil.testing.UnitTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -57,7 +56,18 @@ class FloatRuleTest : UnitTest() {
         assertEquals(ValidationResult.Invalid("Must be between 0 and 1!"), rule(1.5f))
     }
 
-    private fun testRule(block: FloatRuleBuilder.() -> Unit): FloatRule {
-        return rules(block).first()
+    @Test
+    fun rule_complex_validation() {
+        val rule = testRule {
+            minimum(2.5f) { "min" }
+            maximum(7.5f) { "max" }
+        }
+        assertEquals(ValidationResult.Valid, rule(2.5f))
+        assertEquals(ValidationResult.Valid, rule(5.0f))
+        assertEquals(ValidationResult.Valid, rule(7.5f))
+        assertEquals(ValidationResult.Invalid("min"), rule(2.4f))
+        assertEquals(ValidationResult.Invalid("max"), rule(7.6f))
     }
+
+    private fun testRule(block: FloatRuleBuilder.() -> Unit): FloatRule = createTestRule(block)
 }

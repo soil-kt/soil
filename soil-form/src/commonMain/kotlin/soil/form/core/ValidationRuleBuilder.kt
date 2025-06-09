@@ -46,6 +46,24 @@ class ValidationRuleBuilder<V> {
     }
 
     /**
+     * Adds multiple validation rules to the set of rules being built.
+     *
+     * This method allows you to extend the current rule set with a collection of
+     * validation rules all at once. This is particularly useful when you want to
+     * compose rule sets from multiple sources or reuse existing validation rule
+     * collections.
+     *
+     * Rules from the collection are evaluated in their iteration order, and all
+     * failing rules contribute to the final validation error.
+     *
+     * @param rules The collection of validation rules to add to the set.
+     * @return This builder instance for method chaining.
+     */
+    fun extend(rules: Collection<ValidationRule<V>>) = this.apply {
+        this.rules.addAll(rules)
+    }
+
+    /**
      * Builds and returns the final set of validation rules.
      *
      * This method finalizes the rule building process and returns an immutable set

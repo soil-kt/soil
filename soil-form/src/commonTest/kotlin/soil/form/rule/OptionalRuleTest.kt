@@ -42,7 +42,21 @@ class OptionalRuleTest : UnitTest() {
         assertEquals(ValidationResult.Invalid("Custom: Must start with 'test'!"), rule(""))
     }
 
-    private fun testRule(block: OptionalRuleBuilder<String?>.() -> Unit): OptionalRule<String> {
-        return rules(block).first()
+    @Test
+    fun rule_complex_validation() {
+        val rule = testRule {
+            notNull { "null" } then {
+                minLength(3) { "min" }
+                maxLength(10) { "max" }
+            }
+        }
+        assertEquals(ValidationResult.Valid, rule("test"))
+        assertEquals(ValidationResult.Valid, rule("hello"))
+        assertEquals(ValidationResult.Valid, rule("1234567890"))
+        assertEquals(ValidationResult.Invalid("null"), rule(null))
+        assertEquals(ValidationResult.Invalid("min"), rule("ab"))
+        assertEquals(ValidationResult.Invalid("max"), rule("12345678901"))
     }
+
+    private fun testRule(block: OptionalRuleBuilder<String?>.() -> Unit): OptionalRule<String> = createTestRule(block)
 }
