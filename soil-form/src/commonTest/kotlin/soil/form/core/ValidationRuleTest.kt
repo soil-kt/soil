@@ -1,24 +1,21 @@
 // Copyright 2025 Soil Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-package soil.form
+package soil.form.core
 
-import soil.form.core.ValidationResult
-import soil.form.core.ValidationRuleSet
 import soil.testing.UnitTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class FieldValidatorTest : UnitTest() {
+class ValidationRuleTest : UnitTest() {
 
     @Test
     fun validate_withEmptyRuleSet() {
         val rules: ValidationRuleSet<String> = emptySet()
         val actual = validate("test", rules)
 
-        assertEquals(noFieldError, actual)
-        assertTrue(actual.messages.isEmpty())
+        assertEquals(ValidationResult.Valid, actual)
     }
 
     @Test
@@ -28,11 +25,9 @@ class FieldValidatorTest : UnitTest() {
             { ValidationResult.Valid },
             { ValidationResult.Valid }
         )
-
         val actual = validate("test", rules)
 
-        assertEquals(noFieldError, actual)
-        assertTrue(actual.messages.isEmpty())
+        assertEquals(ValidationResult.Valid, actual)
     }
 
     @Test
@@ -42,6 +37,7 @@ class FieldValidatorTest : UnitTest() {
         )
         val actual = validate("test", rules)
 
+        assertTrue(actual is ValidationResult.Invalid)
         assertEquals(1, actual.messages.size)
         assertEquals("Value is invalid", actual.messages[0])
     }
@@ -55,6 +51,7 @@ class FieldValidatorTest : UnitTest() {
         )
         val actual = validate("test", rules)
 
+        assertTrue(actual is ValidationResult.Invalid)
         assertEquals(3, actual.messages.size)
         assertTrue(actual.messages.contains("Error 1"))
         assertTrue(actual.messages.contains("Error 2"))
@@ -71,6 +68,7 @@ class FieldValidatorTest : UnitTest() {
         )
         val result = validate("test", rules)
 
+        assertTrue(result is ValidationResult.Invalid)
         assertEquals(2, result.messages.size)
         assertTrue(result.messages.contains("Error 1"))
         assertTrue(result.messages.contains("Error 2"))

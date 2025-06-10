@@ -6,7 +6,9 @@ package soil.form.rule
 import soil.form.core.ValidationResult
 import soil.form.core.ValidationRule
 import soil.form.core.ValidationRuleBuilder
+import soil.form.core.ValidationRuleChainer
 import soil.form.core.rules
+import soil.form.core.validate
 
 /**
  * A type alias for validation rules that operate on any object type.
@@ -45,72 +47,30 @@ class ObjectRuleTester<V>(
     message: () -> String
 ) : ObjectRule<V> by ObjectRule(predicate, message)
 
-
 /**
- * A rule chainer that allows applying validation rules to transformed object values.
+ * Validates that the object value is equal to the expected value.
  *
- * This class enables validation of derived or transformed values from the original object.
- * It provides a fluent API for chaining transformation functions with validation rules,
- * allowing complex validation scenarios where you need to validate a computed property
- * or transformed representation of the original value.
+ * This function creates a validation rule that checks if the current object value
+ * equals the value returned by the [expected] function using the `==` operator.
+ * The comparison is performed each time the validation runs, allowing for dynamic
+ * expected values.
  *
  * Usage:
  * ```kotlin
+ * // Password confirmation validation
  * rules<String> {
- *     cast { it.length } then {
- *         minimum(3) { "must be at least 3 characters" }
- *         maximum(20) { "must be at most 20 characters" }
- *     }
+ *     equalTo({ passwordField.value }) { "Password confirmation must match the password" }
  * }
  * ```
  *
- * @param V The type of the original object value.
- * @param S The type of the transformed value.
- * @property transform The transformation function to apply to the object value.
+ * @param V The type of the object value being validated. Must be a non-null type.
+ * @param expected A function that returns the expected value to compare against.
+ *                 This is called each time validation runs, enabling dynamic comparisons.
+ * @param message A function that returns the error message when validation fails.
+ *                This is only called when the validation actually fails.
  */
-class ObjectRuleChainer<V, S>(
-    val builder: ObjectRuleBuilder<V>,
-    val transform: (V) -> S
-) {
-
-    private fun createChainedRule(block: ValidationRuleBuilder<S>.() -> Unit): ObjectRule<V> {
-        val ruleSet = rules(block)
-        return { value ->
-            val chainedValue = transform(value)
-            val errorMessages = ruleSet.flatMap { rule ->
-                when (val result = rule.invoke(chainedValue)) {
-                    is ValidationResult.Valid -> emptyList()
-                    is ValidationResult.Invalid -> result.messages
-                }
-            }
-            if (errorMessages.isEmpty()) ValidationResult.Valid else ValidationResult.Invalid(errorMessages)
-        }
-    }
-
-    /**
-     * Chains a set of validation rules to be applied to the transformed value.
-     *
-     * This infix function allows you to specify validation rules that will be applied
-     * to the result of the transformation function. The original value is first
-     * transformed using the transform function, then the chained rules are applied
-     * to the transformed value.
-     *
-     * Usage:
-     * ```kotlin
-     * rules<String> {
-     *     notBlank { "must be not blank" }
-     *     cast { it.length } then {
-     *         minimum(3) { "must be at least 3 characters" }
-     *         maximum(20) { "must be at most 20 characters" }
-     *     }
-     * }
-     * ```
-     *
-     * @param block A lambda that builds the validation rules using [ValidationRuleBuilder].
-     */
-    infix fun then(block: ValidationRuleBuilder<S>.() -> Unit) {
-        builder.extend(createChainedRule(block))
-    }
+fun <V : Any> ObjectRuleBuilder<V>.equalTo(expected: () -> V, message: () -> String) {
+    extend(ObjectRule({ this == expected() }, message))
 }
 
 /**
@@ -173,8 +133,13 @@ fun <V : Any> ObjectRuleBuilder<V>.satisfy(predicate: V.() -> Boolean, message: 
  * @param V The type of the original object value.
  * @param S The type of the transformed value.
  * @param transform The transformation function to apply to the object value.
- * @return An [ObjectRuleChainer] that allows chaining validation rules for the transformed value.
+ * @return An [ValidationRuleChainer] that allows chaining validation rules for the transformed value.
  */
-fun <V : Any, S> ObjectRuleBuilder<V>.cast(transform: (V) -> S): ObjectRuleChainer<V, S> {
-    return ObjectRuleChainer(this, transform)
-}
+fun <V : Any, S> ObjectRuleBuilder<V>.cast(transform: (V) -> S): ValidationRuleChainer<S> =
+    ValidationRuleChainer { block ->
+        val ruleSet = rules(block)
+        val chainedRule: ObjectRule<V> = { value ->
+            validate(transform(value), ruleSet)
+        }
+        extend(chainedRule)
+    }

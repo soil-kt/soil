@@ -11,6 +11,15 @@ import kotlin.test.assertEquals
 class ObjectRuleTest : UnitTest() {
 
     @Test
+    fun rule_equalTo() {
+        val rule = testRule {
+            equalTo({ Person() }) { "Invalid!" }
+        }
+        assertEquals(ValidationResult.Valid, rule(Person()))
+        assertEquals(ValidationResult.Invalid("Invalid!"), rule(Person(name = "Bob")))
+    }
+
+    @Test
     fun rule_satisfy() {
         val rule = testRule {
             satisfy({ name.isNotBlank() }) { "Invalid!" }

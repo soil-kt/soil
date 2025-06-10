@@ -6,7 +6,9 @@ package soil.form.rule
 import soil.form.core.ValidationResult
 import soil.form.core.ValidationRule
 import soil.form.core.ValidationRuleBuilder
+import soil.form.core.ValidationRuleChainer
 import soil.form.core.rules
+import soil.form.core.validate
 
 /**
  * A type alias for validation rules that operate on optional (nullable) values.
@@ -25,75 +27,10 @@ typealias OptionalRule<V> = ValidationRule<V?>
 typealias OptionalRuleBuilder<V> = ValidationRuleBuilder<V?>
 
 /**
- * A rule chainer that allows applying non-optional validation rules to optional values.
- *
- * This class enables a fluent API for validating nullable values by first checking
- * for null and then applying a set of validation rules to the non-null value.
- * It provides the `then` infix function to chain additional validation rules.
- *
- * Usage:
- * ```kotlin
- * rules<String?> {
- *     notNull { "Value is required" } then {
- *         notBlank { "Value cannot be blank" }
- *         minLength(3) { "Value must be at least 3 characters" }
- *     }
- * }
- * ```
- *
- * @param V The non-nullable type of the value being validated.
- * @property message The message to return when the value is `null`.
- */
-class OptionalRuleChainer<V>(
-    val message: () -> String
-) {
-
-    private var ruleSet: Set<ValidationRule<V>> = emptySet()
-
-    internal val chainedRule: OptionalRule<V> = { value ->
-        if (value == null) {
-            ValidationResult.Invalid(message())
-        } else {
-            val errorMessages = ruleSet.flatMap { rule ->
-                when (val result = rule.invoke(value)) {
-                    is ValidationResult.Valid -> emptyList()
-                    is ValidationResult.Invalid -> result.messages
-                }
-            }
-            if (errorMessages.isEmpty()) ValidationResult.Valid else ValidationResult.Invalid(errorMessages)
-        }
-    }
-
-    /**
-     * Chains a set of validation rules to be applied to the non-null value.
-     *
-     * This infix function allows you to specify additional validation rules that
-     * will be applied only if the value is not null. If the value is null,
-     * only the null check validation will be performed.
-     *
-     * Usage:
-     * ```kotlin
-     * rules<String?> {
-     *     notNull { "Value is required" } then {
-     *         notBlank { "Value cannot be blank" }
-     *         minLength(3) { "Value must be at least 3 characters" }
-     *         maxLength(50) { "Value must not exceed 50 characters" }
-     *     }
-     * }
-     * ```
-     *
-     * @param block A lambda that builds the validation rules using [ValidationRuleBuilder].
-     */
-    infix fun then(block: ValidationRuleBuilder<V>.() -> Unit) {
-        ruleSet = rules(block)
-    }
-}
-
-/**
  * Validates that the optional value is not `null`.
  *
  * This function creates a validation rule that checks if a nullable value is not null.
- * It returns an [OptionalRuleChainer] that allows you to chain additional validation
+ * It returns an [ValidationRuleChainer] that allows you to chain additional validation
  * rules using the `then` infix function. The chained rules will only be applied
  * if the value is not null.
  *
@@ -109,8 +46,17 @@ class OptionalRuleChainer<V>(
  *
  * @param V The non-nullable type of the value being validated.
  * @param message A function that returns the error message when the value is `null`.
- * @return An [OptionalRuleChainer] that allows chaining additional validation rules.
+ * @return An [ValidationRuleChainer] that allows chaining additional validation rules.
  */
-fun <V : Any> OptionalRuleBuilder<V?>.notNull(message: () -> String): OptionalRuleChainer<V> {
-    return OptionalRuleChainer<V>(message).also { extend(it.chainedRule) }
-}
+fun <V : Any> OptionalRuleBuilder<V?>.notNull(message: () -> String): ValidationRuleChainer<V> =
+    ValidationRuleChainer { block ->
+        val ruleSet = rules(block)
+        val chainedRule: OptionalRule<V> = { value ->
+            if (value == null) {
+                ValidationResult.Invalid(message())
+            } else {
+                validate(value, ruleSet)
+            }
+        }
+        extend(chainedRule)
+    }

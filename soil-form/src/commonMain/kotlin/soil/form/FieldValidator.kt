@@ -5,8 +5,8 @@ package soil.form
 
 import soil.form.core.ValidationResult
 import soil.form.core.ValidationRuleBuilder
-import soil.form.core.ValidationRuleSet
 import soil.form.core.rules
+import soil.form.core.validate
 
 /**
  * A type alias for field validation functions.
@@ -54,37 +54,9 @@ typealias FieldValidator<V> = (V) -> FieldError
  */
 inline fun <V> FieldValidator(
     noinline block: ValidationRuleBuilder<V>.() -> Unit
-): FieldValidator<V> = { value -> validate(value, rules(block)) }
-
-/**
- * Validates a value against a set of validation rules.
- *
- * This function applies all the provided validation rules to the given value
- * and collects any validation error messages. If all rules pass, it returns
- * [noFieldError]. If any rules fail, it returns a [FieldError] containing
- * all the error messages.
- *
- * Usage:
- * ```kotlin
- * val rules = rules<String> {
- *     notBlank { "Required" }
- *     minLength(3) { "Too short" }
- * }
- * val error = validate("ab", rules)
- * // error.messages will contain ["Too short"]
- * ```
- *
- * @param V The type of the value being validated.
- * @param value The value to validate.
- * @param rules The set of validation rules to apply.
- * @return A [FieldError] containing any validation error messages, or [noFieldError] if validation passes.
- */
-fun <V> validate(value: V, rules: ValidationRuleSet<V>): FieldError {
-    val errorMessages = rules.flatMap { rule ->
-        when (val result = rule.invoke(value)) {
-            is ValidationResult.Valid -> emptyList()
-            is ValidationResult.Invalid -> result.messages
-        }
+): FieldValidator<V> = { value ->
+    when (val result = validate(value, rules(block))) {
+        is ValidationResult.Valid -> noFieldError
+        is ValidationResult.Invalid -> FieldError(result.messages)
     }
-    return if (errorMessages.isEmpty()) noFieldError else FieldError(errorMessages)
 }

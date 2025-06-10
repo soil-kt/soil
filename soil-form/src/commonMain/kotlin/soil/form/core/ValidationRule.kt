@@ -58,3 +58,40 @@ typealias ValidationRule<V> = (value: V) -> ValidationResult
  * @param V The type of the value to be validated.
  */
 typealias ValidationRuleSet<V> = Set<ValidationRule<V>>
+
+/**
+ * Validates a value against a set of validation rules.
+ *
+ * This function applies all the provided validation rules to the given value
+ * and collects any validation error messages. If all rules pass, it returns
+ * [ValidationResult.Valid]. If any rules fail, it returns a [ValidationResult.Invalid] containing
+ * all the error messages.
+ *
+ * Usage:
+ * ```kotlin
+ * val rules = rules<String> {
+ *     notBlank { "Required" }
+ *     minLength(3) { "Too short" }
+ * }
+ * val result = validate("ab", rules)
+ * // ValidationResult.Invalid.messages will contain ["Too short"]
+ * ```
+ *
+ * @param V The type of the value being validated.
+ * @param value The value to validate.
+ * @param rules The set of validation rules to apply.
+ * @return A [ValidationResult.Invalid] containing any validation error messages, or [ValidationResult.Valid] if validation passes.
+ */
+fun <V> validate(value: V, rules: ValidationRuleSet<V>): ValidationResult {
+    val errorMessages = rules.flatMap { rule ->
+        when (val result = rule.invoke(value)) {
+            is ValidationResult.Valid -> emptyList()
+            is ValidationResult.Invalid -> result.messages
+        }
+    }
+    return if (errorMessages.isEmpty()) {
+        ValidationResult.Valid
+    } else {
+        ValidationResult.Invalid(errorMessages)
+    }
+}
