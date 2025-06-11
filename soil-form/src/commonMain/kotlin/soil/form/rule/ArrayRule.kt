@@ -7,6 +7,7 @@ import soil.form.core.ValidationResult
 import soil.form.core.ValidationRule
 import soil.form.core.ValidationRuleBuilder
 import soil.form.core.rules
+import soil.form.core.validate
 
 /**
  * A type alias for validation rules that operate on Array values.
@@ -96,77 +97,6 @@ fun <V> ArrayRuleBuilder<V>.maxSize(limit: Int, message: () -> String) {
 }
 
 /**
- * A rule chainer that allows applying validation rules to each element of an array.
- *
- * This class enables validation of individual elements within an array using the `all`
- * function internally. It provides a fluent API for chaining validation rules that will be
- * applied to each element of the array.
- *
- * Usage:
- * ```kotlin
- * rules<Array<String>> {
- *     element {
- *         notBlank { "must be not blank" }
- *         minLength(3) { "must be at least 3 characters" }
- *     }
- * }
- * ```
- *
- * @param V The type of the elements in the array.
- * @property builder The array rule builder that this chainer is associated with.
- */
-class ArrayElementRuleChainer<V>(
-    val builder: ArrayRuleBuilder<V>
-) {
-
-    private fun createElementRule(block: ValidationRuleBuilder<V>.() -> Unit): ArrayRule<V> {
-        val ruleSet = rules(block)
-        return { array ->
-            val allErrorMessages = mutableListOf<String>()
-            
-            array.forEachIndexed { index, element ->
-                // Apply all rules to this element and collect the first error
-                val firstError = ruleSet.firstNotNullOfOrNull { rule ->
-                    when (val result = rule.invoke(element)) {
-                        is ValidationResult.Valid -> null
-                        is ValidationResult.Invalid -> result.messages.firstOrNull()
-                    }
-                }
-                
-                firstError?.let { message ->
-                    allErrorMessages.add("Element at index $index: $message")
-                }
-            }
-            
-            if (allErrorMessages.isEmpty()) ValidationResult.Valid else ValidationResult.Invalid(allErrorMessages)
-        }
-    }
-
-    /**
-     * Chains a set of validation rules to be applied to each element of the array.
-     *
-     * This operator function allows you to specify validation rules that will be applied
-     * to each element in the array. If any element fails validation, the error
-     * messages will include the index of the failing element.
-     *
-     * Usage:
-     * ```kotlin
-     * rules<Array<String>> {
-     *     element {
-     *         notBlank { "must be not blank" }
-     *         minLength(3) { "must be at least 3 characters" }
-     *     }
-     * }
-     * ```
-     *
-     * @param block A lambda that builds the validation rules using [ValidationRuleBuilder].
-     */
-    operator fun invoke(block: ValidationRuleBuilder<V>.() -> Unit) {
-        builder.extend(createElementRule(block))
-    }
-}
-
-/**
  * Creates a validation rule chain for applying rules to each element of the array.
  *
  * This function allows you to validate each individual element within an array
@@ -188,6 +118,19 @@ class ArrayElementRuleChainer<V>(
  * @param block A lambda that builds the validation rules using [ValidationRuleBuilder].
  */
 fun <V> ArrayRuleBuilder<V>.element(block: ValidationRuleBuilder<V>.() -> Unit) {
-    val chainer = ArrayElementRuleChainer(this)
-    chainer(block)
+    val ruleSet = rules(block)
+    val chainedRule: ArrayRule<V> = { collection ->
+        val allErrorMessages = collection.flatMap { element ->
+            when (val result = validate(element, ruleSet)) {
+                is ValidationResult.Valid -> emptyList()
+                is ValidationResult.Invalid -> result.messages
+            }
+        }
+        if (allErrorMessages.isEmpty()) {
+            ValidationResult.Valid
+        } else {
+            ValidationResult.Invalid(allErrorMessages.distinct())
+        }
+    }
+    extend(chainedRule)
 }
