@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.VisualTransformation
 import soil.form.compose.FormField
+import soil.form.compose.hasError
 import soil.playground.style.AppTheme
 
 @Composable

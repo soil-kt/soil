@@ -9,13 +9,13 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.invisibleToUser
 import soil.form.compose.FormField
+import soil.form.compose.hasError
 import soil.playground.style.withAppTheme
 
 @Composable
 fun FormField<*>.FieldInfo(
     modifier: Modifier = Modifier
 ) = withAppTheme {
-    val hasError = error.messages.isNotEmpty()
     Box(
         modifier = modifier
             .alpha(if (!hasError) 0f else 1f)

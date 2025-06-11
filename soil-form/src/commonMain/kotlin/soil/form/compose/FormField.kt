@@ -76,15 +76,6 @@ interface FormField<V> {
     val error: FieldError
 
     /**
-     * Whether the field currently has any validation errors.
-     *
-     * This is a convenience property that returns true when the field has validation
-     * error messages, false otherwise. It's commonly used to conditionally apply
-     * error styling to UI components.
-     */
-    val hasError: Boolean
-
-    /**
      * Whether the field value has been modified from its initial value.
      */
     val isDirty: Boolean
@@ -135,6 +126,15 @@ interface FormField<V> {
      */
     fun trigger(mode: FieldValidationMode)
 }
+
+/**
+ * Whether the field currently has any validation errors.
+ *
+ * This is a convenience property that returns true when the field has validation
+ * error messages, false otherwise. It's commonly used to conditionally apply
+ * error styling to UI components.
+ */
+val FormField<*>.hasError: Boolean get() = error != noFieldError
 
 /**
  * Creates a form field with validation and state management.
@@ -449,9 +449,6 @@ internal class FormFieldController<T, V, S, U>(
     val options: FieldOptions get() = form.policy.fieldOptions
 
     val validationTarget: S get() = adapter.toValidationTarget(rawValue)
-
-    override val hasError: Boolean
-        get() = error.messages.isNotEmpty()
 
     override var error: FieldError
         get() = meta.error

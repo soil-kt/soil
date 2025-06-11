@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.onFocusEvent
 import soil.form.compose.FormField
+import soil.form.compose.hasError
 import soil.playground.style.AppTheme
 import kotlin.enums.enumEntries
 

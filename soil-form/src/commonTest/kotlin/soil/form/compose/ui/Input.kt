@@ -12,6 +12,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.VisualTransformation
 import soil.form.compose.FormField
+import soil.form.compose.hasError
 
 @Composable
 fun FormField<String>.Input(
