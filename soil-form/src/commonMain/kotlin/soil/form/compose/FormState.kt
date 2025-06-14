@@ -51,7 +51,7 @@ fun <T> rememberFormState(
  *
  * This class provides a concrete implementation of form state management with
  * support for state persistence, validation, and metadata tracking. It integrates
- * with Compose's state system to provide reactive updates when form data changes.
+ * with Compose state to provide reactive updates when form data changes.
  *
  * Usage:
  * ```kotlin
@@ -67,6 +67,7 @@ fun <T> rememberFormState(
 class FormState<T> internal constructor(
     value: T,
     override val meta: FormMetaState,
+    resetKey: Int,
     val policy: FormPolicy
 ) : FormData<T> {
 
@@ -79,10 +80,14 @@ class FormState<T> internal constructor(
     constructor(value: T, policy: FormPolicy = FormPolicy()) : this(
         value = value,
         meta = FormMetaState(canSubmit = !policy.formOptions.preValidation),
+        resetKey = 0,
         policy = policy
     )
 
     override var value: T by mutableStateOf(value)
+
+    internal var resetKey: Int by mutableStateOf(resetKey)
+        private set
 
     /**
      * Resets the form to a new value and clears all field metadata.
@@ -93,7 +98,7 @@ class FormState<T> internal constructor(
      *
      * Usage:
      * ```kotlin
- * formState.reset(UserData(name = "", email = ""))
+     * formState.reset(UserData(name = "", email = ""))
      * ```
      *
      * @param newValue The new value to reset the form to.
@@ -101,14 +106,9 @@ class FormState<T> internal constructor(
     fun reset(newValue: T) {
         Snapshot.withMutableSnapshot {
             value = newValue
-            meta.fields.forEach { (_, fieldMeta) ->
-                fieldMeta.error = noFieldError
-                fieldMeta.mode = policy.fieldOptions.validationStrategy.initial
-                fieldMeta.isDirty = false
-                fieldMeta.isTouched = false
-                fieldMeta.isValidated = false
-            }
+            meta.fields.clear()
             meta.canSubmit = !policy.formOptions.preValidation
+            resetKey += 1
         }
     }
 
@@ -140,7 +140,7 @@ class FormState<T> internal constructor(
     }
 
     override fun toString(): String {
-        return "FormState(value=$value, meta=$meta, policy=$policy)"
+        return "FormState(value=$value, meta=$meta, resetKey=$resetKey, policy=$policy)"
     }
 
     companion object {
@@ -152,11 +152,12 @@ class FormState<T> internal constructor(
                     },
                     with(FormMetaState.Saver()) {
                         save(value.meta)
-                    }
+                    },
+                    value.resetKey
                 )
             },
             restore = {
-                val (value, meta) = it as List<*>
+                val (value, meta, resetKey) = it as List<*>
                 FormState(
                     value = with(formSaver) {
                         @Suppress("UNCHECKED_CAST")
@@ -165,6 +166,7 @@ class FormState<T> internal constructor(
                     meta = with(FormMetaState.Saver()) {
                         restore(checkNotNull(meta)) as FormMetaState
                     },
+                    resetKey = resetKey as Int,
                     policy = formPolicy
                 )
             }

@@ -13,7 +13,8 @@ import soil.form.compose.hasError
 import soil.playground.style.AppTheme
 
 @Composable
-fun FormField<String>.Input(
+fun InputField(
+    ref: FormField<String>,
     modifier: Modifier = Modifier,
     label: @Composable (() -> Unit)? = null,
     placeholder: @Composable (() -> Unit)? = null,
@@ -28,21 +29,21 @@ fun FormField<String>.Input(
     minLines: Int = 1,
 ) {
     OutlinedTextField(
-        value = value,
-        onValueChange = ::onValueChange,
-        modifier = modifier.onFocusChanged { handleFocus(it.isFocused || it.hasFocus) },
+        value = ref.value,
+        onValueChange = ref::onValueChange,
+        modifier = modifier.onFocusChanged { ref.handleFocus(it.isFocused || it.hasFocus) },
         label = label,
         placeholder = placeholder,
         leadingIcon = leadingIcon,
         trailingIcon = trailingIcon,
-        enabled = isEnabled,
-        isError = hasError,
+        enabled = ref.isEnabled,
+        isError = ref.hasError,
         singleLine = singleLine,
         maxLines = maxLines,
         minLines = minLines,
         supportingText = supportingText ?: {
-            if (hasError) {
-                Text(text = error.messages.first(), color = AppTheme.colorScheme.error)
+            if (ref.hasError) {
+                Text(text = ref.error.messages.first(), color = AppTheme.colorScheme.error)
             }
         },
         keyboardOptions = keyboardOptions,

@@ -23,6 +23,7 @@ class FormStateTest : UnitTest() {
 
         assertEquals(initialValue, formState.value)
         assertEquals(0, formState.meta.fields.size)
+        assertEquals(0, formState.resetKey)
         assertFalse(formState.meta.canSubmit)
     }
 
@@ -53,20 +54,13 @@ class FormStateTest : UnitTest() {
             isTouched = true
         )
 
+        assertEquals(0, formState.resetKey)
+
         formState.reset(TestData())
 
         assertEquals(TestData(), formState.value)
-
-        val firstNameMeta = checkNotNull(formState.meta.fields["firstName"])
-        assertEquals(noFieldError, firstNameMeta.error)
-        assertEquals(FieldValidationMode.Blur, firstNameMeta.mode) // Default initial mode
-        assertFalse(firstNameMeta.isDirty)
-        assertFalse(firstNameMeta.isTouched)
-        assertFalse(firstNameMeta.isValidated)
-
-        val lastNameMeta = checkNotNull(formState.meta.fields["lastName"])
-        assertFalse(lastNameMeta.isDirty)
-        assertFalse(lastNameMeta.isTouched)
+        assertEquals(0, formState.meta.fields.size)
+        assertEquals(1, formState.resetKey)
     }
 
     @Test
@@ -96,6 +90,8 @@ class FormStateTest : UnitTest() {
         val policy = FormPolicy()
         val formState = FormState(value = initialValue, policy = policy)
 
+        formState.reset(initialValue)
+
         // Add some field metadata
         formState.meta.fields["firstName"] = FieldMetaState(
             error = FieldError("Some error"),
@@ -117,6 +113,7 @@ class FormStateTest : UnitTest() {
         assertEquals(formState.value, restored.value)
         assertEquals(formState.meta.canSubmit, restored.meta.canSubmit)
         assertEquals(formState.meta.fields.size, restored.meta.fields.size)
+        assertEquals(formState.resetKey, restored.resetKey)
 
         val restoredFieldMeta = restored.meta.fields["firstName"]
         val originalFieldMeta = formState.meta.fields["firstName"]

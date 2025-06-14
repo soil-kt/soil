@@ -17,6 +17,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.Snapshot
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
@@ -393,6 +394,7 @@ fun <T, V, S, U> Form<T>.rememberField(
             // validateOnChange
             launch {
                 snapshotFlow { control.validationTarget }
+                    .drop(1) // Skip the initial value
                     .debounce(control.options.validationDelayOnChange)
                     .collect {
                         control.trigger(FieldValidationMode.Change)

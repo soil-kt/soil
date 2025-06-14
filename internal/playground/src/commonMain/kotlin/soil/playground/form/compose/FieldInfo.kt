@@ -13,22 +13,23 @@ import soil.form.compose.hasError
 import soil.playground.style.withAppTheme
 
 @Composable
-fun FormField<*>.FieldInfo(
+fun FieldInfo(
+    ref: FormField<*>,
     modifier: Modifier = Modifier
 ) = withAppTheme {
     Box(
         modifier = modifier
-            .alpha(if (!hasError) 0f else 1f)
+            .alpha(if (!ref.hasError) 0f else 1f)
             .clearAndSetSemantics {
-                if (hasError) {
-                    error(error.messages.first())
+                if (ref.hasError) {
+                    error(ref.error.messages.first())
                 } else {
                     invisibleToUser()
                 }
             }
     ) {
         Text(
-            text = if (hasError) error.messages.first() else "",
+            text = if (ref.hasError) ref.error.messages.first() else "",
             style = typography.bodySmall,
             color = colorScheme.error
         )

@@ -9,10 +9,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -24,30 +23,36 @@ import soil.form.compose.FormField
 import soil.playground.style.AppTheme
 
 @Composable
-fun <T : Any> FormField<T?>.RadioGroup(
+fun <T : Any> RadioField(
+    ref: FormField<T?>,
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
+    content: @Composable RadioFieldScope<T>.() -> Unit
 ) {
     Column(
         modifier = modifier
             .selectableGroup()
-            .onFocusChanged { handleFocus(it.isFocused || it.hasFocus) },
+            .onFocusChanged { ref.handleFocus(it.isFocused || it.hasFocus) },
     ) {
-        content()
-        FieldInfo(modifier = Modifier.padding(top = 4.dp))
+        val scope = remember(ref) { RadioFieldScope(ref) }
+        scope.content()
+        FieldInfo(ref, modifier = Modifier.padding(top = 4.dp))
     }
 }
 
-@Composable
-fun <T : Any> FormField<T?>.RadioItem(
-    option: T,
-    transform: (T) -> String,
-    modifier: Modifier = Modifier
+@Stable
+class RadioFieldScope<T : Any>(
+    private val ref: FormField<T?>
 ) {
-    key(option) {
+
+    @Composable
+    fun Option(
+        value: T,
+        modifier: Modifier = Modifier,
+        content: @Composable () -> Unit
+    ) {
         val interactionSource = remember { MutableInteractionSource() }
         val isFocused by interactionSource.collectIsFocusedAsState()
-        val isSelected = option == value
+        val isSelected = value == ref.value
         val focusedColor = AppTheme.colorScheme.onBackground.copy(alpha = 0.1f)
         Row(
             modifier = modifier.selectable(
@@ -55,12 +60,12 @@ fun <T : Any> FormField<T?>.RadioItem(
                 role = Role.RadioButton,
                 interactionSource = interactionSource,
                 indication = null,
-                onClick = { onValueChange(option) },
-                enabled = isEnabled
+                onClick = { ref.onValueChange(value) },
+                enabled = ref.isEnabled
             ),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Text(text = transform(option))
+            content()
             RadioButton(
                 selected = isSelected,
                 onClick = null,
@@ -74,7 +79,7 @@ fun <T : Any> FormField<T?>.RadioItem(
                     }
                 },
                 interactionSource = interactionSource,
-                enabled = isEnabled
+                enabled = ref.isEnabled
             )
         }
     }

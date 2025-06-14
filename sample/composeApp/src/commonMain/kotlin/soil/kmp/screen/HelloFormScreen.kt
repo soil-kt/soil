@@ -11,6 +11,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -35,10 +36,9 @@ import soil.form.rule.notNull
 import soil.playground.LocalFeedbackHost
 import soil.playground.form.FormData
 import soil.playground.form.Title
-import soil.playground.form.compose.Input
-import soil.playground.form.compose.RadioGroup
-import soil.playground.form.compose.RadioItem
-import soil.playground.form.compose.Select
+import soil.playground.form.compose.InputField
+import soil.playground.form.compose.RadioField
+import soil.playground.form.compose.SelectField
 import soil.playground.form.compose.Submit
 import soil.playground.style.withAppTheme
 
@@ -77,47 +77,63 @@ private fun HelloFormContent(
     ) {
         val (f1, f2, f3, f4, f5, f6, f7) = FocusRequester.createRefs()
         form.FirstName { field ->
-            field.Input(
+            InputField(
+                ref = field,
                 modifier = Modifier.fillMaxWidth().focusRequester(f1),
                 label = { Text("First name") }
             )
         }
         form.LastName { field ->
-            field.Input(
+            InputField(
+                ref = field,
                 modifier = Modifier.fillMaxWidth().focusRequester(f2),
                 label = { Text("Last name") }
             )
         }
         form.Email { field ->
-            field.Input(
+            InputField(
+                ref = field,
                 modifier = Modifier.fillMaxWidth().focusRequester(f3),
                 label = { Text("Email") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
         }
         form.MobileNumber { field ->
-            field.Input(
+            InputField(
+                ref = field,
                 modifier = Modifier.fillMaxWidth().focusRequester(f4),
                 label = { Text("Mobile number") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
         }
         form.Title { field ->
-            field.Select(
+            SelectField(
+                ref = field,
+                value = { it?.name ?: "" },
                 modifier = Modifier.fillMaxWidth().focusRequester(f5),
                 label = { Text("Title") },
-            )
+            ) {
+                Title.entries.forEach { value ->
+                    key(value) {
+                        Option(value) {
+                            Text(text = value.name)
+                        }
+                    }
+                }
+            }
         }
         form.Developer { field ->
-            field.RadioGroup(
+            RadioField(
+                ref = field,
                 modifier = Modifier.fillMaxWidth().focusRequester(f6)
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    listOf(true, false).forEach { option ->
-                        field.RadioItem(
-                            option = option,
-                            transform = { if (it) "Yes" else "No" }
-                        )
+                    listOf(true, false).forEach { value ->
+                        key(value) {
+                            Option(value) {
+                                Text(if (value) "Yes" else "No")
+                            }
+                        }
                     }
                 }
             }

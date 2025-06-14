@@ -15,6 +15,7 @@ import androidx.compose.runtime.saveable.autoSaver
 import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import soil.form.FieldName
 import soil.form.FieldNames
@@ -117,7 +118,7 @@ fun <T> rememberForm(
     state: FormState<T>,
     onSubmit: (T) -> Unit
 ): Form<T> {
-    val control = remember(state) {
+    val control = remember(state, state.resetKey) {
         FormController(state = state, onSubmit = onSubmit)
     }
     if (control.options.preValidation) {
@@ -134,6 +135,7 @@ fun <T> rememberForm(
             // validateOnChange
             launch {
                 snapshotFlow { state.value }
+                    .drop(1) // Skip the initial value
                     .debounce(control.options.preValidationDelayOnChange)
                     .collect {
                         control.preValidate(value = it)

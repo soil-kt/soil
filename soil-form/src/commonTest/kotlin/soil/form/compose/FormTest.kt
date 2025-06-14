@@ -21,7 +21,7 @@ import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilExactlyOneExists
 import soil.form.FieldValidationMode
 import soil.form.FieldValidator
-import soil.form.compose.ui.Input
+import soil.form.compose.ui.InputField
 import soil.form.compose.ui.Submit
 import soil.form.noFieldError
 import soil.form.rule.notEmpty
@@ -49,12 +49,8 @@ class FormTest : UnitTest() {
                 }
             ) {
                 Column {
-                    form.FirstName { field ->
-                        field.Input()
-                    }
-                    form.LastName { field ->
-                        field.Input()
-                    }
+                    form.FirstName { InputField(ref = it) }
+                    form.LastName { InputField(ref = it) }
                 }
             }
         }
@@ -98,12 +94,8 @@ class FormTest : UnitTest() {
                 }
             ) {
                 Column {
-                    form.FirstName { field ->
-                        field.Input()
-                    }
-                    form.LastName { field ->
-                        field.Input()
-                    }
+                    form.FirstName { InputField(ref = it) }
+                    form.LastName { InputField(ref = it) }
                 }
             }
         }
@@ -145,12 +137,8 @@ class FormTest : UnitTest() {
                 }
             ) {
                 Column {
-                    form.FirstName { field ->
-                        field.Input()
-                    }
-                    form.LastName { field ->
-                        field.Input()
-                    }
+                    form.FirstName { InputField(ref = it) }
+                    form.LastName { InputField(ref = it) }
                 }
             }
         }
