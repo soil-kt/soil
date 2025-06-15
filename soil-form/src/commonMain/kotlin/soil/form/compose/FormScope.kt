@@ -18,16 +18,17 @@ import soil.form.FormRules
  *
  * @param T The type of the form value.
  */
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 @Stable
 class FormScope<T : Any> internal constructor(
-    private val state: FormStateImpl<T>,
+    private val state: LegacyFormStateImpl<T>,
     private val submitHandler: SubmitHandler<T>
 ) {
 
     /**
      * The current form state.
      */
-    val formState: FormState<T> get() = state
+    val formState: LegacyFormState<T> get() = state
 
     /**
      * Remembers a field control for the given field name.
@@ -195,6 +196,7 @@ class FormScope<T : Any> internal constructor(
     }
 }
 
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 internal fun interface SubmitHandler<T> {
     fun handleSubmit(rule: FormRule<T>)
 }

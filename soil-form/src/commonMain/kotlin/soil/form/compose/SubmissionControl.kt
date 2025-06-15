@@ -25,6 +25,7 @@ import soil.form.SubmissionPolicy
  * @constructor Creates a submission control.
  */
 @Stable
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 class SubmissionControl<T>(
     val policy: SubmissionPolicy,
     val rule: FormRule<T>,

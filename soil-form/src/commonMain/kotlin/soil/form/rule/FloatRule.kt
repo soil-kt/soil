@@ -3,30 +3,46 @@
 
 package soil.form.rule
 
-import soil.form.FieldErrors
-import soil.form.ValidationRule
-import soil.form.ValidationRuleBuilder
-import soil.form.fieldError
-import soil.form.noErrors
+import soil.form.core.ValidationResult
+import soil.form.core.ValidationRule
+import soil.form.core.ValidationRuleBuilder
 
+/**
+ * A type alias for validation rules that operate on Float values.
+ *
+ * Float rules are validation functions that take a Float value and return
+ * a [ValidationResult] indicating whether the validation passed or failed.
+ */
 typealias FloatRule = ValidationRule<Float>
+
+/**
+ * A type alias for builders that create Float validation rules.
+ *
+ * Float rule builders provide a DSL for constructing validation rules
+ * specifically for Float values, with convenient methods like [minimum],
+ * [maximum], and [notNaN].
+ */
 typealias FloatRuleBuilder = ValidationRuleBuilder<Float>
 
 /**
  * A rule that tests the float value.
  *
- * @property predicate The predicate to test the float value. Returns `true` if the test passes; `false` otherwise.
- * @property message The message to return when the test fails.
- * @constructor Creates a new instance of [FloatRuleTester].
+ * @param predicate The predicate to test the float value. Returns `true` if the test passes; `false` otherwise.
+ * @param message The message to return when the test fails.
+ * @return Creates a new instance of [FloatRule].
  */
-class FloatRuleTester(
-    val predicate: Float.() -> Boolean,
-    val message: () -> String
-) : FloatRule {
-    override fun test(value: Float): FieldErrors {
-        return if (value.predicate()) noErrors else fieldError(message())
-    }
+fun FloatRule(
+    predicate: Float.() -> Boolean,
+    message: () -> String
+): FloatRule = { value ->
+    if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
+
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
+class FloatRuleTester(
+    predicate: Float.() -> Boolean,
+    message: () -> String
+) : FloatRule by FloatRule(predicate, message)
 
 /**
  * Validates that the float value is greater than or equal to [limit].
@@ -42,7 +58,7 @@ class FloatRuleTester(
  * @param message The message to return when the test fails.
  */
 fun FloatRuleBuilder.minimum(limit: Float, message: () -> String) {
-    extend(FloatRuleTester({ this >= limit }, message))
+    extend(FloatRule({ this >= limit }, message))
 }
 
 /**
@@ -59,23 +75,7 @@ fun FloatRuleBuilder.minimum(limit: Float, message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun FloatRuleBuilder.maximum(limit: Float, message: () -> String) {
-    extend(FloatRuleTester({ this <= limit }, message))
-}
-
-/**
- * Validates that the float value is `NaN`.
- *
- * Usage:
- * ```kotlin
- * rules<Float> {
- *     isNaN { "must be NaN" }
- * }
- * ```
- *
- * @param message The message to return when the test fails.
- */
-fun FloatRuleBuilder.isNaN(message: () -> String) {
-    extend(FloatRuleTester({ isNaN() }, message))
+    extend(FloatRule({ this <= limit }, message))
 }
 
 /**
@@ -91,5 +91,5 @@ fun FloatRuleBuilder.isNaN(message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun FloatRuleBuilder.notNaN(message: () -> String) {
-    extend(FloatRuleTester({ !isNaN() }, message))
+    extend(FloatRule({ !isNaN() }, message))
 }

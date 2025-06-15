@@ -3,30 +3,45 @@
 
 package soil.form.rule
 
-import soil.form.FieldErrors
-import soil.form.ValidationRule
-import soil.form.ValidationRuleBuilder
-import soil.form.fieldError
-import soil.form.noErrors
+import soil.form.core.ValidationResult
+import soil.form.core.ValidationRule
+import soil.form.core.ValidationRuleBuilder
 
+/**
+ * A type alias for validation rules that operate on Int values.
+ *
+ * Int rules are validation functions that take an Int value and return
+ * a [ValidationResult] indicating whether the validation passed or failed.
+ */
 typealias IntRule = ValidationRule<Int>
+
+/**
+ * A type alias for builders that create Int validation rules.
+ *
+ * Int rule builders provide a DSL for constructing validation rules
+ * specifically for Int values, with convenient methods like [minimum] and [maximum].
+ */
 typealias IntRuleBuilder = ValidationRuleBuilder<Int>
 
 /**
  * A rule that tests the integer value.
  *
- * @property predicate The predicate to test the integer value. Returns `true` if the test passes; `false` otherwise.
- * @property message The message to return when the test fails.
- * @constructor Creates a new instance of [IntRuleTester].
+ * @param predicate The predicate to test the integer value. Returns `true` if the test passes; `false` otherwise.
+ * @param message The message to return when the test fails.
+ * @return Creates a new instance of [IntRule].
  */
-class IntRuleTester(
-    val predicate: Int.() -> Boolean,
-    val message: () -> String
-) : IntRule {
-    override fun test(value: Int): FieldErrors {
-        return if (value.predicate()) noErrors else fieldError(message())
-    }
+fun IntRule(
+    predicate: Int.() -> Boolean,
+    message: () -> String
+): IntRule = { value ->
+    if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
+
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
+class IntRuleTester(
+    predicate: Int.() -> Boolean,
+    message: () -> String
+) : IntRule by IntRule(predicate, message)
 
 /**
  * Validates that the integer value is greater than or equal to [limit].
@@ -42,7 +57,7 @@ class IntRuleTester(
  * @param message The message to return when the test fails.
  */
 fun IntRuleBuilder.minimum(limit: Int, message: () -> String) {
-    extend(IntRuleTester({ this >= limit }, message))
+    extend(IntRule({ this >= limit }, message))
 }
 
 /**
@@ -59,5 +74,5 @@ fun IntRuleBuilder.minimum(limit: Int, message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun IntRuleBuilder.maximum(limit: Int, message: () -> String) {
-    extend(IntRuleTester({ this <= limit }, message))
+    extend(IntRule({ this <= limit }, message))
 }

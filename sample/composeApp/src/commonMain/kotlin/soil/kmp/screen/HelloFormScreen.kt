@@ -2,194 +2,239 @@ package soil.kmp.screen
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
-import soil.form.compose.Controller
-import soil.form.compose.FieldControl
+import soil.form.FieldValidator
+import soil.form.compose.Field
 import soil.form.compose.Form
-import soil.form.compose.FormScope
-import soil.form.compose.rememberFieldRuleControl
-import soil.form.compose.rememberSubmissionRuleAutoControl
+import soil.form.compose.FormField
+import soil.form.compose.rememberForm
+import soil.form.compose.rememberFormState
 import soil.form.compose.serializationSaver
+import soil.form.rule.StringRule
 import soil.form.rule.StringRuleBuilder
-import soil.form.rule.StringRuleTester
 import soil.form.rule.notBlank
 import soil.form.rule.notNull
 import soil.playground.LocalFeedbackHost
 import soil.playground.form.FormData
 import soil.playground.form.Title
-import soil.playground.form.compose.FormRadioGroup
-import soil.playground.form.compose.FormSelect
-import soil.playground.form.compose.FormSubmit
-import soil.playground.form.compose.FormTextField
-import soil.playground.form.compose.rememberAsInputForEmail
-import soil.playground.form.compose.rememberAsInputForNumber
-import soil.playground.form.compose.rememberAsInputForText
-import soil.playground.form.compose.rememberAsRadio
-import soil.playground.form.compose.rememberAsSelect
+import soil.playground.form.compose.InputField
+import soil.playground.form.compose.RadioField
+import soil.playground.form.compose.SelectField
+import soil.playground.form.compose.Submit
 import soil.playground.style.withAppTheme
 
+@OptIn(ExperimentalSerializationApi::class)
 @Composable
 fun HelloFormScreen() {
     val feedback = LocalFeedbackHost.current
     val coroutineScope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
+    val formState = rememberFormState(initialValue = FormData(), saver = serializationSaver())
+    val form = rememberForm(state = formState) {
+        coroutineScope.launch {
+            feedback.showAlert("Form submitted successfully")
+            focusManager.clearFocus()
+            formState.reset(FormData())
+        }
+    }
     HelloFormContent(
-        onSubmitted = {
-            coroutineScope.launch { feedback.showAlert("Form submitted successfully") }
-        },
+        form = form,
         modifier = Modifier.fillMaxSize()
     )
 }
 
 // The form input fields are based on the Live Demo used in React Hook Form.
 // You can reference it here: https://react-hook-form.com/
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalSerializationApi::class)
 @Composable
 private fun HelloFormContent(
-    onSubmitted: (FormData) -> Unit,
+    form: Form<FormData>,
     modifier: Modifier = Modifier
 ) = withAppTheme {
-    var formVersion by rememberSaveable { mutableStateOf(0) }
-    Form(
-        onSubmit = { edited ->
-            delay(3000) // dummy send data to server
-            onSubmitted(edited)
-            formVersion += 1
-        },
-        initialValue = FormData(),
-        modifier = modifier,
-        key = formVersion,
-        saver = serializationSaver()
+    Column(
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = modifier
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
     ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            val (f1, f2, f3, f4, f5, f6, f7) = FocusRequester.createRefs()
-            Controller(control = rememberFirstNameFieldControl()) { field ->
-                val input = field.rememberAsInputForText(focusRequester = f1, focusNext = f2)
-                FormTextField(binding = input)
+        val (f1, f2, f3, f4, f5, f6, f7) = FocusRequester.createRefs()
+        form.FirstName { field ->
+            InputField(
+                ref = field,
+                modifier = Modifier.fillMaxWidth().focusRequester(f1),
+                label = { Text("First name") }
+            )
+        }
+        form.LastName { field ->
+            InputField(
+                ref = field,
+                modifier = Modifier.fillMaxWidth().focusRequester(f2),
+                label = { Text("Last name") }
+            )
+        }
+        form.Email { field ->
+            InputField(
+                ref = field,
+                modifier = Modifier.fillMaxWidth().focusRequester(f3),
+                label = { Text("Email") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+            )
+        }
+        form.MobileNumber { field ->
+            InputField(
+                ref = field,
+                modifier = Modifier.fillMaxWidth().focusRequester(f4),
+                label = { Text("Mobile number") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+        }
+        form.Title { field ->
+            SelectField(
+                ref = field,
+                value = { it?.name ?: "" },
+                modifier = Modifier.fillMaxWidth().focusRequester(f5),
+                label = { Text("Title") },
+            ) {
+                Title.entries.forEach { value ->
+                    key(value) {
+                        Option(value) {
+                            Text(text = value.name)
+                        }
+                    }
+                }
             }
-
-            Controller(control = rememberLastNameFieldControl()) { field ->
-                val input = field.rememberAsInputForText(focusRequester = f2, focusNext = f3)
-                FormTextField(binding = input)
+        }
+        form.Developer { field ->
+            RadioField(
+                ref = field,
+                modifier = Modifier.fillMaxWidth().focusRequester(f6)
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    listOf(true, false).forEach { value ->
+                        key(value) {
+                            Option(value) {
+                                Text(if (value) "Yes" else "No")
+                            }
+                        }
+                    }
+                }
             }
-
-            Controller(control = rememberEmailFieldControl()) { field ->
-                val input = field.rememberAsInputForEmail(focusRequester = f3, focusNext = f4)
-                FormTextField(binding = input)
-            }
-
-            Controller(control = rememberMobileNumberFieldControl()) { field ->
-                val input = field.rememberAsInputForNumber(focusRequester = f4, focusNext = f5)
-                FormTextField(binding = input)
-            }
-
-            Controller(control = rememberTitleFieldControl()) { field ->
-                val select = field.rememberAsSelect(focusRequester = f5, focusNext = f6)
-                FormSelect(binding = select, displayText = Title::name)
-            }
-
-            Controller(control = rememberDeveloperFieldControl()) { field ->
-                val radio = field.rememberAsRadio(focusRequester = f6, focusNext = f7)
-                FormRadioGroup(binding = radio, options = listOf(true, false)) { if (it) "Yes" else "No" }
-            }
-
-            Controller(control = rememberSubmissionRuleAutoControl()) { submission ->
-                FormSubmit(submission, label = "Submit", modifier = Modifier.focusRequester(f7))
-            }
+        }
+        form.Submit {
+            Text(
+                text = "Submit",
+                modifier = Modifier.fillMaxWidth().focusRequester(f7),
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
 
 @Composable
-private fun FormScope<FormData>.rememberFirstNameFieldControl(): FieldControl<String> {
-    return rememberFieldRuleControl(
-        name = "First name",
-        select = { firstName },
-        update = { copy(firstName = it) }
-    ) {
-        notBlank { "must be not blank" }
-    }
+private fun Form<FormData>.FirstName(
+    content: @Composable (FormField<String>) -> Unit
+) {
+    Field(
+        selector = { it.firstName },
+        updater = { copy(firstName = it) },
+        validator = FieldValidator {
+            notBlank { "must be not blank" }
+        },
+        render = content
+    )
 }
 
 @Composable
-private fun FormScope<FormData>.rememberLastNameFieldControl(): FieldControl<String> {
-    return rememberFieldRuleControl(
-        name = "Last name",
-        select = { lastName },
-        update = { copy(lastName = it) }
-    ) {
-        notBlank { "must be not blank" }
-    }
+private fun Form<FormData>.LastName(
+    content: @Composable (FormField<String>) -> Unit
+) {
+    Field(
+        selector = { it.lastName },
+        updater = { copy(lastName = it) },
+        validator = FieldValidator {
+            notBlank { "must be not blank" }
+        },
+        render = content
+    )
 }
 
 @Composable
-private fun FormScope<FormData>.rememberEmailFieldControl(): FieldControl<String> {
-    return rememberFieldRuleControl(
-        name = "Email",
-        select = { email },
-        update = { copy(email = it) }
-    ) {
-        notBlank { "must be not blank" }
-        email { "must be valid email address" }
-    }
+private fun Form<FormData>.Email(
+    content: @Composable (FormField<String>) -> Unit
+) {
+    Field(
+        selector = { it.email },
+        updater = { copy(email = it) },
+        validator = FieldValidator {
+            notBlank { "must be not blank" }
+            email { "must be valid email address" }
+        },
+        render = content
+    )
 }
 
 @Composable
-private fun FormScope<FormData>.rememberMobileNumberFieldControl(): FieldControl<String> {
-    return rememberFieldRuleControl(
-        name = "Mobile number",
-        select = { mobileNumber },
-        update = { copy(mobileNumber = it) }
-    ) {
-        notBlank { "must be not blank" }
-    }
+private fun Form<FormData>.MobileNumber(
+    content: @Composable (FormField<String>) -> Unit
+) {
+    Field(
+        selector = { it.mobileNumber },
+        updater = { copy(mobileNumber = it) },
+        validator = FieldValidator {
+            notBlank { "must be not blank" }
+        },
+        render = content
+    )
 }
 
 @Composable
-private fun FormScope<FormData>.rememberTitleFieldControl(): FieldControl<Title?> {
-    return rememberFieldRuleControl(
-        name = "Title",
-        select = { title },
-        update = { copy(title = it) }
-    ) {
-        notNull { "must be selected" }
-    }
+private fun Form<FormData>.Title(
+    content: @Composable (FormField<Title?>) -> Unit
+) {
+    Field(
+        selector = { it.title },
+        updater = { copy(title = it) },
+        validator = FieldValidator {
+            notNull { "must be selected" }
+        },
+        render = content
+    )
 }
 
 @Composable
-private fun FormScope<FormData>.rememberDeveloperFieldControl(): FieldControl<Boolean?> {
-    return rememberFieldRuleControl(
-        name = "Developer",
-        select = { developer },
-        update = { copy(developer = it) }
-    ) {
-        notNull { "must be selected" }
-    }
+private fun Form<FormData>.Developer(
+    content: @Composable (FormField<Boolean?>) -> Unit
+) {
+    Field(
+        selector = { it.developer },
+        updater = { copy(developer = it) },
+        validator = FieldValidator {
+            notNull { "must be selected" }
+        },
+        render = content
+    )
 }
 
 // Basic custom validation rule for email addresses
 private fun StringRuleBuilder.email(message: () -> String) {
     val pattern = Regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\$")
-    extend(StringRuleTester({ pattern.matches(this) }, message))
+    extend(StringRule({ pattern.matches(this) }, message))
 }

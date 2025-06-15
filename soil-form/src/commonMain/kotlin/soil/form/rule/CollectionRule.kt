@@ -3,32 +3,48 @@
 
 package soil.form.rule
 
-import soil.form.FieldErrors
-import soil.form.ValidationRule
-import soil.form.ValidationRuleBuilder
-import soil.form.fieldError
-import soil.form.noErrors
+import soil.form.core.ValidationResult
+import soil.form.core.ValidationRule
+import soil.form.core.ValidationRuleBuilder
+import soil.form.core.rules
+import soil.form.core.validate
 
-// TODO: ListRule, SetRule, MapRule
-
+/**
+ * A type alias for validation rules that operate on Collection values.
+ *
+ * Collection rules are validation functions that take a Collection value and return
+ * a [ValidationResult] indicating whether the validation passed or failed.
+ */
 typealias CollectionRule<V> = ValidationRule<Collection<V>>
+
+/**
+ * A type alias for builders that create Collection validation rules.
+ *
+ * Collection rule builders provide a DSL for constructing validation rules
+ * specifically for Collection values, with convenient methods like [notEmpty],
+ * [minSize], and [maxSize].
+ */
 typealias CollectionRuleBuilder<V> = ValidationRuleBuilder<Collection<V>>
 
 /**
  * A rule that tests the collection value.
  *
- * @property predicate The predicate to test the collection value. Returns `true` if the test passes; `false` otherwise.
- * @property message The message to return when the test fails.
- * @constructor Creates a new instance of [CollectionRuleTester].
+ * @param predicate The predicate to test the collection value. Returns `true` if the test passes; `false` otherwise.
+ * @param message The message to return when the test fails.
+ * @return Creates a new instance of [CollectionRule].
  */
-class CollectionRuleTester<V>(
-    val predicate: Collection<V>.() -> Boolean,
-    val message: () -> String
-) : CollectionRule<V> {
-    override fun test(value: Collection<V>): FieldErrors {
-        return if (value.predicate()) noErrors else fieldError(message())
-    }
+fun <V> CollectionRule(
+    predicate: Collection<V>.() -> Boolean,
+    message: () -> String
+): CollectionRule<V> = { value ->
+    if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
+
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
+class CollectionRuleTester<V>(
+    predicate: Collection<V>.() -> Boolean,
+    message: () -> String
+) : CollectionRule<V> by CollectionRule(predicate, message)
 
 /**
  * Validates that the collection is not empty.
@@ -43,7 +59,7 @@ class CollectionRuleTester<V>(
  * @param message The message to return when the test fails.
  */
 fun <V> CollectionRuleBuilder<V>.notEmpty(message: () -> String) {
-    extend(CollectionRuleTester(Collection<V>::isNotEmpty, message))
+    extend(CollectionRule(Collection<V>::isNotEmpty, message))
 }
 
 /**
@@ -60,7 +76,7 @@ fun <V> CollectionRuleBuilder<V>.notEmpty(message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun <V> CollectionRuleBuilder<V>.minSize(limit: Int, message: () -> String) {
-    extend(CollectionRuleTester({ size >= limit }, message))
+    extend(CollectionRule({ size >= limit }, message))
 }
 
 /**
@@ -77,5 +93,44 @@ fun <V> CollectionRuleBuilder<V>.minSize(limit: Int, message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun <V> CollectionRuleBuilder<V>.maxSize(limit: Int, message: () -> String) {
-    extend(CollectionRuleTester({ size <= limit }, message))
+    extend(CollectionRule({ size <= limit }, message))
+}
+
+/**
+ * Creates a validation rule chain for applying rules to each element of the collection.
+ *
+ * This function allows you to validate each individual element within a collection
+ * using the `all` function internally. It's useful when you need to ensure that
+ * every element in the collection meets certain criteria.
+ *
+ * Usage:
+ * ```kotlin
+ * rules<Collection<String>> {
+ *     notEmpty { "collection must not be empty" }
+ *     element {
+ *         notBlank { "must be not blank" }
+ *         minLength(3) { "must be at least 3 characters" }
+ *     }
+ * }
+ * ```
+ *
+ * @param V The type of the elements in the collection.
+ * @param block A lambda that builds the validation rules using [ValidationRuleBuilder].
+ */
+fun <V> CollectionRuleBuilder<V>.element(block: ValidationRuleBuilder<V>.() -> Unit) {
+    val ruleSet = rules(block)
+    val chainedRule: CollectionRule<V> = { collection ->
+        val allErrorMessages = collection.flatMap { element ->
+            when (val result = validate(element, ruleSet)) {
+                is ValidationResult.Valid -> emptyList()
+                is ValidationResult.Invalid -> result.messages
+            }
+        }
+        if (allErrorMessages.isEmpty()) {
+            ValidationResult.Valid
+        } else {
+            ValidationResult.Invalid(allErrorMessages.distinct())
+        }
+    }
+    extend(chainedRule)
 }

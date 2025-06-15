@@ -3,30 +3,46 @@
 
 package soil.form.rule
 
-import soil.form.FieldErrors
-import soil.form.ValidationRule
-import soil.form.ValidationRuleBuilder
-import soil.form.fieldError
-import soil.form.noErrors
+import soil.form.core.ValidationResult
+import soil.form.core.ValidationRule
+import soil.form.core.ValidationRuleBuilder
 
+/**
+ * A type alias for validation rules that operate on String values.
+ *
+ * String rules are validation functions that take a String value and return
+ * a [ValidationResult] indicating whether the validation passed or failed.
+ */
 typealias StringRule = ValidationRule<String>
+
+/**
+ * A type alias for builders that create String validation rules.
+ *
+ * String rule builders provide a DSL for constructing validation rules
+ * specifically for String values, with convenient methods like [notEmpty],
+ * [notBlank], [minLength], [maxLength], and [pattern].
+ */
 typealias StringRuleBuilder = ValidationRuleBuilder<String>
 
 /**
  * A rule that tests the string value.
  *
- * @property predicate The predicate to test the string value. Returns `true` if the test passes; `false` otherwise.
- * @property message The message to return when the test fails.
- * @constructor Creates a new instance of [StringRuleTester].
+ * @param predicate The predicate to test the string value. Returns `true` if the test passes; `false` otherwise.
+ * @param message The message to return when the test fails.
+ * @return Creates a new instance of [StringRule].
  */
-class StringRuleTester(
-    val predicate: String.() -> Boolean,
-    val message: () -> String
-) : StringRule {
-    override fun test(value: String): FieldErrors {
-        return if (value.predicate()) noErrors else fieldError(message())
-    }
+fun StringRule(
+    predicate: String.() -> Boolean,
+    message: () -> String
+): StringRule = { value ->
+    if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
+
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
+class StringRuleTester(
+    predicate: String.() -> Boolean,
+    message: () -> String
+) : StringRule by StringRule(predicate, message)
 
 /**
  * Validates that the string value is not empty.
@@ -41,7 +57,7 @@ class StringRuleTester(
  * @param message The message to return when the test fails.
  */
 fun StringRuleBuilder.notEmpty(message: () -> String) {
-    extend(StringRuleTester(String::isNotEmpty, message))
+    extend(StringRule(String::isNotEmpty, message))
 }
 
 /**
@@ -57,7 +73,7 @@ fun StringRuleBuilder.notEmpty(message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun StringRuleBuilder.notBlank(message: () -> String) {
-    extend(StringRuleTester(String::isNotBlank, message))
+    extend(StringRule(String::isNotBlank, message))
 }
 
 /**
@@ -74,7 +90,7 @@ fun StringRuleBuilder.notBlank(message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun StringRuleBuilder.minLength(limit: Int, message: () -> String) {
-    extend(StringRuleTester({ length >= limit }, message))
+    extend(StringRule({ length >= limit }, message))
 }
 
 /**
@@ -91,7 +107,7 @@ fun StringRuleBuilder.minLength(limit: Int, message: () -> String) {
  * @param message The message to return when the test fails.
  */
 fun StringRuleBuilder.maxLength(limit: Int, message: () -> String) {
-    extend(StringRuleTester({ length <= limit }, message))
+    extend(StringRule({ length <= limit }, message))
 }
 
 /**
@@ -107,6 +123,7 @@ fun StringRuleBuilder.maxLength(limit: Int, message: () -> String) {
  * @param pattern The regular expression pattern the string must match.
  * @param message The message to return when the test fails.
  */
+@Deprecated("Use `match` instead. This will be removed in a future version.", ReplaceWith("match(pattern, message)"))
 fun StringRuleBuilder.pattern(pattern: String, message: () -> String) {
     pattern(Regex(pattern), message)
 }
@@ -124,6 +141,41 @@ fun StringRuleBuilder.pattern(pattern: String, message: () -> String) {
  * @param pattern The regular expression pattern the string must match.
  * @param message The message to return when the test fails.
  */
+@Deprecated("Use `match` instead. This will be removed in a future version.", ReplaceWith("match(pattern, message)"))
 fun StringRuleBuilder.pattern(pattern: Regex, message: () -> String) {
-    extend(StringRuleTester({ pattern.matches(this) }, message))
+    extend(StringRule({ pattern.matches(this) }, message))
+}
+
+/**
+ * Validates that the string matches the [pattern].
+ *
+ * Usage:
+ * ```kotlin
+ * rules<String> {
+ *     match("^[A-Za-z]+$") { "must be alphabetic" }
+ * }
+ * ```
+ *
+ * @param pattern The regular expression pattern the string must match.
+ * @param message The message to return when the test fails.
+ */
+fun StringRuleBuilder.match(pattern: String, message: () -> String) {
+    match(Regex(pattern), message)
+}
+
+/**
+ * Validates that the string matches the [pattern].
+ *
+ * Usage:
+ * ```kotlin
+ * rules<String> {
+ *     match(Regex("^[A-Za-z]+$")) { "must be alphabetic" }
+ * }
+ * ```
+ *
+ * @param pattern The regular expression pattern the string must match.
+ * @param message The message to return when the test fails.
+ */
+fun StringRuleBuilder.match(pattern: Regex, message: () -> String) {
+    extend(StringRule({ pattern.matches(this) }, message))
 }

@@ -13,6 +13,7 @@ import kotlin.time.Duration.Companion.milliseconds
  * @property validationDelay The settings for delayed execution of field validation.
  * @constructor Creates a new instance of [FieldPolicy].
  */
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 data class FieldPolicy(
     val validationTrigger: FieldValidationTrigger = FieldValidationTrigger,
     val validationDelay: FieldValidationDelay = FieldValidationDelay()
@@ -26,6 +27,7 @@ data class FieldPolicy(
  * @property onBlur The delay before validation when the field loses focus.
  * @constructor Creates a new instance of [FieldValidationDelay].
  */
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 data class FieldValidationDelay(
     val onMount: Duration = Duration.ZERO,
     val onChange: Duration = 250.milliseconds,
@@ -35,6 +37,7 @@ data class FieldValidationDelay(
 /**
  * Enumerates the timings when field validation is performed.
  */
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 enum class FieldValidateOn {
 
     /** When the field component is mounted */
@@ -53,6 +56,7 @@ enum class FieldValidateOn {
 /**
  * Represents the timings that trigger field validation.
  */
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 interface FieldValidationTrigger {
 
     /**
@@ -73,6 +77,7 @@ interface FieldValidationTrigger {
      * By default, this setting automatically performs validation after the field loses focus,
      * and if validation fails, it will re-validate each time the form input changes.
      */
+    @Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
     companion object Default : FieldValidationTrigger {
         override val startAt: FieldValidateOn = FieldValidateOn.Blur
 
@@ -96,6 +101,7 @@ interface FieldValidationTrigger {
      * Automatically performs validation at the time of form submission,
      * and thereafter re-validates each time the form input changes.
      */
+    @Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
     object Submit : FieldValidationTrigger {
         override val startAt: FieldValidateOn = FieldValidateOn.Submit
 

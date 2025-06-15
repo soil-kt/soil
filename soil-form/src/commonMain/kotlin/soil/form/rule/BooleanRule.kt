@@ -3,30 +3,45 @@
 
 package soil.form.rule
 
-import soil.form.FieldErrors
-import soil.form.ValidationRule
-import soil.form.ValidationRuleBuilder
-import soil.form.fieldError
-import soil.form.noErrors
+import soil.form.core.ValidationResult
+import soil.form.core.ValidationRule
+import soil.form.core.ValidationRuleBuilder
 
+/**
+ * A type alias for validation rules that operate on Boolean values.
+ *
+ * Boolean rules are validation functions that take a Boolean value and return
+ * a [ValidationResult] indicating whether the validation passed or failed.
+ */
 typealias BooleanRule = ValidationRule<Boolean>
+
+/**
+ * A type alias for builders that create Boolean validation rules.
+ *
+ * Boolean rule builders provide a DSL for constructing validation rules
+ * specifically for Boolean values, with convenient methods like [isTrue] and [isFalse].
+ */
 typealias BooleanRuleBuilder = ValidationRuleBuilder<Boolean>
 
 /**
  * A rule that tests the boolean value.
  *
- * @property predicate The predicate to test the boolean value. Returns `true` if the test passes; `false` otherwise.
- * @property message The message to return when the test fails.
- * @constructor Creates a new instance of [BooleanRuleTester].
+ * @param predicate The predicate to test the boolean value. Returns `true` if the test passes; `false` otherwise.
+ * @param message The message to return when the test fails.
+ * @return Creates a new instance of [BooleanRule].
  */
-class BooleanRuleTester(
-    val predicate: Boolean.() -> Boolean,
-    val message: () -> String
-) : BooleanRule {
-    override fun test(value: Boolean): FieldErrors {
-        return if (value.predicate()) noErrors else fieldError(message())
-    }
+fun BooleanRule(
+    predicate: Boolean.() -> Boolean,
+    message: () -> String
+): BooleanRule = { value ->
+    if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
+
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
+class BooleanRuleTester(
+    predicate: Boolean.() -> Boolean,
+    message: () -> String
+) : BooleanRule by BooleanRule(predicate, message)
 
 /**
  * Validates that the boolean value is `true`.
@@ -40,8 +55,25 @@ class BooleanRuleTester(
  *
  * @param message The message to return when the test fails.
  */
+@Deprecated("Use `truthy` instead. This will be removed in a future version.", ReplaceWith("truthy(message)"))
 fun BooleanRuleBuilder.isTrue(message: () -> String) {
-    extend(BooleanRuleTester({ this }, message))
+    extend(BooleanRule({ this }, message))
+}
+
+/**
+ * Validates that the boolean value is `true`.
+ *
+ * Usage:
+ * ```kotlin
+ * rules<Boolean> {
+ *     truthy { "must be true" }
+ * }
+ * ```
+ *
+ * @param message The message to return when the test fails.
+ */
+fun BooleanRuleBuilder.truthy(message: () -> String) {
+    extend(BooleanRule({ this }, message))
 }
 
 /**
@@ -56,6 +88,23 @@ fun BooleanRuleBuilder.isTrue(message: () -> String) {
  *
  * @param message The message to return when the test fails.
  */
+@Deprecated("Use `falsy` instead. This will be removed in a future version.", ReplaceWith("falsy(message)"))
 fun BooleanRuleBuilder.isFalse(message: () -> String) {
-    extend(BooleanRuleTester({ !this }, message))
+    extend(BooleanRule({ !this }, message))
+}
+
+/**
+ * Validates that the boolean value is `false`.
+ *
+ * Usage:
+ * ```kotlin
+ * rules<Boolean> {
+ *     falsy { "must be false" }
+ * }
+ * ```
+ *
+ * @param message The message to return when the test fails.
+ */
+fun BooleanRuleBuilder.falsy(message: () -> String) {
+    extend(BooleanRule({ !this }, message))
 }

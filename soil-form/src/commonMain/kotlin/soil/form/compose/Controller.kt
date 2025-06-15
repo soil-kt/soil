@@ -47,6 +47,7 @@ import soil.form.Submission
  * @param content The content to be displayed.
  */
 @OptIn(FlowPreview::class)
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 @Composable
 fun <V> Controller(
     control: FieldControl<V>,
@@ -131,6 +132,7 @@ fun <V> Controller(
     }
 }
 
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 @Stable
 internal class FieldController<V>(
     override val name: FieldName,
@@ -180,6 +182,7 @@ internal class FieldController<V>(
  * @param content The content to be displayed.
  */
 @OptIn(FlowPreview::class)
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 @Composable
 fun <T> Controller(
     control: SubmissionControl<T>,
@@ -229,6 +232,7 @@ fun <T> Controller(
     }
 }
 
+@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
 @Stable
 internal class SubmissionController(
     override val onSubmit: () -> Unit,

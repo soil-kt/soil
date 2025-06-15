@@ -3,66 +3,60 @@
 
 package soil.form.rule
 
-import soil.form.FieldErrors
-import soil.form.ValidationRule
-import soil.form.ValidationRuleBuilder
-import soil.form.fieldError
-import soil.form.rules
-
-typealias OptionalRule<V> = ValidationRule<V?>
-typealias OptionalRuleBuilder<V> = ValidationRuleBuilder<V?>
+import soil.form.core.ValidationResult
+import soil.form.core.ValidationRule
+import soil.form.core.ValidationRuleBuilder
+import soil.form.core.ValidationRuleChainer
+import soil.form.core.rules
+import soil.form.core.validate
 
 /**
- * A rule that chains non-optional rules. If the value is not `null`, the rule set is applied to the value.
+ * A type alias for validation rules that operate on optional (nullable) values.
  *
- * @property message The message to return when the value is `null`.
- * @constructor Creates a new instance of [OptionalRuleChainer].
+ * Optional rules are validation functions that take a nullable value and return
+ * a [ValidationResult] indicating whether the validation passed or failed.
  */
-class OptionalRuleChainer<V>(
-    val message: () -> String
-) : OptionalRule<V> {
+typealias OptionalRule<V> = ValidationRule<V?>
 
-    private var ruleSet: Set<ValidationRule<V>> = emptySet()
-
-    override fun test(value: V?): FieldErrors {
-        return if (value != null) {
-            ruleSet.flatMap { rule -> rule.test(value) }
-        } else {
-            fieldError(message())
-        }
-    }
-
-    /**
-     * Chains a set of rules to the non-optional value.
-     *
-     * Usage:
-     * ```kotlin
-     * rules<String?> {
-     *     notNull { "must be not null" } then {
-     *         minLength(3) { "must be at least 3 characters" }
-     *     }
-     * }
-     *
-     * @param block The block to build the rule set.
-     */
-    infix fun then(block: ValidationRuleBuilder<V>.() -> Unit) {
-        ruleSet = rules(block)
-    }
-}
+/**
+ * A type alias for builders that create optional validation rules.
+ *
+ * Optional rule builders provide a DSL for constructing validation rules
+ * specifically for nullable values, with convenient methods like [notNull].
+ */
+typealias OptionalRuleBuilder<V> = ValidationRuleBuilder<V?>
 
 /**
  * Validates that the optional value is not `null`.
  *
+ * This function creates a validation rule that checks if a nullable value is not null.
+ * It returns an [ValidationRuleChainer] that allows you to chain additional validation
+ * rules using the `then` infix function. The chained rules will only be applied
+ * if the value is not null.
+ *
+ * Usage:
  * ```kotlin
  * rules<String?> {
- *     notNull { "must be not null" } then {
- *         minLength(3) { "must be at least 3 characters" }
+ *     notNull { "Value is required" } then {
+ *         notBlank { "Value cannot be blank" }
+ *         minLength(3) { "Value must be at least 3 characters" }
  *     }
  * }
+ * ```
  *
- * @param message The message to return when the value is `null`.
- * @return The rule chainer to chain the non-optional rules.
+ * @param V The non-nullable type of the value being validated.
+ * @param message A function that returns the error message when the value is `null`.
+ * @return An [ValidationRuleChainer] that allows chaining additional validation rules.
  */
-fun <V : Any> OptionalRuleBuilder<V?>.notNull(message: () -> String): OptionalRuleChainer<V> {
-    return OptionalRuleChainer<V>(message).also { extend(it) }
-}
+fun <V : Any> OptionalRuleBuilder<V?>.notNull(message: () -> String): ValidationRuleChainer<V> =
+    ValidationRuleChainer { block ->
+        val ruleSet = rules(block)
+        val chainedRule: OptionalRule<V> = { value ->
+            if (value == null) {
+                ValidationResult.Invalid(message())
+            } else {
+                validate(value, ruleSet)
+            }
+        }
+        extend(chainedRule)
+    }
