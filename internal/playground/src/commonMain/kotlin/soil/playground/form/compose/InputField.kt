@@ -3,18 +3,15 @@ package soil.playground.form.compose
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.VisualTransformation
 import soil.form.compose.FormField
 import soil.form.compose.hasError
-import soil.playground.style.AppTheme
 
 @Composable
-fun InputField(
-    ref: FormField<String>,
+fun FormField<String>.InputField(
     modifier: Modifier = Modifier,
     label: @Composable (() -> Unit)? = null,
     placeholder: @Composable (() -> Unit)? = null,
@@ -29,25 +26,23 @@ fun InputField(
     minLines: Int = 1,
 ) {
     OutlinedTextField(
-        value = ref.value,
-        onValueChange = ref::onValueChange,
-        modifier = modifier.onFocusChanged { ref.handleFocus(it.isFocused || it.hasFocus) },
+        value = value,
+        onValueChange = ::onValueChange,
+        modifier = modifier.onFocusChanged { handleFocus(it.isFocused || it.hasFocus) },
         label = label,
         placeholder = placeholder,
         leadingIcon = leadingIcon,
         trailingIcon = trailingIcon,
-        enabled = ref.isEnabled,
-        isError = ref.hasError,
+        enabled = isEnabled,
+        isError = hasError,
         singleLine = singleLine,
         maxLines = maxLines,
         minLines = minLines,
-        supportingText = supportingText ?: {
-            if (ref.hasError) {
-                Text(text = ref.error.messages.first(), color = AppTheme.colorScheme.error)
-            }
-        },
+        supportingText = supportingText,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
         visualTransformation = visualTransformation
     )
 }
+
+

@@ -11,7 +11,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -36,6 +35,7 @@ import soil.form.rule.notNull
 import soil.playground.LocalFeedbackHost
 import soil.playground.form.FormData
 import soil.playground.form.Title
+import soil.playground.form.compose.FieldLayout
 import soil.playground.form.compose.InputField
 import soil.playground.form.compose.RadioField
 import soil.playground.form.compose.SelectField
@@ -77,44 +77,47 @@ private fun HelloFormContent(
     ) {
         val (f1, f2, f3, f4, f5, f6, f7) = FocusRequester.createRefs()
         form.FirstName { field ->
-            InputField(
-                ref = field,
-                modifier = Modifier.fillMaxWidth().focusRequester(f1),
-                label = { Text("First name") }
-            )
+            FieldLayout(field) {
+                InputField(
+                    modifier = Modifier.fillMaxWidth().focusRequester(f1),
+                    label = { Text("First name") }
+                )
+            }
         }
         form.LastName { field ->
-            InputField(
-                ref = field,
-                modifier = Modifier.fillMaxWidth().focusRequester(f2),
-                label = { Text("Last name") }
-            )
+            FieldLayout(field) {
+                InputField(
+                    modifier = Modifier.fillMaxWidth().focusRequester(f2),
+                    label = { Text("Last name") }
+                )
+            }
         }
         form.Email { field ->
-            InputField(
-                ref = field,
-                modifier = Modifier.fillMaxWidth().focusRequester(f3),
-                label = { Text("Email") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
-            )
+            FieldLayout(field) {
+                InputField(
+                    modifier = Modifier.fillMaxWidth().focusRequester(f3),
+                    label = { Text("Email") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                )
+            }
         }
         form.MobileNumber { field ->
-            InputField(
-                ref = field,
-                modifier = Modifier.fillMaxWidth().focusRequester(f4),
-                label = { Text("Mobile number") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
+            FieldLayout(field) {
+                InputField(
+                    modifier = Modifier.fillMaxWidth().focusRequester(f4),
+                    label = { Text("Mobile number") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+            }
         }
         form.Title { field ->
-            SelectField(
-                ref = field,
-                value = { it?.name ?: "" },
-                modifier = Modifier.fillMaxWidth().focusRequester(f5),
-                label = { Text("Title") },
-            ) {
-                Title.entries.forEach { value ->
-                    key(value) {
+            FieldLayout(field) {
+                SelectField(
+                    transform = { it?.name ?: "" },
+                    modifier = Modifier.fillMaxWidth().focusRequester(f5),
+                    label = { Text("Title") },
+                ) {
+                    Title.entries.forEach { value ->
                         Option(value) {
                             Text(text = value.name)
                         }
@@ -123,13 +126,12 @@ private fun HelloFormContent(
             }
         }
         form.Developer { field ->
-            RadioField(
-                ref = field,
-                modifier = Modifier.fillMaxWidth().focusRequester(f6)
-            ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    listOf(true, false).forEach { value ->
-                        key(value) {
+            FieldLayout(field) {
+                RadioField(
+                    modifier = Modifier.fillMaxWidth().focusRequester(f6)
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        listOf(true, false).forEach { value ->
                             Option(value) {
                                 Text(if (value) "Yes" else "No")
                             }
