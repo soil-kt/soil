@@ -30,12 +30,19 @@ typealias OptionalRuleBuilder<V> = ValidationRuleBuilder<V?>
  * Validates that the optional value is not `null`.
  *
  * This function creates a validation rule that checks if a nullable value is not null.
- * It returns an [ValidationRuleChainer] that allows you to chain additional validation
- * rules using the `then` infix function. The chained rules will only be applied
+ * The null check is applied immediately when this function is called, making the `then`
+ * call optional. It returns a [ValidationRuleChainer] that allows you to chain additional
+ * validation rules using the `then` infix function. The chained rules will only be applied
  * if the value is not null.
  *
  * Usage:
  * ```kotlin
+ * // Basic null check only
+ * rules<String?> {
+ *     notNull { "Value is required" }
+ * }
+ *
+ * // Null check with additional validation
  * rules<String?> {
  *     notNull { "Value is required" } then {
  *         notBlank { "Value cannot be blank" }
@@ -48,15 +55,28 @@ typealias OptionalRuleBuilder<V> = ValidationRuleBuilder<V?>
  * @param message A function that returns the error message when the value is `null`.
  * @return An [ValidationRuleChainer] that allows chaining additional validation rules.
  */
-fun <V : Any> OptionalRuleBuilder<V?>.notNull(message: () -> String): ValidationRuleChainer<V> =
-    ValidationRuleChainer { block ->
+fun <V : Any> OptionalRuleBuilder<V?>.notNull(message: () -> String): ValidationRuleChainer<V> {
+    // Immediately add the null check rule
+    val nullCheckRule: OptionalRule<V?> = { value ->
+        if (value == null) {
+            ValidationResult.Invalid(message())
+        } else {
+            ValidationResult.Valid
+        }
+    }
+    extend(nullCheckRule)
+
+    // Return a chainer for optional additional rules
+    return ValidationRuleChainer { block ->
         val ruleSet = rules(block)
-        val chainedRule: OptionalRule<V> = { value ->
+        val additionalRule: OptionalRule<V?> = { value ->
             if (value == null) {
-                ValidationResult.Invalid(message())
+                // If value is null, the null check rule above will handle it
+                ValidationResult.Valid
             } else {
                 validate(value, ruleSet)
             }
         }
-        extend(chainedRule)
+        extend(additionalRule)
     }
+}

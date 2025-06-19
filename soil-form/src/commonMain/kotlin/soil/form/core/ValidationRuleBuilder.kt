@@ -70,10 +70,8 @@ class ValidationRuleBuilder<V> {
      * of all the validation rules that have been added to this builder.
      *
      * @return An immutable set containing all the validation rules.
-     * @throws IllegalStateException if no rules have been added to the builder.
      */
     fun build(): ValidationRuleSet<V> {
-        if (rules.isEmpty()) error("Rule must be at least one.")
         return rules.toSet()
     }
 }

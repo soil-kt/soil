@@ -4,7 +4,6 @@
 package soil.form.rule
 
 import soil.form.core.ValidationResult
-import soil.form.core.rules
 import soil.testing.UnitTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -21,6 +20,34 @@ class OptionalRuleTest : UnitTest() {
         }
         assertEquals(ValidationResult.Valid, rule("hello"))
         assertEquals(ValidationResult.Invalid("Invalid!"), rule(null))
+    }
+
+    @Test
+    fun rule_notNull_without_then() {
+        val rule = testRule {
+            notNull { "Value is required!" }
+        }
+        assertEquals(ValidationResult.Valid, rule("hello"))
+        assertEquals(ValidationResult.Valid, rule(""))
+        assertEquals(ValidationResult.Invalid("Value is required!"), rule(null))
+    }
+
+    @Test
+    fun rule_notNull_with_multiple_rules() {
+        val rule = testRule {
+            notNull { "Required!" }
+            // Add another rule that should also be applied
+            extend { value: String? ->
+                if (value != null && value.length < 3) {
+                    ValidationResult.Invalid("Too short!")
+                } else {
+                    ValidationResult.Valid
+                }
+            }
+        }
+        assertEquals(ValidationResult.Valid, rule("hello"))
+        assertEquals(ValidationResult.Invalid("Required!"), rule(null))
+        assertEquals(ValidationResult.Invalid("Too short!"), rule("ab"))
     }
 
     @Test
