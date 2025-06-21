@@ -84,6 +84,13 @@ interface FormBinding<T> {
      * @param updater A function that updates the form data.
      */
     fun handleChange(updater: T.() -> T)
+
+    /**
+     * Notifies the form that a field's validation target has changed.
+     *
+     * @param name The name of the field that has changed.
+     */
+    fun notifyFieldChange(name: FieldName)
 }
 
 /**

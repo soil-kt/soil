@@ -14,8 +14,10 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.autoSaver
 import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import soil.form.FieldName
 import soil.form.FieldNames
@@ -132,13 +134,12 @@ fun <T> rememberForm(
                     }
             }
 
-            // validateOnChange
+            // validateOnChange - field based
             launch {
-                snapshotFlow { state.value }
-                    .drop(1) // Skip the initial value
+                control.fieldChanges
                     .debounce(control.options.preValidationDelayOnChange)
                     .collect {
-                        control.preValidate(value = it)
+                        control.preValidate(value = state.value)
                     }
             }
         }
@@ -158,6 +159,8 @@ internal class FormController<T>(
 
     private val dependencies = mutableStateMapOf<FieldName, FieldNames>()
 
+    private val fieldChangeChannel = Channel<FieldName>(Channel.UNLIMITED)
+
     private val watchers by derivedStateOf {
         dependencies.keys.flatMap { key -> dependencies[key]?.map { Pair(key, it) } ?: emptyList() }
             .groupBy(keySelector = { it.second }, valueTransform = { it.first })
@@ -166,6 +169,7 @@ internal class FormController<T>(
 
     val options: FormOptions get() = state.policy.formOptions
     val fields: FieldNames get() = rules.keys
+    val fieldChanges get() = fieldChangeChannel.receiveAsFlow()
 
     fun preValidate(value: T) {
         state.meta.canSubmit = validate(value = value, dryRun = true)
@@ -221,5 +225,9 @@ internal class FormController<T>(
 
     override fun handleChange(updater: T.() -> T) {
         state.value = with(state.value) { updater() }
+    }
+
+    override fun notifyFieldChange(name: FieldName) {
+        fieldChangeChannel.trySend(name)
     }
 }

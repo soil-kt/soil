@@ -19,6 +19,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import soil.form.FieldError
@@ -399,6 +400,7 @@ fun <T, V, S, U> Form<T>.rememberField(
                     .collect {
                         control.trigger(FieldValidationMode.Change)
                         control.revalidateDependents()
+                        control.notifyFormChange()
                     }
             }
 
@@ -534,5 +536,9 @@ internal class FormFieldController<T, V, S, U>(
 
     fun revalidateDependents() {
         form.revalidateDependents(name)
+    }
+
+    fun notifyFormChange() {
+        form.notifyFieldChange(name)
     }
 }
