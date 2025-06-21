@@ -53,7 +53,7 @@ interface FieldOptions {
     companion object Default : FieldOptions {
         override val validationStrategy: FieldValidationStrategy = FieldValidationStrategy()
         override val validationDelayOnMount: Duration = Duration.ZERO
-        override val validationDelayOnChange: Duration = 250.milliseconds
+        override val validationDelayOnChange: Duration = 400.milliseconds
         override val validationDelayOnBlur: Duration = Duration.ZERO
     }
 }
@@ -78,7 +78,7 @@ interface FieldOptions {
  *
  * @param validationStrategy The validation strategy to use. Defaults to the standard strategy.
  * @param validationDelayOnMount The delay before validation on field mount. Defaults to no delay.
- * @param validationDelayOnChange The delay before validation on value change. Defaults to 250ms.
+ * @param validationDelayOnChange The delay before validation on value change. Defaults to 400ms.
  * @param validationDelayOnBlur The delay before validation on field blur. Defaults to no delay.
  * @return A [FieldOptions] instance with the specified configuration.
  */

@@ -16,9 +16,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.Snapshot
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import soil.form.FieldError
@@ -395,10 +397,10 @@ fun <T, V, S, U> Form<T>.rememberField(
             launch {
                 snapshotFlow { control.validationTarget }
                     .drop(1) // Skip the initial value
+                    .onEach { control.notifyFormChange() }
                     .debounce(control.options.validationDelayOnChange)
                     .collect {
                         control.trigger(FieldValidationMode.Change)
-                        control.revalidateDependents()
                     }
             }
 
@@ -411,6 +413,15 @@ fun <T, V, S, U> Form<T>.rememberField(
                     .debounce(control.options.validationDelayOnBlur)
                     .collect {
                         control.trigger(FieldValidationMode.Blur)
+                    }
+            }
+
+            // revalidate
+            launch {
+                control.dependentFieldChanges
+                    .debounce(control.options.validationDelayOnChange)
+                    .collect {
+                        control.revalidateIfNeeded()
                     }
             }
         }
@@ -452,6 +463,8 @@ internal class FormFieldController<T, V, S, U>(
 
     val validationTarget: S get() = adapter.toValidationTarget(rawValue)
 
+    val dependentFieldChanges: Flow<FieldName> get() = form.fieldChanges.filter { it in dependsOn }
+
     override var error: FieldError
         get() = meta.error
         set(value) {
@@ -475,9 +488,7 @@ internal class FormFieldController<T, V, S, U>(
     override var isEnabled: Boolean by mutableStateOf(true)
 
     fun register() {
-        form.register(name, dependsOn) { value, dryRun ->
-            validate(selector(value), dryRun)
-        }
+        form.register(name) { value, dryRun -> validate(selector(value), dryRun) }
         if (form[name] == null) {
             form[name] = meta
         }
@@ -532,7 +543,13 @@ internal class FormFieldController<T, V, S, U>(
         return isValid
     }
 
-    fun revalidateDependents() {
-        form.revalidateDependents(name)
+    fun revalidateIfNeeded() {
+        if (meta.isValidated) {
+            validate(rawValue)
+        }
+    }
+
+    suspend fun notifyFormChange() {
+        form.notifyFieldChange(name)
     }
 }

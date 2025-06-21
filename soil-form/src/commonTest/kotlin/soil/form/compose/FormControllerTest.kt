@@ -34,7 +34,7 @@ class FormControllerTest : UnitTest() {
             state = formState,
             onSubmit = { submittedData = it }
         )
-        formController.register("firstName", dependsOn = emptySet()) { _, _ ->
+        formController.register("firstName") { _, _ ->
             false // Simulate validation error
         }
 
@@ -62,7 +62,7 @@ class FormControllerTest : UnitTest() {
             onSubmit = {}
         )
 
-        formController.register("firstName", dependsOn = emptySet()) { _, _ ->
+        formController.register("firstName") { _, _ ->
             false // Simulate validation error
         }
 
@@ -80,14 +80,14 @@ class FormControllerTest : UnitTest() {
         ).binding
 
         var firstNameValidationCount = 0
-        binding.register("firstName", dependsOn = emptySet()) { _, _ ->
+        binding.register("firstName") { _, _ ->
             firstNameValidationCount++
             false // Simulate validation error
         }
         binding["firstName"] = FieldMetaState()
 
         var lastNameValidationCount = 0
-        binding.register("lastName", dependsOn = emptySet()) { _, _ ->
+        binding.register("lastName") { _, _ ->
             lastNameValidationCount++
             false // Simulate validation error
         }
@@ -108,14 +108,14 @@ class FormControllerTest : UnitTest() {
         ).binding
 
         var firstNameValidationCount = 0
-        binding.register("firstName", dependsOn = emptySet()) { _, _ ->
+        binding.register("firstName") { _, _ ->
             firstNameValidationCount++
             false // Simulate validation error
         }
         binding["firstName"] = FieldMetaState()
 
         var lastNameValidationCount = 0
-        binding.register("lastName", dependsOn = emptySet()) { _, _ ->
+        binding.register("lastName") { _, _ ->
             lastNameValidationCount++
             false // Simulate validation error
         }
@@ -139,46 +139,6 @@ class FormControllerTest : UnitTest() {
 
         binding.handleChange { copy(lastName = "Doe") }
         assertEquals("Doe", formState.value.lastName)
-    }
-
-    @OptIn(InternalSoilFormApi::class)
-    @Test
-    fun testRevalidateDependents() {
-        val formState = FormState(value = TestData())
-        val binding = FormController(
-            state = formState,
-            onSubmit = {}
-        ).binding
-
-        var firstNameValidationCount = 0
-        binding.register("firstName", dependsOn = emptySet()) { _, _ ->
-            firstNameValidationCount++
-            true // Simulate validation success
-        }
-        binding["firstName"] = FieldMetaState()
-
-        var lastNameValidationCount = 0
-        binding.register("lastName", dependsOn = setOf("firstName")) { _, _ ->
-            lastNameValidationCount++
-            true // Simulate validation success
-        }
-        binding["lastName"] = FieldMetaState()
-
-        binding.revalidateDependents("firstName")
-        assertEquals(firstNameValidationCount, 0)
-        assertEquals(lastNameValidationCount, 0)
-
-        formState.meta.fields["lastName"]?.isValidated = true
-
-        binding.revalidateDependents("firstName")
-        assertEquals(firstNameValidationCount, 0)
-        assertEquals(lastNameValidationCount, 1)
-
-        binding.unregister("lastName")
-
-        binding.revalidateDependents("firstName")
-        assertEquals(firstNameValidationCount, 0)
-        assertEquals(lastNameValidationCount, 1)
     }
 
     data class TestData(
