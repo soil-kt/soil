@@ -47,7 +47,7 @@ interface FormOptions {
     companion object Default : FormOptions {
         override val preValidation: Boolean = true
         override val preValidationDelayOnMount: Duration = 200.milliseconds
-        override val preValidationDelayOnChange: Duration = 200.milliseconds
+        override val preValidationDelayOnChange: Duration = 400.milliseconds
     }
 }
 
@@ -69,7 +69,7 @@ interface FormOptions {
  *
  * @param preValidation Whether to enable form pre-validation. Defaults to true.
  * @param preValidationDelayOnMount The delay before pre-validation when fields are added or removed. Defaults to 200ms.
- * @param preValidationDelayOnChange The delay before pre-validation on value change. Defaults to 200ms.
+ * @param preValidationDelayOnChange The delay before pre-validation on value change. Defaults to 400ms.
  * @return A [FormOptions] instance with the specified configuration.
  */
 fun FormOptions(

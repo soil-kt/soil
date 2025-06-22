@@ -6,16 +6,15 @@ package soil.form.compose
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.autoSaver
 import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import soil.form.FieldName
 import soil.form.FieldNames
@@ -128,17 +127,16 @@ fun <T> rememberForm(
                 snapshotFlow { control.fields }
                     .debounce(control.options.preValidationDelayOnMount)
                     .collect {
-                        control.preValidate(value = state.value)
+                        control.preValidate()
                     }
             }
 
             // validateOnChange
             launch {
-                snapshotFlow { state.value }
-                    .drop(1) // Skip the initial value
+                control.fieldChanges
                     .debounce(control.options.preValidationDelayOnChange)
                     .collect {
-                        control.preValidate(value = it)
+                        control.preValidate()
                     }
             }
         }
@@ -156,18 +154,12 @@ internal class FormController<T>(
 
     private val rules = mutableStateMapOf<FieldName, FieldRule<T>>()
 
-    private val dependencies = mutableStateMapOf<FieldName, FieldNames>()
-
-    private val watchers by derivedStateOf {
-        dependencies.keys.flatMap { key -> dependencies[key]?.map { Pair(key, it) } ?: emptyList() }
-            .groupBy(keySelector = { it.second }, valueTransform = { it.first })
-            .mapValues { (_, value) -> value.toSet() }
-    }
+    private val fieldChangeEmitter = MutableSharedFlow<FieldName>(extraBufferCapacity = Int.MAX_VALUE)
 
     val options: FormOptions get() = state.policy.formOptions
     val fields: FieldNames get() = rules.keys
 
-    fun preValidate(value: T) {
+    fun preValidate(value: T = state.value) {
         state.meta.canSubmit = validate(value = value, dryRun = true)
     }
 
@@ -183,6 +175,8 @@ internal class FormController<T>(
 
     override val policy: FormPolicy get() = state.policy
 
+    override val fieldChanges get() = fieldChangeEmitter.asSharedFlow()
+
     override fun get(name: FieldName): FieldMetaState? {
         return state.meta.fields[name]
     }
@@ -191,14 +185,12 @@ internal class FormController<T>(
         state.meta.fields[name] = fieldMeta
     }
 
-    override fun register(name: FieldName, dependsOn: FieldNames, rule: FieldRule<T>) {
+    override fun register(name: FieldName, rule: FieldRule<T>) {
         rules[name] = rule
-        dependencies[name] = dependsOn
     }
 
     override fun unregister(name: FieldName) {
         rules.remove(name)
-        dependencies.remove(name)
     }
 
     override fun validate(value: T, dryRun: Boolean): Boolean {
@@ -210,16 +202,11 @@ internal class FormController<T>(
         }
     }
 
-    override fun revalidateDependents(name: FieldName) {
-        watchers[name]?.forEach { watcher ->
-            val isValidated = state.meta.fields[watcher]?.isValidated ?: false
-            if (isValidated) {
-                rules[watcher]?.test(state.value, dryRun = false)
-            }
-        }
-    }
-
     override fun handleChange(updater: T.() -> T) {
         state.value = with(state.value) { updater() }
+    }
+
+    override suspend fun notifyFieldChange(name: FieldName) {
+        fieldChangeEmitter.emit(name)
     }
 }
