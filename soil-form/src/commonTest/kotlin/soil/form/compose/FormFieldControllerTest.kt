@@ -3,6 +3,8 @@
 
 package soil.form.compose
 
+import app.cash.turbine.test
+import kotlinx.coroutines.test.runTest
 import soil.form.FieldError
 import soil.form.FieldPassthroughAdapter
 import soil.form.FieldTypeAdapter
@@ -10,10 +12,12 @@ import soil.form.FieldValidationMode
 import soil.form.FieldValidator
 import soil.form.annotation.InternalSoilFormApi
 import soil.form.noFieldError
+import soil.form.rule.notBlank
 import soil.testing.UnitTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 @OptIn(InternalSoilFormApi::class)
@@ -281,7 +285,7 @@ class FormFieldControllerTest : UnitTest() {
     }
 
     @Test
-    fun testRevalidateDependents() {
+    fun testRevalidateIfNeeded() {
         val formState = FormState(value = TestFormData())
         val formController = FormController(
             state = formState,
@@ -293,22 +297,31 @@ class FormFieldControllerTest : UnitTest() {
             selector = { it.name },
             updater = { copy(name = it) },
             adapter = FieldPassthroughAdapter(),
-            validator = null,
+            validator = FieldValidator {
+                notBlank { "must be not blank" }
+            },
             name = "name",
             dependsOn = emptySet()
         )
 
-        var dependentValidationCount = 0
-        formController.binding.register("dependent", dependsOn = setOf("name")) { _, _ ->
-            dependentValidationCount++
-            true
-        }
-        formState.meta.fields["dependent"] = FieldMetaState(isValidated = true)
-
         controller.register()
-        controller.revalidateDependents()
 
-        assertEquals(1, dependentValidationCount)
+        val fieldState = checkNotNull(formState.meta.fields["name"])
+
+        assertFalse(fieldState.isValidated)
+        assertEquals(noFieldError, fieldState.error)
+
+        controller.revalidateIfNeeded()
+
+        assertFalse(fieldState.isValidated)
+        assertEquals(noFieldError, fieldState.error)
+
+        fieldState.isValidated = true
+        controller.revalidateIfNeeded()
+
+        assertNotEquals(noFieldError, fieldState.error)
+        assertTrue(controller.hasError)
+        assertTrue(fieldState.isValidated)
     }
 
     @Test
@@ -386,6 +399,64 @@ class FormFieldControllerTest : UnitTest() {
         // Test disabling
         controller.isEnabled = false
         assertFalse(controller.isEnabled)
+    }
+
+    @Test
+    fun testDependentFieldChanges() = runTest {
+        val formState = FormState(value = TestFormData())
+        val formController = FormController(
+            state = formState,
+            onSubmit = {}
+        )
+
+        val nameController = FormFieldController(
+            form = formController.binding,
+            selector = { it.name },
+            updater = { copy(name = it) },
+            adapter = FieldPassthroughAdapter(),
+            validator = null,
+            name = "name",
+            dependsOn = setOf("age")
+        ).also { it.register() }
+
+        val emailController = FormFieldController(
+            form = formController.binding,
+            selector = { it.email },
+            updater = { copy(email = it) },
+            adapter = FieldPassthroughAdapter(),
+            validator = null,
+            name = "email",
+            dependsOn = emptySet()
+        ).also { it.register() }
+
+        // Test nameController receives notifications for fields it depends on
+        nameController.dependentFieldChanges.test {
+            // Emit field changes after starting the test
+            formController.binding.notifyFieldChange("age")
+            assertEquals("age", awaitItem())
+
+            formController.binding.notifyFieldChange("age")
+            assertEquals("age", awaitItem())
+
+            // This should not be received since "name" is not in dependsOn
+            formController.binding.notifyFieldChange("name")
+            expectNoEvents()
+
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        // Test emailController doesn't receive any notifications since it has no dependencies
+        emailController.dependentFieldChanges.test {
+            // Emit various field changes
+            formController.binding.notifyFieldChange("age")
+            formController.binding.notifyFieldChange("name")
+            formController.binding.notifyFieldChange("email")
+
+            // Should not receive any events since dependsOn is empty
+            expectNoEvents()
+
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 
     // Test data class

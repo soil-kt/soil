@@ -4,8 +4,8 @@
 package soil.form.compose
 
 import androidx.compose.runtime.Stable
+import kotlinx.coroutines.flow.SharedFlow
 import soil.form.FieldName
-import soil.form.FieldNames
 import soil.form.annotation.InternalSoilFormApi
 
 /**
@@ -31,6 +31,15 @@ interface FormBinding<T> {
     val policy: FormPolicy
 
     /**
+     * A shared flow of field change notifications.
+     *
+     * This flow emits the names of fields that have changed, allowing dependent fields
+     * to react to changes in other fields. This is particularly useful for cross-field
+     * validation and conditional field behavior.
+     */
+    val fieldChanges: SharedFlow<FieldName>
+
+    /**
      * Gets the metadata for a specific field.
      *
      * @param name The name of the field.
@@ -47,13 +56,12 @@ interface FormBinding<T> {
     operator fun set(name: FieldName, fieldMeta: FieldMetaState)
 
     /**
-     * Registers a field with its validation rule and dependencies.
+     * Registers a field with its validation rule.
      *
      * @param name The name of the field.
-     * @param dependsOn The set of field names this field depends on.
      * @param rule The validation rule for this field.
      */
-    fun register(name: FieldName, dependsOn: FieldNames, rule: FieldRule<T>)
+    fun register(name: FieldName, rule: FieldRule<T>)
 
     /**
      * Unregisters a field from the form.
@@ -72,18 +80,18 @@ interface FormBinding<T> {
     fun validate(value: T, dryRun: Boolean): Boolean
 
     /**
-     * Revalidates fields that depend on the specified field.
-     *
-     * @param name The name of the field whose dependents should be revalidated.
-     */
-    fun revalidateDependents(name: FieldName)
-
-    /**
      * Handles a change to the form data.
      *
      * @param updater A function that updates the form data.
      */
     fun handleChange(updater: T.() -> T)
+
+    /**
+     * Notifies the form that a field's validation target has changed.
+     *
+     * @param name The name of the field that has changed.
+     */
+    suspend fun notifyFieldChange(name: FieldName)
 }
 
 /**
