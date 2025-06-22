@@ -44,5 +44,3 @@ fun FormField<String>.InputField(
         visualTransformation = visualTransformation
     )
 }
-
-
