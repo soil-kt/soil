@@ -7,7 +7,7 @@ import androidx.compose.runtime.saveable.SaverScope
 import androidx.compose.runtime.saveable.autoSaver
 import soil.form.FieldError
 import soil.form.FieldValidationMode
-import soil.form.noFieldError
+import soil.form.FormOptions
 import soil.testing.UnitTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -23,7 +23,7 @@ class FormStateTest : UnitTest() {
 
         assertEquals(initialValue, formState.value)
         assertEquals(0, formState.meta.fields.size)
-        assertEquals(0, formState.resetKey)
+        assertEquals(0, formState.meta.key)
         assertFalse(formState.meta.canSubmit)
     }
 
@@ -54,13 +54,13 @@ class FormStateTest : UnitTest() {
             isTouched = true
         )
 
-        assertEquals(0, formState.resetKey)
+        assertEquals(0, formState.meta.key)
 
         formState.reset(TestData())
 
         assertEquals(TestData(), formState.value)
         assertEquals(0, formState.meta.fields.size)
-        assertEquals(1, formState.resetKey)
+        assertEquals(1, formState.meta.key)
     }
 
     @Test
@@ -113,7 +113,7 @@ class FormStateTest : UnitTest() {
         assertEquals(formState.value, restored.value)
         assertEquals(formState.meta.canSubmit, restored.meta.canSubmit)
         assertEquals(formState.meta.fields.size, restored.meta.fields.size)
-        assertEquals(formState.resetKey, restored.resetKey)
+        assertEquals(formState.meta.key, restored.meta.key)
 
         val restoredFieldMeta = restored.meta.fields["firstName"]
         val originalFieldMeta = formState.meta.fields["firstName"]
@@ -127,7 +127,7 @@ class FormStateTest : UnitTest() {
             "firstName" to FieldMetaState(isDirty = true),
             "lastName" to FieldMetaState(isTouched = true)
         )
-        val formMeta = FormMetaState(fields = fields, canSubmit = true)
+        val formMeta = FormMetaState(policy = FormPolicy(), fields = fields, canSubmit = true, resetCount = 0)
 
         assertEquals(2, formMeta.fields.size)
         assertTrue(formMeta.canSubmit)
@@ -136,13 +136,22 @@ class FormStateTest : UnitTest() {
     }
 
     @Test
+    fun testFieldMetaState_preValidation() {
+        val formMeta1 = FormMetaState(policy = FormPolicy(formOptions = FormOptions(preValidation = false)))
+        val formMeta2 = FormMetaState(policy = FormPolicy(formOptions = FormOptions(preValidation = true)))
+        assertTrue(formMeta1.canSubmit)
+        assertFalse(formMeta2.canSubmit)
+    }
+
+    @Test
     fun testFormMetaState_saver() {
         val fields = mapOf(
             "firstName" to FieldMetaState(isDirty = true, error = FieldError("Error"))
         )
-        val formMeta = FormMetaState(fields = fields, canSubmit = true)
+        val policy = FormPolicy()
+        val formMeta = FormMetaState(policy = policy, fields = fields, canSubmit = true, resetCount = 3)
 
-        val saver = FormMetaState.Saver()
+        val saver = FormMetaState.Saver(policy)
         val scope = SaverScope { true }
 
         // Test save
@@ -155,6 +164,7 @@ class FormStateTest : UnitTest() {
 
         assertEquals(formMeta.canSubmit, restored.canSubmit)
         assertEquals(formMeta.fields.size, restored.fields.size)
+        assertEquals(formMeta.key, restored.key) // Reset count is used as key
 
         val restoredFieldMeta = restored.fields["firstName"]
         val originalFieldMeta = formMeta.fields["firstName"]
