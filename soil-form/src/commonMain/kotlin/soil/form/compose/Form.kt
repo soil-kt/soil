@@ -114,7 +114,7 @@ fun <T> rememberForm(
     state: FormState<T>,
     onSubmit: (T) -> Unit
 ): Form<T> {
-    val control = remember(state, state.resetKey) {
+    val control = remember(state, state.meta.key) {
         FormController(state = state, onSubmit = onSubmit)
     }
     if (control.options.preValidation) {
@@ -153,7 +153,7 @@ internal class FormController<T>(
 
     private val fieldChangeEmitter = MutableSharedFlow<FieldName>(extraBufferCapacity = Int.MAX_VALUE)
 
-    val options: FormOptions get() = state.policy.formOptions
+    val options: FormOptions get() = state.meta.policy.formOptions
     val fields: FieldNames get() = rules.keys
 
     fun preValidate(value: T = state.value) {
@@ -174,7 +174,7 @@ internal class FormController<T>(
 
     // ----- FormBinding ----- //
 
-    override val policy: FormPolicy get() = state.policy
+    override val policy: FormPolicy get() = state.meta.policy
 
     override val fieldChanges get() = fieldChangeEmitter.asSharedFlow()
 
