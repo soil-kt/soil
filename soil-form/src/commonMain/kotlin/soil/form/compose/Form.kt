@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import soil.form.FieldName
 import soil.form.FieldNames
 import soil.form.FormData
+import soil.form.FormMeta
 import soil.form.FormOptions
 import soil.form.annotation.InternalSoilFormApi
 
@@ -39,11 +40,7 @@ import soil.form.annotation.InternalSoilFormApi
  * @param T The type of the form data.
  */
 @Stable
-interface Form<T> : HasFormBinding<T> {
-    /**
-     * The current state of the form including data and metadata.
-     */
-    val state: FormData<T>
+interface Form<T> : FormData<T>, HasFormBinding<T> {
 
     /**
      * Handles form submission by validating all fields and calling the submit callback
@@ -169,9 +166,13 @@ internal class FormController<T>(
         }
     }
 
-    // ----- FormBinding ----- //
+    // ----- FormData ----- //
 
     override val value: T get() = state.value
+
+    override val meta: FormMeta = state.meta
+
+    // ----- FormBinding ----- //
 
     override val policy: FormPolicy get() = state.policy
 

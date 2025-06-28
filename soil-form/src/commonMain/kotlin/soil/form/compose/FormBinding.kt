@@ -6,6 +6,7 @@ package soil.form.compose
 import androidx.compose.runtime.Stable
 import kotlinx.coroutines.flow.SharedFlow
 import soil.form.FieldName
+import soil.form.FormData
 import soil.form.annotation.InternalSoilFormApi
 
 /**
@@ -20,10 +21,11 @@ import soil.form.annotation.InternalSoilFormApi
 @InternalSoilFormApi
 @Stable
 interface FormBinding<T> {
+
     /**
-     * The current value of the form data.
+     * The current state of the form including data and metadata.
      */
-    val value: T
+    val state: FormData<T>
 
     /**
      * The form policy that defines validation behavior.

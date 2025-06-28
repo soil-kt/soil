@@ -451,7 +451,7 @@ internal class FormFieldController<T, V, S, U>(
     private val dependsOn: FieldNames
 ) : FormField<U> {
 
-    private val rawValue: V get() = selector(form.value)
+    private val rawValue: V get() = selector(form.state.value)
 
     private val meta: FieldMetaState = form[name] ?: FieldMetaState(
         mode = options.validationStrategy.initial

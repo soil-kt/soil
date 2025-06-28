@@ -17,7 +17,7 @@ fun Form<*>.Submit(
 ) {
     Button(
         onClick = ::handleSubmit,
-        enabled = state.meta.canSubmit,
+        enabled = meta.canSubmit,
         modifier = modifier.focusable().testTag("submit")
     ) {
         Text("Submit")

@@ -48,6 +48,6 @@ import soil.form.FormData
 fun <T, R> Form<T>.watch(
     calculation: FormData<T>.() -> R,
 ): R {
-    val state = remember { derivedStateOf { state.calculation() } }
+    val state = remember { derivedStateOf { calculation() } }
     return state.value
 }
