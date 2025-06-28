@@ -27,7 +27,7 @@ fun Form<*>.Submit(
     Button(
         onClick = ::handleSubmit,
         modifier = modifier.focusable(interactionSource = btn),
-        enabled = state.meta.canSubmit,
+        enabled = meta.canSubmit,
         interactionSource = btn
     ) {
         Box(contentAlignment = Alignment.Center) {
