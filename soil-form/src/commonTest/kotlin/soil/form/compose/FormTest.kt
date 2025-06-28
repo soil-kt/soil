@@ -32,6 +32,7 @@ import soil.form.compose.ui.Submit
 import soil.form.noFieldError
 import soil.form.rule.notEmpty
 import soil.testing.UnitTest
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -204,7 +205,9 @@ class FormTest : UnitTest() {
         waitUntilExactlyOneExists(hasTestTag("lastName_error") and hasText("Must be not empty"))
     }
 
+    // TODO: Temporarily excluded because jvmTest is not running.
     @Test
+    @Ignore
     fun testForm_withFieldValueStateOnly() = runComposeUiTest {
         val textFieldState = TextFieldState("")
         val formState = FormState(value = textFieldState, FormMetaState())
