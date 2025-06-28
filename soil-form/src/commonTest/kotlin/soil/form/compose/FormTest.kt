@@ -14,11 +14,11 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isEnabled
 import androidx.compose.ui.test.isNotEnabled
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.test.runComposeUiTest
@@ -26,6 +26,7 @@ import androidx.compose.ui.test.waitUntilExactlyOneExists
 import soil.form.FieldTypeAdapter
 import soil.form.FieldValidationMode
 import soil.form.FieldValidator
+import soil.form.compose.ui.FieldLayout
 import soil.form.compose.ui.InputField
 import soil.form.compose.ui.Submit
 import soil.form.noFieldError
@@ -54,8 +55,16 @@ class FormTest : UnitTest() {
                 }
             ) {
                 Column {
-                    form.FirstName { InputField(ref = it) }
-                    form.LastName { InputField(ref = it) }
+                    form.FirstName { field ->
+                        FieldLayout(field) {
+                            InputField()
+                        }
+                    }
+                    form.LastName { field ->
+                        FieldLayout(field) {
+                            InputField()
+                        }
+                    }
                 }
             }
         }
@@ -99,25 +108,22 @@ class FormTest : UnitTest() {
                 }
             ) {
                 Column {
-                    form.FirstName { InputField(ref = it) }
-                    form.LastName { InputField(ref = it) }
+                    form.FirstName { field ->
+                        FieldLayout(field) {
+                            InputField()
+                        }
+                    }
+                    form.LastName { field ->
+                        FieldLayout(field) {
+                            InputField()
+                        }
+                    }
                 }
             }
         }
         waitUntil { formState.meta.fields.count() == 2 }
 
         waitUntilExactlyOneExists(hasTestTag("submit") and isEnabled())
-
-        onNodeWithTag("firstName")
-            .requestFocus()
-            .performTextInput("Foo")
-
-        onNodeWithTag("lastName")
-            .requestFocus()
-            .performTextInput("")
-
-        onNodeWithTag("submit")
-            .requestFocus()
 
         onNodeWithTag("submit").performClick()
 
@@ -126,6 +132,26 @@ class FormTest : UnitTest() {
         val fieldMeta = checkNotNull(formState.meta.fields["lastName"])
         assertEquals(FieldValidationMode.Change, fieldMeta.mode)
         assertNotEquals(noFieldError, fieldMeta.error)
+
+        onNodeWithTag("firstName")
+            .requestFocus()
+            .performTextInput("Foo")
+
+        onNodeWithTag("lastName")
+            .requestFocus()
+            .performTextInput("Bar")
+
+        onNodeWithTag("submit")
+            .requestFocus()
+
+        waitUntilExactlyOneExists(hasTestTag("submit") and isEnabled())
+
+        onNodeWithTag("submit").performClick()
+
+        waitUntil { submittedFormData == formState.value }
+
+        assertEquals(formState.value.firstName, "Foo")
+        assertEquals(formState.value.lastName, "Bar")
     }
 
     @Test
@@ -142,33 +168,40 @@ class FormTest : UnitTest() {
                 }
             ) {
                 Column {
-                    form.FirstName { InputField(ref = it) }
-                    form.LastName { InputField(ref = it) }
+                    form.FirstName { field ->
+                        FieldLayout(field) {
+                            InputField()
+                        }
+                    }
+                    form.LastName { field ->
+                        FieldLayout(field) {
+                            InputField()
+                        }
+                    }
                 }
             }
         }
+
         waitUntil { formState.meta.fields.count() == 2 }
 
         waitUntilExactlyOneExists(hasTestTag("submit") and isNotEnabled())
 
+        onNodeWithTag("firstName_error").assertDoesNotExist()
         onNodeWithTag("firstName")
             .requestFocus()
-            .performTextInput("Foo")
+            .performTextInput("")
 
+        onNodeWithTag("lastName_error").assertDoesNotExist()
         onNodeWithTag("lastName")
             .requestFocus()
-            .performTextInput("Bar")
+            .performTextInput("")
+
+        waitUntilExactlyOneExists(hasTestTag("firstName_error") and hasText("Must be not empty"))
 
         onNodeWithTag("submit")
             .requestFocus()
 
-        waitUntilExactlyOneExists(hasTestTag("submit") and isEnabled())
-
-        onNodeWithTag("lastName")
-            .requestFocus()
-            .performTextClearance()
-
-        waitUntilExactlyOneExists(hasTestTag("submit") and isNotEnabled())
+        waitUntilExactlyOneExists(hasTestTag("lastName_error") and hasText("Must be not empty"))
     }
 
     @Test
