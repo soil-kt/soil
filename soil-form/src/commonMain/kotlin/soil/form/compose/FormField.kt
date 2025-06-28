@@ -126,8 +126,9 @@ interface FormField<V> {
      * Manually triggers validation for this field with the specified mode.
      *
      * @param mode The validation mode to trigger.
+     * @return True if validation was triggered, false if it was not needed.
      */
-    fun trigger(mode: FieldValidationMode)
+    fun trigger(mode: FieldValidationMode): Boolean
 }
 
 /**
@@ -520,9 +521,12 @@ internal class FormFieldController<T, V, S, U>(
         }
     }
 
-    override fun trigger(mode: FieldValidationMode) {
-        if (shouldTrigger(mode)) {
+    override fun trigger(mode: FieldValidationMode): Boolean {
+        return if (shouldTrigger(mode)) {
             validate(rawValue)
+            true
+        } else {
+            false
         }
     }
 
