@@ -15,8 +15,7 @@ import soil.form.compose.FormField
 import soil.form.compose.hasError
 
 @Composable
-fun InputField(
-    ref: FormField<String>,
+fun FormField<String>.InputField(
     modifier: Modifier = Modifier,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
@@ -26,18 +25,18 @@ fun InputField(
     visualTransformation: VisualTransformation = VisualTransformation.None,
 ) {
     OutlinedTextField(
-        value = ref.value,
-        onValueChange = ref::onValueChange,
+        value = value,
+        onValueChange = ::onValueChange,
         modifier = modifier
-            .onFocusChanged { state -> ref.handleFocus(state.isFocused || state.hasFocus) }
-            .testTag(ref.name),
-        enabled = ref.isEnabled,
+            .onFocusChanged { state -> handleFocus(state.isFocused || state.hasFocus) }
+            .testTag(name),
+        enabled = isEnabled,
         keyboardActions = keyboardActions,
         keyboardOptions = keyboardOptions,
         singleLine = singleLine,
         maxLines = maxLines,
         minLines = minLines,
         visualTransformation = visualTransformation,
-        isError = ref.hasError,
+        isError = hasError,
     )
 }

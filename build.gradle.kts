@@ -1,3 +1,4 @@
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
@@ -42,7 +43,13 @@ allprojects {
 
     tasks.withType<Test>().configureEach {
         testLogging {
-            events("failed")
+            if (gradle.startParameter.logLevel <= LogLevel.INFO) {
+                events(TestLogEvent.PASSED, TestLogEvent.STARTED, TestLogEvent.SKIPPED, TestLogEvent.FAILED)
+            } else {
+                events(TestLogEvent.FAILED)
+            }
+            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+            events(TestLogEvent.FAILED)
             exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
             showStandardStreams = true
         }
