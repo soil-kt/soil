@@ -59,6 +59,14 @@ class QueryKeyTest : UnitTest() {
     }
 
     @Test
+    fun testPreloadData() = runTest {
+        val testKey = TestQueryKey()
+        val testClient = SwrCache(backgroundScope)
+        val actual = testKey.onPreloadData().invoke(testClient.queryReceiver)
+        assertEquals("Preloaded", actual)
+    }
+
+    @Test
     fun testRecoverData() = runTest {
         val testKey = TestQueryKey()
         assertEquals(testKey.onRecoverData().invoke(RuntimeException()), "Recovered")
@@ -87,6 +95,10 @@ class QueryKeyTest : UnitTest() {
 
         override fun onInitialData(): QueryInitialData<String> = {
             getQueryData(QueryId("sample"))
+        }
+
+        override fun onPreloadData(): QueryPreloadData<String> = {
+            "Preloaded"
         }
 
         override fun onRecoverData(): QueryRecoverData<String> = { err ->

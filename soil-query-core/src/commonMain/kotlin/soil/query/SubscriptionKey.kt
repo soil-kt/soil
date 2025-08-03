@@ -81,6 +81,26 @@ interface SubscriptionKey<T> {
     fun onInitialData(): SubscriptionInitialData<T>? = null
 
     /**
+     * Function to provide initial data before making a subscription.
+     *
+     * This is primarily intended for reading from locally cached data stored on the device.
+     * Temporary data storage can be useful as a fallback when API response is slow or when the device is offline.
+     * Any exceptions thrown by this function will be silently ignored.
+     *
+     * **NOTE:** This function is called only once when there is no cache for this key.
+     *
+     * ```kotlin
+     * override fun onPreloadData(): SubscriptionPreloadData<User> = {
+     *     // Load from local cache/database
+     *     localCache.getUser(userId)
+     * }
+     * ```
+     *
+     * @see SubscriptionPreloadData
+     */
+    fun onPreloadData(): SubscriptionPreloadData<T>? = null
+
+    /**
      * Function to recover data from the error.
      *
      * You can recover data from the error instead of the error state.

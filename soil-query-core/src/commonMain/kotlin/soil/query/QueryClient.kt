@@ -78,6 +78,7 @@ interface QueryReadonlyClient {
 }
 
 typealias QueryInitialData<T> = QueryReadonlyClient.() -> T?
+typealias QueryPreloadData<T> = suspend QueryReceiver.() -> T?
 typealias QueryContentEquals<T> = (oldData: T, newData: T) -> Boolean
 typealias QueryContentCacheable<T> = (currentData: T) -> Boolean
 typealias QueryRecoverData<T> = (error: Throwable) -> T
