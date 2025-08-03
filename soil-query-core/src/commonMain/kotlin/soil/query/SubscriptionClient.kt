@@ -42,6 +42,7 @@ interface SubscriptionReadonlyClient {
 }
 
 typealias SubscriptionInitialData<T> = SubscriptionReadonlyClient.() -> T?
+typealias SubscriptionPreloadData<T> = suspend SubscriptionReceiver.() -> T?
 typealias SubscriptionContentEquals<T> = (oldData: T, newData: T) -> Boolean
 typealias SubscriptionContentCacheable<T> = (currentData: T) -> Boolean
 typealias SubscriptionRecoverData<T> = (error: Throwable) -> T

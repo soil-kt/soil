@@ -81,6 +81,26 @@ interface QueryKey<T> {
     fun onInitialData(): QueryInitialData<T>? = null
 
     /**
+     * Function to provide initial data before making a fetch request.
+     *
+     * This is primarily intended for reading from locally cached data stored on the device.
+     * Temporary data storage can be useful as a fallback when API response is slow or when the device is offline.
+     * Any exceptions thrown by this function will be silently ignored.
+     *
+     * **NOTE:** This function is called only once when there is no cache for this key.
+     *
+     * ```kotlin
+     * override fun onPreloadData(): QueryPreloadData<User> = {
+     *     // Load from local cache/database
+     *     localCache.getUser(userId)
+     * }
+     * ```
+     *
+     * @see QueryPreloadData
+     */
+    fun onPreloadData(): QueryPreloadData<T>? = null
+
+    /**
      * Function to convert specific exceptions as data.
      *
      * Depending on the type of exception that occurred during data retrieval, it is possible to recover it as normal data.

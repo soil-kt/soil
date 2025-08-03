@@ -67,6 +67,14 @@ class SubscriptionKeyTest : UnitTest() {
     }
 
     @Test
+    fun testPreloadData() = runTest {
+        val testKey = TestSubscriptionKey()
+        val testClient = SwrCachePlus(backgroundScope)
+        val actual = testKey.onPreloadData().invoke(testClient.subscriptionReceiver)
+        assertEquals("Preloaded", actual)
+    }
+
+    @Test
     fun testRecoverData() = runTest {
         val testKey = TestSubscriptionKey()
         assertEquals(testKey.onRecoverData().invoke(RuntimeException()), "Recovered")
@@ -99,6 +107,10 @@ class SubscriptionKeyTest : UnitTest() {
 
         override fun onInitialData(): SubscriptionInitialData<String> = {
             getSubscriptionData(SubscriptionId("sample"))
+        }
+
+        override fun onPreloadData(): SubscriptionPreloadData<String> = {
+            "Preloaded"
         }
 
         override fun onRecoverData(): SubscriptionRecoverData<String> = { err ->

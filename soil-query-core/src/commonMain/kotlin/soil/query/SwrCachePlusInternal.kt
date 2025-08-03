@@ -33,6 +33,7 @@ import soil.query.core.getOrNull
 import soil.query.core.retryWithExponentialBackoff
 import soil.query.core.toResultFlow
 import soil.query.core.vvv
+import kotlin.coroutines.cancellation.CancellationException
 
 @ExperimentalSoilQueryApi
 @InternalSoilQueryApi
@@ -62,7 +63,8 @@ abstract class SwrCachePlusInternal : SwrCacheInternal(), SubscriptionClient, Su
                 options = key.onConfigureOptions()?.invoke(subscriptionOptions) ?: subscriptionOptions,
                 initialValue = subscriptionCache[key.id] as? SubscriptionState<T> ?: newSubscriptionState(key),
                 subscribe = key.subscribe,
-                contentCacheable = key.contentCacheable
+                contentCacheable = key.contentCacheable,
+                preload = key.onPreloadData()
             ).also { subscriptionStore[id] = it }
         }
         return SubscriptionRef(
@@ -78,7 +80,8 @@ abstract class SwrCachePlusInternal : SwrCacheInternal(), SubscriptionClient, Su
         options: SubscriptionOptions,
         initialValue: SubscriptionState<T>,
         subscribe: SubscriptionReceiver.() -> Flow<T>,
-        contentCacheable: SubscriptionContentCacheable<T>?
+        contentCacheable: SubscriptionContentCacheable<T>?,
+        preload: SubscriptionPreloadData<T>?,
     ): ManagedSubscription<T> {
         val scope = CoroutineScope(newCoroutineContext(coroutineScope))
         val event = MutableSharedFlow<SubscriptionEvent>(
@@ -104,6 +107,24 @@ abstract class SwrCachePlusInternal : SwrCacheInternal(), SubscriptionClient, Su
                 scope.launch { batchScheduler.post { deactivateSubscription<T>(id) } }
             }
         ) {
+            if (preload != null) {
+                options.vvv(id) { "preload" }
+                try {
+                    val data = subscriptionReceiver.preload()
+                    if (data != null) {
+                        dispatch(
+                            SubscriptionAction.ReceiveSuccess(
+                                data = data,
+                                dataUpdatedAt = 0
+                            )
+                        )
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Throwable) {
+                    options.vvv(id) { "preload failed: ${e.message}" }
+                }
+            }
             for (c in command) {
                 options.vvv(id) { "next command $c" }
                 c.handle(

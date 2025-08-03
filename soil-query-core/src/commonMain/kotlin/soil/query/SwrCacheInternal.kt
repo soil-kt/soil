@@ -3,6 +3,7 @@
 
 package soil.query
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -162,7 +163,8 @@ abstract class SwrCacheInternal : MutationClient, QueryClient, QueryEffectClient
                 id = id,
                 options = key.onConfigureOptions()?.invoke(queryOptions) ?: queryOptions,
                 initialValue = queryCache[key.id] as? QueryState<T> ?: newQueryState(key),
-                contentCacheable = key.contentCacheable
+                contentCacheable = key.contentCacheable,
+                preload = key.onPreloadData()
             ).also { queryStore[id] = it }
         }
         return QueryRef(
@@ -176,7 +178,8 @@ abstract class SwrCacheInternal : MutationClient, QueryClient, QueryEffectClient
         id: UniqueId,
         options: QueryOptions,
         initialValue: QueryState<T>,
-        contentCacheable: QueryContentCacheable<T>?
+        contentCacheable: QueryContentCacheable<T>?,
+        preload: QueryPreloadData<T>?
     ): ManagedQuery<T> {
         val scope = CoroutineScope(newCoroutineContext(coroutineScope))
         val event = MutableSharedFlow<QueryEvent>(
@@ -198,6 +201,25 @@ abstract class SwrCacheInternal : MutationClient, QueryClient, QueryEffectClient
                 scope.launch { batchScheduler.post { deactivateQuery<T>(id) } }
             },
         ) {
+            if (preload != null) {
+                options.vvv(id) { "preload" }
+                try {
+                    val data = queryReceiver.preload()
+                    if (data != null) {
+                        dispatch(
+                            QueryAction.FetchSuccess(
+                                data = data,
+                                dataUpdatedAt = 0,
+                                dataStaleAt = 0
+                            )
+                        )
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Throwable) {
+                    options.vvv(id) { "preload failed: ${e.message}" }
+                }
+            }
             for (c in command) {
                 options.vvv(id) { "next command $c" }
                 c.handle(
@@ -267,7 +289,8 @@ abstract class SwrCacheInternal : MutationClient, QueryClient, QueryEffectClient
                 id = id,
                 options = key.onConfigureOptions()?.invoke(queryOptions) ?: queryOptions,
                 initialValue = queryCache[id] as? QueryState<QueryChunks<T, S>> ?: QueryState(),
-                contentCacheable = key.contentCacheable
+                contentCacheable = key.contentCacheable,
+                preload = key.onPreloadData()
             ).also { queryStore[id] = it }
         }
         return InfiniteQueryRef(
@@ -281,13 +304,15 @@ abstract class SwrCacheInternal : MutationClient, QueryClient, QueryEffectClient
         id: UniqueId,
         options: QueryOptions,
         initialValue: QueryState<QueryChunks<T, S>>,
-        contentCacheable: QueryContentCacheable<QueryChunks<T, S>>?
+        contentCacheable: QueryContentCacheable<QueryChunks<T, S>>?,
+        preload: QueryPreloadData<QueryChunks<T, S>>?
     ): ManagedQuery<QueryChunks<T, S>> {
         return newQuery(
             id = id,
             options = options,
             initialValue = initialValue,
-            contentCacheable = contentCacheable
+            contentCacheable = contentCacheable,
+            preload = preload
         )
     }
 

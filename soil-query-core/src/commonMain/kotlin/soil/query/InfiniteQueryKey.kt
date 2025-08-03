@@ -73,6 +73,19 @@ interface InfiniteQueryKey<T, S> {
     fun onConfigureOptions(): QueryOptionsOverride? = null
 
     /**
+     * Function to provide initial data before making a fetch request.
+     *
+     * This is primarily intended for reading from locally cached data stored on the device.
+     * Temporary data storage can be useful as a fallback when API response is slow or when the device is offline.
+     * Any exceptions thrown by this function will be silently ignored.
+     *
+     * **NOTE:** This function is called only once when there is no cache for this key.
+     *
+     * @see QueryKey.onPreloadData
+     */
+    fun onPreloadData(): QueryPreloadData<QueryChunks<T, S>>? = null
+
+    /**
      * Function to convert specific exceptions as data.
      *
      * Depending on the type of exception that occurred during data retrieval, it is possible to recover it as normal data.
