@@ -43,7 +43,6 @@ kotlin {
         commonMain.dependencies {
             implementation(projects.soilQueryCore)
             implementation(projects.soilQueryCompose)
-            implementation(projects.soilQueryComposeRuntime)
             implementation(projects.soilQueryReceivers.ktor)
             implementation(projects.soilForm)
             implementation(projects.soilSpace)
