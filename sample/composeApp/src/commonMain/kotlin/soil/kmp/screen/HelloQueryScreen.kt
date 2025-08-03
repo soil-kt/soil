@@ -21,10 +21,10 @@ import soil.playground.query.data.PageParam
 import soil.playground.query.data.Posts
 import soil.playground.router.NavLink
 import soil.playground.style.withAppTheme
-import soil.query.compose.runtime.Await
-import soil.query.compose.runtime.ErrorBoundary
-import soil.query.compose.runtime.LazyLoadEffect
-import soil.query.compose.runtime.Suspense
+import soil.plant.compose.reacty.Await
+import soil.plant.compose.reacty.ErrorBoundary
+import soil.plant.compose.lazy.LazyLoad
+import soil.plant.compose.reacty.Suspense
 import soil.query.compose.util.rememberQueriesErrorReset
 
 @Composable
@@ -89,11 +89,10 @@ private fun HelloQueryContent(
                 }
             }
         }
-        LazyLoadEffect(
+        LazyLoad(
             state = lazyListState,
             loadMore = state.loadMore,
-            loadMoreParam = state.loadMoreParam,
-            totalItemsCount = state.posts.size
+            loadMoreParam = state.loadMoreParam
         )
     }
 }

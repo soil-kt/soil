@@ -21,9 +21,9 @@ import soil.playground.query.compose.rememberGetUserQuery
 import soil.playground.query.data.Post
 import soil.playground.query.data.Posts
 import soil.playground.query.data.User
-import soil.query.compose.runtime.Await
-import soil.query.compose.runtime.ErrorBoundary
-import soil.query.compose.runtime.Suspense
+import soil.plant.compose.reacty.Await
+import soil.plant.compose.reacty.ErrorBoundary
+import soil.plant.compose.reacty.Suspense
 import soil.query.compose.util.rememberQueriesErrorReset
 import soil.query.core.getOrElse
 
