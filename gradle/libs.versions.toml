@@ -1,6 +1,6 @@
 [versions]
 # Kotlin Multiplatform Gradle plugin compatibility:
-# - Gradle: 8.10
+# - Gradle: 8.12.1
 # - Android Gradle plugin: 8.7.2
 # https://kotlinlang.org/docs/multiplatform-compatibility-guide.html#version-compatibility
 android-gradle = "8.7.2"
