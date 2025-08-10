@@ -46,15 +46,8 @@ kotlin {
             implementation(compose.runtimeSaveable)
             implementation(libs.jbx.lifecycle.viewmodel.compose)
             implementation(libs.jbx.lifecycle.viewmodel.savedstate)
-            api(libs.jbx.savedstate)
-            api(libs.jbx.core.bundle)
-            api(projects.soilSerializationBundle)
+            implementation(libs.jbx.savedstate)
         }
-
-        androidMain.dependencies {
-            implementation(libs.androidx.core)
-        }
-
         val skikoMain by creating {
             dependsOn(commonMain.get())
         }

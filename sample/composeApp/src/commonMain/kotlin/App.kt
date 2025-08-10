@@ -1,7 +1,5 @@
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -17,6 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.soil_kt.soil.composeapp.generated.resources.Res
+import com.soil_kt.soil.composeapp.generated.resources.arrow_back_24px
+import org.jetbrains.compose.resources.vectorResource
 import soil.playground.FeedbackAction
 import soil.playground.LocalFeedbackHost
 import soil.playground.style.AppTheme
@@ -75,7 +76,10 @@ fun AppBar(
         navigationIcon = {
             if (canNavigateBack) {
                 IconButton(onClick = navigateUp) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(
+                        imageVector = vectorResource(Res.drawable.arrow_back_24px),
+                        contentDescription = "Back"
+                    )
                 }
             }
         }
