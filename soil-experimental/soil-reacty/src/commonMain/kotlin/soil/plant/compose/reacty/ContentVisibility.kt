@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.semantics.invisibleToUser
+import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 
 /**
@@ -32,7 +32,7 @@ fun ContentVisibility(
             .alpha(if (hidden) 0f else 1f)
             .semantics {
                 if (hidden) {
-                    invisibleToUser()
+                    hideFromAccessibility()
                 }
             }
     ) {
