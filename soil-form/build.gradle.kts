@@ -40,7 +40,7 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.foundation)
             implementation(libs.kotlinx.coroutines.core)
-            api(projects.soilSerializationBundle)
+            implementation(libs.jbx.savedstate)
         }
 
         commonTest.dependencies {
