@@ -10,7 +10,7 @@ on:
 
 jobs:
   publish:
-    runs-on: macos-latest
+    runs-on: macos-15
 
     permissions:
       contents: write

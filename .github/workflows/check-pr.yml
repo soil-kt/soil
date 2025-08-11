@@ -37,7 +37,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ macos-latest, ubuntu-latest ]
+        os: [ macos-15, ubuntu-latest ]
         job: [ test ]
 
     runs-on: ${{ matrix.os }}
@@ -60,14 +60,14 @@ jobs:
       - name: Setup gradle
         uses: gradle/actions/setup-gradle@ac638b010cf58a27ee6c972d7336334ccaf61c96 # v4.4.1
 
-      # macos-latest
+      # macos-15
       - name: Set Xcode version
-        if: matrix.os == 'macos-latest' && matrix.job == 'test'
+        if: matrix.os == 'macos-15' && matrix.job == 'test'
         # ref. https://www.jetbrains.com/help/kotlin-multiplatform-dev/multiplatform-compatibility-guide.html#version-compatibility
         run: sudo xcode-select -s /Applications/Xcode_16.3.app
 
       - name: Run tests on macos
-        if: matrix.os == 'macos-latest' && matrix.job == 'test'
+        if: matrix.os == 'macos-15' && matrix.job == 'test'
         run: ./gradlew iosX64Test
 
       # ubuntu-latest
