@@ -25,11 +25,16 @@ import soil.query.compose.SwrClientProvider
 import soil.query.compose.rememberQuery
 import soil.query.test.test
 import soil.testing.UnitTest
+import kotlin.test.Ignore
 import kotlin.test.Test
+
+// **NOTE:** Excluding flaky tests on CI until this commit is reflected in CMP:
+// https://android-review.googlesource.com/c/platform/frameworks/support/+/3509670
 
 @OptIn(ExperimentalTestApi::class)
 class CatchTest : UnitTest() {
 
+    @Ignore
     @Test
     fun testCatch() = runUiTest {
         val deferred1 = CompletableDeferred<String>()
@@ -74,6 +79,7 @@ class CatchTest : UnitTest() {
     }
 
 
+    @Ignore
     @Test
     fun testCatch_withErrorBoundary() = runUiTest {
         val deferred1 = CompletableDeferred<String>()

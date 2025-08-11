@@ -28,12 +28,17 @@ import soil.query.compose.tooling.QueryPreviewClient
 import soil.query.compose.tooling.SwrPreviewClient
 import soil.query.test.test
 import soil.testing.UnitTest
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.time.Duration
+
+// **NOTE:** Excluding flaky tests on CI until this commit is reflected in CMP:
+// https://android-review.googlesource.com/c/platform/frameworks/support/+/3509670
 
 @OptIn(ExperimentalTestApi::class)
 class AwaitTest : UnitTest() {
 
+    @Ignore
     @Test
     fun testAwait() = runUiTest {
         val deferred = CompletableDeferred<String>()
@@ -57,6 +62,7 @@ class AwaitTest : UnitTest() {
         onNodeWithTag("await").assertTextEquals("Hello, Soil!")
     }
 
+    @Ignore
     @Test
     fun testAwait_pair() = runUiTest {
         val deferred1 = CompletableDeferred<String>()
@@ -88,6 +94,7 @@ class AwaitTest : UnitTest() {
         onNodeWithTag("await").assertTextEquals("Hello, Soil!Hello, Compose!")
     }
 
+    @Ignore
     @Test
     fun testAwait_triple() = runUiTest {
         val deferred1 = CompletableDeferred<String>()
@@ -127,6 +134,7 @@ class AwaitTest : UnitTest() {
         onNodeWithTag("await").assertTextEquals("Hello, Soil!Hello, Compose!3")
     }
 
+    @Ignore
     @Test
     fun testAwait_withSuspense() = runUiTest {
         val key1 = TestQueryKey("foo")
@@ -155,6 +163,7 @@ class AwaitTest : UnitTest() {
         onNodeWithTag("await").assertDoesNotExist()
     }
 
+    @Ignore
     @Test
     fun testAwait_error() = runUiTest {
         val key1 = TestQueryKey("foo")
@@ -181,6 +190,7 @@ class AwaitTest : UnitTest() {
         onNodeWithTag("await").assertDoesNotExist()
     }
 
+    @Ignore
     @Test
     fun testAwait_errorWithReply() = runUiTest {
         val key1 = TestQueryKey("foo")
@@ -207,6 +217,7 @@ class AwaitTest : UnitTest() {
         onNodeWithTag("error").assertDoesNotExist()
     }
 
+    @Ignore
     @Test
     fun testAwait_errorWithErrorBoundary() = runUiTest {
         val key1 = TestQueryKey("foo")
@@ -235,6 +246,7 @@ class AwaitTest : UnitTest() {
         onNodeWithTag("await").assertDoesNotExist()
     }
 
+    @Ignore
     @Test
     fun testAwait_orNone() = runUiTest {
         setContent {
@@ -253,6 +265,7 @@ class AwaitTest : UnitTest() {
         onNodeWithTag("fallback").assertDoesNotExist()
     }
 
+    @Ignore
     @Test
     fun testAwait_orPending() = runUiTest {
         setContent {
