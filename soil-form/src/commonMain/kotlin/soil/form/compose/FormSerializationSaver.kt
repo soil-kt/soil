@@ -4,11 +4,13 @@
 package soil.form.compose
 
 import androidx.compose.runtime.saveable.Saver
-import androidx.core.bundle.Bundle
+import androidx.savedstate.SavedState
+import androidx.savedstate.serialization.SavedStateConfiguration
+import androidx.savedstate.serialization.decodeFromSavedState
+import androidx.savedstate.serialization.encodeToSavedState
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
-import soil.serialization.bundle.Bundler
 
 /**
  * Create an [Saver] for Kotlin Serialization.
@@ -43,16 +45,16 @@ import soil.serialization.bundle.Bundler
  *
  * @param T The type of the value to save and restore.
  * @param serializer The serializer to use for the value.
- * @param bundler The bundler to encode and decode the value. Default is [Bundler].
+ * @param configuration The SavedState configuration to use for encoding and decoding. Default is [SavedStateConfiguration.DEFAULT].
  * @return The [Saver] for the value.
  */
 @ExperimentalSerializationApi
-inline fun <reified T> serializationSaver(
+inline fun <reified T : Any> serializationSaver(
     serializer: KSerializer<T> = serializer(),
-    bundler: Bundler = Bundler
+    configuration: SavedStateConfiguration = SavedStateConfiguration.DEFAULT
 ): Saver<T, Any> {
     return Saver(
-        save = { value -> bundler.encodeToBundle(value, serializer) },
-        restore = { bundle -> bundler.decodeFromBundle(bundle as Bundle, serializer) }
+        save = { value -> encodeToSavedState(serializer, value, configuration) },
+        restore = { savedState -> decodeFromSavedState(serializer, savedState as SavedState, configuration) }
     )
 }

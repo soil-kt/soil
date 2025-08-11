@@ -266,7 +266,7 @@ typealias AtomSaverKey = String
  * @param T The type of the value to save and restore.
  * @param key The key to be used to save and restore the value.
  * @param serializer The serializer to use for the value.
- * @param bundler The bundler to encode and decode the value. Default is [Bundler].
+ * @param configuration The SavedState configuration to use for encoding and decoding. Default is [SavedStateConfiguration.DEFAULT].
  * @return The [AtomSaver] for the value.
  */
 @ExperimentalSerializationApi
