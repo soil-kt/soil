@@ -5,7 +5,6 @@ package soil.space.compose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.core.bundle.Bundle
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelStoreOwner
@@ -13,6 +12,7 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.savedstate.SavedState
 import soil.space.AtomStore
 
 /**
@@ -27,7 +27,7 @@ class AtomViewModel(
     val store: AtomStore
 
     init {
-        store = AtomSaveableStore(savedState = handle.get<Bundle>(PROVIDER_KEY))
+        store = AtomSaveableStore(savedState = handle.get<SavedState>(PROVIDER_KEY))
         handle.setSavedStateProvider(PROVIDER_KEY, store)
     }
 

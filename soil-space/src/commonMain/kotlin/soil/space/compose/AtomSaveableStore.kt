@@ -10,8 +10,9 @@ import androidx.compose.runtime.currentCompositeKeyHash
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.LocalSaveableStateRegistry
-import androidx.core.bundle.Bundle
+import androidx.savedstate.SavedState
 import androidx.savedstate.SavedStateRegistry
+import androidx.savedstate.savedState
 import soil.space.Atom
 import soil.space.AtomStore
 
@@ -22,7 +23,7 @@ import soil.space.AtomStore
  */
 @Suppress("SpellCheckingInspection")
 class AtomSaveableStore(
-    private val savedState: Bundle? = null
+    private val savedState: SavedState? = null
 ) : AtomStore, SavedStateRegistry.SavedStateProvider {
 
     private val stateMap: MutableMap<Atom<*>, ManagedState<*>> = mutableMapOf()
@@ -46,25 +47,29 @@ class AtomSaveableStore(
         state?.value = value
     }
 
-    override fun saveState(): Bundle {
-        val box = savedState ?: Bundle()
+    override fun saveState(): SavedState {
+        val state = if (savedState != null) {
+            savedState(initialState = savedState)
+        } else {
+            savedState(initialState = emptyMap())
+        }
         stateMap.keys.forEach { atom ->
             val value = stateMap[atom] as ManagedState<*>
-            value.onSave(box)
+            value.onSave(state)
         }
-        return box
+        return state
     }
 
     class ManagedState<T>(
         private val atom: Atom<T>,
     ) : MutableState<T> by mutableStateOf(atom.initialValue) {
 
-        fun onSave(bundle: Bundle) {
-            atom.saver?.save(bundle, value)
+        fun onSave(state: SavedState) {
+            atom.saver?.save(state, value)
         }
 
-        fun onRestore(bundle: Bundle) {
-            atom.saver?.restore(bundle)?.let { value = it }
+        fun onRestore(state: SavedState) {
+            atom.saver?.restore(state)?.let { value = it }
         }
     }
 }
@@ -89,7 +94,7 @@ fun rememberSaveableStore(key: String? = null): AtomStore {
     }
     val registry = LocalSaveableStateRegistry.current
     val store = remember(registry) {
-        AtomSaveableStore(registry?.consumeRestored(finalKey) as? Bundle)
+        AtomSaveableStore(registry?.consumeRestored(finalKey) as? SavedState)
     }
     if (registry != null) {
         DisposableEffect(registry, finalKey, store) {

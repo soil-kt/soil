@@ -4,8 +4,9 @@
 package soil.space
 
 import android.os.Parcelable
-import androidx.core.bundle.Bundle
-import androidx.core.os.BundleCompat
+import androidx.savedstate.SavedState
+import androidx.savedstate.read
+import androidx.savedstate.write
 import java.io.Serializable
 
 /**
@@ -27,7 +28,7 @@ inline fun <reified T : Parcelable> atom(
 }
 
 /**
- * Creates an [Atom] using [AtomSaverKey] for [ArrayList] with [Parcelable][T].
+ * Creates an [Atom] using [AtomSaverKey] for [List] with [Parcelable][T].
  *
  * @param T The type of the value to be stored.
  * @param initialValue The initial value to be stored.
@@ -35,13 +36,13 @@ inline fun <reified T : Parcelable> atom(
  * @param scope The scope to be used to manage the value.
  * @return The created Atom.
  */
-@JvmName("atomWithParcelableArrayList")
+@JvmName("atomWithParcelableList")
 inline fun <reified T : Parcelable> atom(
-    initialValue: ArrayList<T>,
+    initialValue: List<T>,
     saverKey: AtomSaverKey,
     scope: AtomScope? = null
-): Atom<ArrayList<T>> {
-    return atom(initialValue, parcelableArrayListSaver(saverKey), scope)
+): Atom<List<T>> {
+    return atom(initialValue, parcelableListSaver(saverKey), scope)
 }
 
 /**
@@ -71,67 +72,63 @@ inline fun <reified T : Parcelable> atom(
  * @param scope The scope to be used to manage the value.
  * @return The created Atom.
  */
-@JvmName("atomWithSerializable")
+@JvmName("atomWithJavaSerializable")
 inline fun <reified T : Serializable> atom(
     initialValue: T,
     saverKey: AtomSaverKey,
     scope: AtomScope? = null
 ): Atom<T> {
-    return atom(initialValue, serializableSaver(saverKey), scope)
+    return atom(initialValue, javaSerializableSaver(saverKey), scope)
 }
 
 @PublishedApi
 internal inline fun <reified T : Parcelable> parcelableSaver(key: AtomSaverKey): AtomSaver<T> {
     return object : AtomSaver<T> {
-        override fun save(bundle: Bundle, value: T) {
-            bundle.putParcelable(key, value)
+        override fun save(state: SavedState, value: T) = state.write {
+            putParcelable(key, value)
         }
 
-        override fun restore(bundle: Bundle): T? {
-            return if (bundle.containsKey(key)) BundleCompat.getParcelable(bundle, key, T::class.java) else null
+        override fun restore(state: SavedState): T? = state.read {
+            getParcelableOrNull<T>(key)
         }
     }
 }
 
 @PublishedApi
-internal inline fun <reified T : Parcelable> parcelableArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<T>> {
-    return object : AtomSaver<ArrayList<T>> {
-        override fun save(bundle: Bundle, value: ArrayList<T>) {
-            bundle.putParcelableArrayList(key, value)
+internal inline fun <reified T : Parcelable> parcelableListSaver(key: AtomSaverKey): AtomSaver<List<T>> {
+    return object : AtomSaver<List<T>> {
+        override fun save(state: SavedState, value: List<T>) = state.write {
+            putParcelableList(key, value)
         }
 
-        override fun restore(bundle: Bundle): ArrayList<T>? {
-            return BundleCompat.getParcelableArrayList(bundle, key, T::class.java)
+        override fun restore(state: SavedState): List<T>? = state.read {
+            getParcelableListOrNull<T>(key)
         }
     }
 }
 
-@Suppress("UNCHECKED_CAST")
 @PublishedApi
 internal inline fun <reified T : Parcelable> parcelableArraySaver(key: AtomSaverKey): AtomSaver<Array<T>> {
     return object : AtomSaver<Array<T>> {
-        override fun save(bundle: Bundle, value: Array<T>) {
-            bundle.putParcelableArray(key, value)
+        override fun save(state: SavedState, value: Array<T>) = state.write {
+            putParcelableArray(key, value)
         }
 
-        override fun restore(bundle: Bundle): Array<T>? {
-            return BundleCompat.getParcelableArray(bundle, key, T::class.java) as? Array<T>
+        override fun restore(state: SavedState): Array<T>? = state.read {
+            getParcelableArrayOrNull<T>(key)
         }
     }
 }
 
-@Suppress("DEPRECATION")
 @PublishedApi
-internal inline fun <reified T : Serializable> serializableSaver(key: AtomSaverKey): AtomSaver<T> {
+internal inline fun <reified T : Serializable> javaSerializableSaver(key: AtomSaverKey): AtomSaver<T> {
     return object : AtomSaver<T> {
-        override fun save(bundle: Bundle, value: T) {
-            bundle.putSerializable(key, value)
+        override fun save(state: SavedState, value: T) = state.write {
+            putJavaSerializable(key, value)
         }
 
-        override fun restore(bundle: Bundle): T? {
-            // TODO: Compat package starting with Core-ktx Version 1.13
-            //  ref. https://issuetracker.google.com/issues/317403466
-            return if (bundle.containsKey(key)) bundle.getSerializable(key) as T else null
+        override fun restore(state: SavedState): T? = state.read {
+            getJavaSerializableOrNull<T>(key)
         }
     }
 }

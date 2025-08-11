@@ -18,11 +18,16 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.waitUntilExactlyOneExists
 import soil.testing.UnitTest
+import kotlin.test.Ignore
 import kotlin.test.Test
+
+// **NOTE:** Excluding flaky tests on CI until this commit is reflected in CMP:
+// https://android-review.googlesource.com/c/platform/frameworks/support/+/3509670
 
 @OptIn(ExperimentalTestApi::class)
 class SuspenseTest : UnitTest() {
 
+    @Ignore
     @Test
     fun testSuspense() = runUiTest {
         setContent {

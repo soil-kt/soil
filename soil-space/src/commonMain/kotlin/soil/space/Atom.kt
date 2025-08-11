@@ -2,14 +2,19 @@
 // SPDX-License-Identifier: Apache-2.0
 
 @file:Suppress("NOTHING_TO_INLINE", "KotlinRedundantDiagnosticSuppress")
+
 package soil.space
 
 import androidx.compose.runtime.Immutable
-import androidx.core.bundle.Bundle
+import androidx.savedstate.SavedState
+import androidx.savedstate.read
+import androidx.savedstate.serialization.SavedStateConfiguration
+import androidx.savedstate.serialization.decodeFromSavedState
+import androidx.savedstate.serialization.encodeToSavedState
+import androidx.savedstate.write
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
-import soil.serialization.bundle.Bundler
 import kotlin.jvm.JvmName
 
 /**
@@ -73,8 +78,6 @@ fun <T> atom(
  *    | Double      | doubleSaver   |
  *    | Float       | floatSaver    |
  *    | Char        | charSaver     |
- *    | Short       | shortSaver    |
- *    | Byte        | byteSaver     |
  *
  * @param T The type of the value to be stored.
  * @param initialValue The initial value to be stored.
@@ -90,9 +93,7 @@ inline fun <reified T> atom(
 ): Atom<T> {
     val saver: AtomSaver<T>? = when (T::class) {
         Boolean::class -> booleanSaver(saverKey) as AtomSaver<T>
-        Byte::class -> byteSaver(saverKey) as AtomSaver<T>
         Char::class -> charSaver(saverKey) as AtomSaver<T>
-        Short::class -> shortSaver(saverKey) as AtomSaver<T>
         Int::class -> intSaver(saverKey) as AtomSaver<T>
         Long::class -> longSaver(saverKey) as AtomSaver<T>
         Float::class -> floatSaver(saverKey) as AtomSaver<T>
@@ -112,9 +113,9 @@ inline fun <reified T> atom(
  *
  *    | Type            | AtomSaver                     |
  *    | :-------------- | :---------------------------- |
- *    | String          | stringArrayListSaver          |
- *    | Int             | integerArrayListSaver         |
- *    | CharSequence    | charSequenceArrayListSaver    |
+ *    | String          | stringListSaver               |
+ *    | Int             | intListSaver                  |
+ *    | CharSequence    | charSequenceListSaver         |
  *
  *
  * @param T The type of the value to be stored.
@@ -124,15 +125,16 @@ inline fun <reified T> atom(
  * @return The created Atom.
  */
 @Suppress("UNCHECKED_CAST")
-@JvmName("atomWithArrayList")
+@JvmName("atomWithList")
 inline fun <reified T> atom(
-    initialValue: ArrayList<T>,
+    initialValue: List<T>,
     saverKey: AtomSaverKey,
     scope: AtomScope? = null
-): Atom<ArrayList<T>> {
+): Atom<List<T>> {
     val saver = when (T::class) {
-        Int::class -> integerArrayListSaver(saverKey) as AtomSaver<ArrayList<T>>
-        String::class -> stringArrayListSaver(saverKey) as AtomSaver<ArrayList<T>>
+        Int::class -> intListSaver(saverKey) as AtomSaver<List<T>>
+        CharSequence::class -> charSequenceListSaver(saverKey) as AtomSaver<List<T>>
+        String::class -> stringListSaver(saverKey) as AtomSaver<List<T>>
         else -> null
     }
     return atom(initialValue, saver, scope)
@@ -145,24 +147,6 @@ inline fun atom(
     scope: AtomScope? = null
 ): Atom<BooleanArray> {
     return atom(initialValue, booleanArraySaver(saverKey), scope)
-}
-
-@JvmName("atomWithByteArray")
-inline fun atom(
-    initialValue: ByteArray,
-    saverKey: AtomSaverKey,
-    scope: AtomScope? = null
-): Atom<ByteArray> {
-    return atom(initialValue, byteArraySaver(saverKey), scope)
-}
-
-@JvmName("atomWithShortArray")
-inline fun atom(
-    initialValue: ShortArray,
-    saverKey: AtomSaverKey,
-    scope: AtomScope? = null
-): Atom<ShortArray> {
-    return atom(initialValue, shortArraySaver(saverKey), scope)
 }
 
 @JvmName("atomWithCharArray")
@@ -220,23 +204,24 @@ inline fun <reified T> atom(
     val saver = when (T::class) {
         String::class -> stringArraySaver(saverKey) as AtomSaver<Array<T>>
         CharSequence::class -> charSequenceArraySaver(saverKey) as AtomSaver<Array<T>>
+        SavedState::class -> bundleArraySaver(saverKey) as AtomSaver<Array<T>>
         else -> null
     }
     return atom(initialValue, saver, scope)
 }
 
-@JvmName("atomWithBundle")
+@JvmName("atomWithSavedState")
 inline fun atom(
-    initialValue: Bundle,
+    initialValue: SavedState,
     saverKey: AtomSaverKey,
     scope: AtomScope? = null
-): Atom<Bundle> {
+): Atom<SavedState> {
     return atom(initialValue, bundleSaver(saverKey), scope)
 }
 
 
 /**
- * Interface for saving and restoring values to a [Bundle].
+ * Interface for saving and restoring values to a [SavedState].
  *
  * Currently, this restoration feature is designed specifically for the Android Platform.
  *
@@ -245,20 +230,20 @@ inline fun atom(
 interface AtomSaver<T> {
 
     /**
-     * Saves a value to a [Bundle].
+     * Saves a value to a [SavedState].
      *
-     * @param bundle The [Bundle] to save the value to.
+     * @param state The [SavedState] to save the value to.
      * @param value The value to save.
      */
-    fun save(bundle: Bundle, value: T)
+    fun save(state: SavedState, value: T)
 
     /**
-     * Restores a value from a [Bundle].
+     * Restores a value from a [SavedState].
      *
-     * @param bundle The [Bundle] to restore the value from.
+     * @param state The [SavedState] to restore the value from.
      * @return The restored value.
      */
-    fun restore(bundle: Bundle): T?
+    fun restore(state: SavedState): T?
 }
 
 typealias AtomSaverKey = String
@@ -285,18 +270,20 @@ typealias AtomSaverKey = String
  * @return The [AtomSaver] for the value.
  */
 @ExperimentalSerializationApi
-inline fun <reified T> serializationSaver(
+inline fun <reified T : Any> serializationSaver(
     key: AtomSaverKey,
     serializer: KSerializer<T> = serializer(),
-    bundler: Bundler = Bundler
+    configuration: SavedStateConfiguration = SavedStateConfiguration.DEFAULT
 ): AtomSaver<T> {
     return object : AtomSaver<T> {
-        override fun save(bundle: Bundle, value: T) {
-            bundle.putBundle(key, bundler.encodeToBundle(value, serializer))
+        override fun save(state: SavedState, value: T) = state.write {
+            val savedState = encodeToSavedState(serializer, value, configuration)
+            putSavedState(key, savedState)
         }
 
-        override fun restore(bundle: Bundle): T? {
-            return bundle.getBundle(key)?.let { bundler.decodeFromBundle(it, serializer) }
+        override fun restore(state: SavedState): T? = state.read {
+            val savedState = getSavedStateOrNull(key) ?: return null
+            decodeFromSavedState(serializer, savedState, configuration)
         }
     }
 }
@@ -304,12 +291,12 @@ inline fun <reified T> serializationSaver(
 @PublishedApi
 internal fun stringSaver(key: AtomSaverKey): AtomSaver<String> {
     return object : AtomSaver<String> {
-        override fun save(bundle: Bundle, value: String) {
-            bundle.putString(key, value)
+        override fun save(state: SavedState, value: String) = state.write {
+            putString(key, value)
         }
 
-        override fun restore(bundle: Bundle): String? {
-            return if (bundle.containsKey(key)) bundle.getString(key) else null
+        override fun restore(state: SavedState): String? = state.read {
+            return getStringOrNull(key)
         }
     }
 }
@@ -317,12 +304,12 @@ internal fun stringSaver(key: AtomSaverKey): AtomSaver<String> {
 @PublishedApi
 internal fun charSequenceSaver(key: AtomSaverKey): AtomSaver<CharSequence> {
     return object : AtomSaver<CharSequence> {
-        override fun save(bundle: Bundle, value: CharSequence) {
-            bundle.putCharSequence(key, value)
+        override fun save(state: SavedState, value: CharSequence) = state.write {
+            putCharSequence(key, value)
         }
 
-        override fun restore(bundle: Bundle): CharSequence? {
-            return if (bundle.containsKey(key)) bundle.getCharSequence(key) else null
+        override fun restore(state: SavedState): CharSequence? = state.read {
+            return getCharSequenceOrNull(key)
         }
     }
 }
@@ -330,12 +317,12 @@ internal fun charSequenceSaver(key: AtomSaverKey): AtomSaver<CharSequence> {
 @PublishedApi
 internal fun booleanSaver(key: AtomSaverKey): AtomSaver<Boolean> {
     return object : AtomSaver<Boolean> {
-        override fun save(bundle: Bundle, value: Boolean) {
-            bundle.putBoolean(key, value)
+        override fun save(state: SavedState, value: Boolean) = state.write {
+            putBoolean(key, value)
         }
 
-        override fun restore(bundle: Bundle): Boolean? {
-            return if (bundle.containsKey(key)) bundle.getBoolean(key) else null
+        override fun restore(state: SavedState): Boolean? = state.read {
+            return getBooleanOrNull(key)
         }
     }
 }
@@ -343,12 +330,12 @@ internal fun booleanSaver(key: AtomSaverKey): AtomSaver<Boolean> {
 @PublishedApi
 internal fun intSaver(key: AtomSaverKey): AtomSaver<Int> {
     return object : AtomSaver<Int> {
-        override fun save(bundle: Bundle, value: Int) {
-            bundle.putInt(key, value)
+        override fun save(state: SavedState, value: Int) = state.write {
+            putInt(key, value)
         }
 
-        override fun restore(bundle: Bundle): Int? {
-            return if (bundle.containsKey(key)) bundle.getInt(key) else null
+        override fun restore(state: SavedState): Int? = state.read {
+            return getIntOrNull(key)
         }
     }
 }
@@ -356,12 +343,12 @@ internal fun intSaver(key: AtomSaverKey): AtomSaver<Int> {
 @PublishedApi
 internal fun longSaver(key: AtomSaverKey): AtomSaver<Long> {
     return object : AtomSaver<Long> {
-        override fun save(bundle: Bundle, value: Long) {
-            bundle.putLong(key, value)
+        override fun save(state: SavedState, value: Long) = state.write {
+            putLong(key, value)
         }
 
-        override fun restore(bundle: Bundle): Long? {
-            return if (bundle.containsKey(key)) bundle.getLong(key) else null
+        override fun restore(state: SavedState): Long? = state.read {
+            return getLongOrNull(key)
         }
     }
 }
@@ -369,12 +356,12 @@ internal fun longSaver(key: AtomSaverKey): AtomSaver<Long> {
 @PublishedApi
 internal fun doubleSaver(key: AtomSaverKey): AtomSaver<Double> {
     return object : AtomSaver<Double> {
-        override fun save(bundle: Bundle, value: Double) {
-            bundle.putDouble(key, value)
+        override fun save(state: SavedState, value: Double) = state.write {
+            putDouble(key, value)
         }
 
-        override fun restore(bundle: Bundle): Double? {
-            return if (bundle.containsKey(key)) bundle.getDouble(key) else null
+        override fun restore(state: SavedState): Double? = state.read {
+            return getDoubleOrNull(key)
         }
     }
 }
@@ -382,12 +369,12 @@ internal fun doubleSaver(key: AtomSaverKey): AtomSaver<Double> {
 @PublishedApi
 internal fun floatSaver(key: AtomSaverKey): AtomSaver<Float> {
     return object : AtomSaver<Float> {
-        override fun save(bundle: Bundle, value: Float) {
-            bundle.putFloat(key, value)
+        override fun save(state: SavedState, value: Float) = state.write {
+            putFloat(key, value)
         }
 
-        override fun restore(bundle: Bundle): Float? {
-            return if (bundle.containsKey(key)) bundle.getFloat(key) else null
+        override fun restore(state: SavedState): Float? = state.read {
+            return getFloatOrNull(key)
         }
     }
 }
@@ -395,64 +382,51 @@ internal fun floatSaver(key: AtomSaverKey): AtomSaver<Float> {
 @PublishedApi
 internal fun charSaver(key: AtomSaverKey): AtomSaver<Char> {
     return object : AtomSaver<Char> {
-        override fun save(bundle: Bundle, value: Char) {
-            bundle.putChar(key, value)
+        override fun save(state: SavedState, value: Char) = state.write {
+            putChar(key, value)
         }
 
-        override fun restore(bundle: Bundle): Char? {
-            return if (bundle.containsKey(key)) bundle.getChar(key) else null
-        }
-    }
-}
-
-@PublishedApi
-internal fun shortSaver(key: AtomSaverKey): AtomSaver<Short> {
-    return object : AtomSaver<Short> {
-        override fun save(bundle: Bundle, value: Short) {
-            bundle.putShort(key, value)
-        }
-
-        override fun restore(bundle: Bundle): Short? {
-            return if (bundle.containsKey(key)) bundle.getShort(key) else null
+        override fun restore(state: SavedState): Char? = state.read {
+            return getCharOrNull(key)
         }
     }
 }
 
 @PublishedApi
-internal fun byteSaver(key: AtomSaverKey): AtomSaver<Byte> {
-    return object : AtomSaver<Byte> {
-        override fun save(bundle: Bundle, value: Byte) {
-            bundle.putByte(key, value)
+internal fun intListSaver(key: AtomSaverKey): AtomSaver<List<Int>> {
+    return object : AtomSaver<List<Int>> {
+        override fun save(state: SavedState, value: List<Int>) = state.write {
+            putIntList(key, value)
         }
 
-        override fun restore(bundle: Bundle): Byte? {
-            return if (bundle.containsKey(key)) bundle.getByte(key) else null
-        }
-    }
-}
-
-@PublishedApi
-internal fun integerArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<Int?>> {
-    return object : AtomSaver<ArrayList<Int?>> {
-        override fun save(bundle: Bundle, value: ArrayList<Int?>) {
-            bundle.putIntegerArrayList(key, value)
-        }
-
-        override fun restore(bundle: Bundle): ArrayList<Int?>? {
-            return bundle.getIntegerArrayList(key)
+        override fun restore(state: SavedState): List<Int>? = state.read {
+            return getIntListOrNull(key)
         }
     }
 }
 
 @PublishedApi
-internal fun stringArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<String?>> {
-    return object : AtomSaver<ArrayList<String?>> {
-        override fun save(bundle: Bundle, value: ArrayList<String?>) {
-            bundle.putStringArrayList(key, value)
+internal fun charSequenceListSaver(key: AtomSaverKey): AtomSaver<List<CharSequence>> {
+    return object : AtomSaver<List<CharSequence>> {
+        override fun save(state: SavedState, value: List<CharSequence>) = state.write {
+            putCharSequenceList(key, value)
         }
 
-        override fun restore(bundle: Bundle): ArrayList<String?>? {
-            return bundle.getStringArrayList(key)
+        override fun restore(state: SavedState): List<CharSequence>? = state.read {
+            return getCharSequenceListOrNull(key)
+        }
+    }
+}
+
+@PublishedApi
+internal fun stringListSaver(key: AtomSaverKey): AtomSaver<List<String>> {
+    return object : AtomSaver<List<String>> {
+        override fun save(state: SavedState, value: List<String>) = state.write {
+            putStringList(key, value)
+        }
+
+        override fun restore(state: SavedState): List<String>? = state.read {
+            return getStringListOrNull(key)
         }
     }
 }
@@ -460,38 +434,12 @@ internal fun stringArrayListSaver(key: AtomSaverKey): AtomSaver<ArrayList<String
 @PublishedApi
 internal fun booleanArraySaver(key: AtomSaverKey): AtomSaver<BooleanArray> {
     return object : AtomSaver<BooleanArray> {
-        override fun save(bundle: Bundle, value: BooleanArray) {
-            bundle.putBooleanArray(key, value)
+        override fun save(state: SavedState, value: BooleanArray) = state.write {
+            putBooleanArray(key, value)
         }
 
-        override fun restore(bundle: Bundle): BooleanArray? {
-            return bundle.getBooleanArray(key)
-        }
-    }
-}
-
-@PublishedApi
-internal fun byteArraySaver(key: AtomSaverKey): AtomSaver<ByteArray> {
-    return object : AtomSaver<ByteArray> {
-        override fun save(bundle: Bundle, value: ByteArray) {
-            bundle.putByteArray(key, value)
-        }
-
-        override fun restore(bundle: Bundle): ByteArray? {
-            return bundle.getByteArray(key)
-        }
-    }
-}
-
-@PublishedApi
-internal fun shortArraySaver(key: AtomSaverKey): AtomSaver<ShortArray> {
-    return object : AtomSaver<ShortArray> {
-        override fun save(bundle: Bundle, value: ShortArray) {
-            bundle.putShortArray(key, value)
-        }
-
-        override fun restore(bundle: Bundle): ShortArray? {
-            return bundle.getShortArray(key)
+        override fun restore(state: SavedState): BooleanArray? = state.read {
+            return getBooleanArrayOrNull(key)
         }
     }
 }
@@ -499,12 +447,12 @@ internal fun shortArraySaver(key: AtomSaverKey): AtomSaver<ShortArray> {
 @PublishedApi
 internal fun charArraySaver(key: AtomSaverKey): AtomSaver<CharArray> {
     return object : AtomSaver<CharArray> {
-        override fun save(bundle: Bundle, value: CharArray) {
-            bundle.putCharArray(key, value)
+        override fun save(state: SavedState, value: CharArray) = state.write {
+            putCharArray(key, value)
         }
 
-        override fun restore(bundle: Bundle): CharArray? {
-            return bundle.getCharArray(key)
+        override fun restore(state: SavedState): CharArray? = state.read {
+            return getCharArrayOrNull(key)
         }
     }
 }
@@ -512,12 +460,12 @@ internal fun charArraySaver(key: AtomSaverKey): AtomSaver<CharArray> {
 @PublishedApi
 internal fun intArraySaver(key: AtomSaverKey): AtomSaver<IntArray> {
     return object : AtomSaver<IntArray> {
-        override fun save(bundle: Bundle, value: IntArray) {
-            bundle.putIntArray(key, value)
+        override fun save(state: SavedState, value: IntArray) = state.write {
+            putIntArray(key, value)
         }
 
-        override fun restore(bundle: Bundle): IntArray? {
-            return bundle.getIntArray(key)
+        override fun restore(state: SavedState): IntArray? = state.read {
+            return getIntArrayOrNull(key)
         }
     }
 }
@@ -525,12 +473,12 @@ internal fun intArraySaver(key: AtomSaverKey): AtomSaver<IntArray> {
 @PublishedApi
 internal fun longArraySaver(key: AtomSaverKey): AtomSaver<LongArray> {
     return object : AtomSaver<LongArray> {
-        override fun save(bundle: Bundle, value: LongArray) {
-            bundle.putLongArray(key, value)
+        override fun save(state: SavedState, value: LongArray) = state.write {
+            putLongArray(key, value)
         }
 
-        override fun restore(bundle: Bundle): LongArray? {
-            return bundle.getLongArray(key)
+        override fun restore(state: SavedState): LongArray? = state.read {
+            return getLongArrayOrNull(key)
         }
     }
 }
@@ -538,12 +486,12 @@ internal fun longArraySaver(key: AtomSaverKey): AtomSaver<LongArray> {
 @PublishedApi
 internal fun floatArraySaver(key: AtomSaverKey): AtomSaver<FloatArray> {
     return object : AtomSaver<FloatArray> {
-        override fun save(bundle: Bundle, value: FloatArray) {
-            bundle.putFloatArray(key, value)
+        override fun save(state: SavedState, value: FloatArray) = state.write {
+            putFloatArray(key, value)
         }
 
-        override fun restore(bundle: Bundle): FloatArray? {
-            return bundle.getFloatArray(key)
+        override fun restore(state: SavedState): FloatArray? = state.read {
+            return getFloatArrayOrNull(key)
         }
     }
 }
@@ -551,51 +499,64 @@ internal fun floatArraySaver(key: AtomSaverKey): AtomSaver<FloatArray> {
 @PublishedApi
 internal fun doubleArraySaver(key: AtomSaverKey): AtomSaver<DoubleArray> {
     return object : AtomSaver<DoubleArray> {
-        override fun save(bundle: Bundle, value: DoubleArray) {
-            bundle.putDoubleArray(key, value)
+        override fun save(state: SavedState, value: DoubleArray) = state.write {
+            putDoubleArray(key, value)
         }
 
-        override fun restore(bundle: Bundle): DoubleArray? {
-            return bundle.getDoubleArray(key)
-        }
-    }
-}
-
-@PublishedApi
-internal fun stringArraySaver(key: AtomSaverKey): AtomSaver<Array<String?>> {
-    return object : AtomSaver<Array<String?>> {
-        override fun save(bundle: Bundle, value: Array<String?>) {
-            bundle.putStringArray(key, value)
-        }
-
-        override fun restore(bundle: Bundle): Array<String?>? {
-            return bundle.getStringArray(key)
+        override fun restore(state: SavedState): DoubleArray? = state.read {
+            return getDoubleArrayOrNull(key)
         }
     }
 }
 
 @PublishedApi
-internal fun charSequenceArraySaver(key: AtomSaverKey): AtomSaver<Array<CharSequence?>> {
-    return object : AtomSaver<Array<CharSequence?>> {
-        override fun save(bundle: Bundle, value: Array<CharSequence?>) {
-            bundle.putCharSequenceArray(key, value)
+internal fun stringArraySaver(key: AtomSaverKey): AtomSaver<Array<String>> {
+    return object : AtomSaver<Array<String>> {
+        override fun save(state: SavedState, value: Array<String>) = state.write {
+            putStringArray(key, value)
         }
 
-        override fun restore(bundle: Bundle): Array<CharSequence?>? {
-            return bundle.getCharSequenceArray(key)
+        override fun restore(state: SavedState): Array<String>? = state.read {
+            return getStringArrayOrNull(key)
         }
     }
 }
 
 @PublishedApi
-internal fun bundleSaver(key: AtomSaverKey): AtomSaver<Bundle> {
-    return object : AtomSaver<Bundle> {
-        override fun save(bundle: Bundle, value: Bundle) {
-            bundle.putBundle(key, value)
+internal fun charSequenceArraySaver(key: AtomSaverKey): AtomSaver<Array<CharSequence>> {
+    return object : AtomSaver<Array<CharSequence>> {
+        override fun save(state: SavedState, value: Array<CharSequence>) = state.write {
+            putCharSequenceArray(key, value)
         }
 
-        override fun restore(bundle: Bundle): Bundle? {
-            return bundle.getBundle(key)
+        override fun restore(state: SavedState): Array<CharSequence>? = state.read {
+            return getCharSequenceArrayOrNull(key)
+        }
+    }
+}
+
+@PublishedApi
+internal fun bundleArraySaver(key: AtomSaverKey): AtomSaver<Array<SavedState>> {
+    return object : AtomSaver<Array<SavedState>> {
+        override fun save(state: SavedState, value: Array<SavedState>) = state.write {
+            putSavedStateArray(key, value)
+        }
+
+        override fun restore(state: SavedState): Array<SavedState>? = state.read {
+            return getSavedStateArrayOrNull(key)
+        }
+    }
+}
+
+@PublishedApi
+internal fun bundleSaver(key: AtomSaverKey): AtomSaver<SavedState> {
+    return object : AtomSaver<SavedState> {
+        override fun save(state: SavedState, value: SavedState) = state.write {
+            putSavedState(key, value)
+        }
+
+        override fun restore(state: SavedState): SavedState? = state.read {
+            return getSavedStateOrNull(key)
         }
     }
 }

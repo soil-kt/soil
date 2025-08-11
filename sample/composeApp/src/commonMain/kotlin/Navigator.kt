@@ -9,6 +9,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.savedstate.read
 import soil.kmp.screen.HelloFormScreen
 import soil.kmp.screen.HelloQueryDetailScreen
 import soil.kmp.screen.HelloQueryScreen
@@ -73,7 +74,7 @@ fun NavRouterHost(
                 route = NavScreenDestination.HelloQueryDetail.route,
                 arguments = NavScreenDestination.HelloQueryDetail.arguments
             ) {
-                val id = checkNotNull(it.arguments?.getInt(NavScreenDestination.HelloQueryDetail.id.name))
+                val id = checkNotNull(it.arguments?.read { getInt(NavScreenDestination.HelloQueryDetail.id.name) })
                 HelloQueryDetailScreen(postId = id)
             }
             composable(
