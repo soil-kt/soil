@@ -32,6 +32,12 @@ import kotlinx.serialization.serializer
  * @param serializersModule A [SerializersModule] which should contain registered serializers
  * for [kotlinx.serialization.Contextual] and [kotlinx.serialization.Polymorphic] serialization, if you have any.
  */
+@Deprecated(
+    message = "Bundler is deprecated. Please use Android's official SavedState serialization instead. " +
+        "Use androidx.savedstate.serialization.encodeToSavedState() and decodeFromSavedState() functions. " +
+        "For more information, see: https://developer.android.com/jetpack/androidx/releases/savedstate#1.3.0",
+    level = DeprecationLevel.WARNING
+)
 open class Bundler(
     override val serializersModule: SerializersModule
 ) : SerialFormat {
