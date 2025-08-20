@@ -49,6 +49,17 @@ kotlin {
         }
     }
 
+    listOf(
+        macosX64(),
+        macosArm64()
+    ).forEach { macosTarget ->
+        macosTarget.binaries.framework {
+            baseName = "ComposeApp"
+            binaryOption("bundleId", "soil.kmp")
+            isStatic = true
+        }
+    }
+
     sourceSets {
         all {
             languageSettings {
@@ -95,6 +106,13 @@ kotlin {
         }
 
         iosMain {
+            dependsOn(skikoMain)
+            dependencies {
+                implementation(libs.ktor.client.darwin)
+            }
+        }
+
+        macosMain {
             dependsOn(skikoMain)
             dependencies {
                 implementation(libs.ktor.client.darwin)

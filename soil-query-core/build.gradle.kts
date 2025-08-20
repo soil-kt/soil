@@ -22,6 +22,9 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
+    macosX64()
+    macosArm64()
+
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
@@ -50,6 +53,10 @@ kotlin {
         }
 
         iosMain {
+            dependsOn(skikoMain)
+        }
+
+        macosMain {
             dependsOn(skikoMain)
         }
 
