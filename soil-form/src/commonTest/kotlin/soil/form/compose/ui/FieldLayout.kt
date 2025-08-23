@@ -10,14 +10,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import soil.form.compose.FormField
+import soil.form.compose.BasicFormField
 import soil.form.compose.hasError
 
 @Composable
-fun <V> FieldLayout(
-    field: FormField<V>,
+fun <T : BasicFormField> FieldLayout(
+    field: T,
     modifier: Modifier = Modifier,
-    content: @Composable FormField<V>.() -> Unit
+    content: @Composable T.() -> Unit
 ) {
     Column(
         modifier = modifier,

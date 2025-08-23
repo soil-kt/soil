@@ -368,19 +368,17 @@ class FormMetaState internal constructor(
 class FieldMetaState internal constructor(
     error: FieldError = noFieldError,
     mode: FieldValidationMode = FieldValidationMode.Blur,
-    isDirty: Boolean = false,
     isTouched: Boolean = false,
     isValidated: Boolean = false
 ) : FieldMeta {
 
     override var error: FieldError by mutableStateOf(error)
     override var mode: FieldValidationMode by mutableStateOf(mode)
-    override var isDirty: Boolean by mutableStateOf(isDirty)
     override var isTouched: Boolean by mutableStateOf(isTouched)
     override var isValidated: Boolean by mutableStateOf(isValidated)
 
     override fun toString(): String {
-        return "FieldMetaState(error=$error, mode=$mode, isDirty=$isDirty, isTouched=$isTouched, isValidated=$isValidated)"
+        return "FieldMetaState(error=$error, mode=$mode, isTouched=$isTouched, isValidated=$isValidated)"
     }
 
     companion object {
@@ -390,7 +388,6 @@ class FieldMetaState internal constructor(
                 listOf(
                     value.error.messages,
                     value.mode,
-                    value.isDirty,
                     value.isTouched,
                     value.isValidated
                 )
@@ -400,9 +397,8 @@ class FieldMetaState internal constructor(
                 FieldMetaState(
                     error = FieldError(value[0] as List<String>),
                     mode = value[1] as FieldValidationMode,
-                    isDirty = value[2] as Boolean,
-                    isTouched = value[3] as Boolean,
-                    isValidated = value[4] as Boolean
+                    isTouched = value[2] as Boolean,
+                    isValidated = value[3] as Boolean
                 )
             }
         )
