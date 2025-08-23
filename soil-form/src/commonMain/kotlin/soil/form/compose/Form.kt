@@ -15,6 +15,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import soil.form.FieldName
 import soil.form.FieldNames
@@ -122,6 +123,7 @@ fun <T> rememberForm(
             // validateOnMount
             launch {
                 snapshotFlow { control.fields }
+                    .filter { it.isNotEmpty() }
                     .debounce(control.options.preValidationDelayOnMount)
                     .collect {
                         control.preValidate()
