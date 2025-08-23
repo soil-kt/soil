@@ -5,6 +5,10 @@ package soil.form.compose.ui
 
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.InputTransformation
+import androidx.compose.foundation.text.input.KeyboardActionHandler
+import androidx.compose.foundation.text.input.OutputTransformation
+import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -13,6 +17,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.VisualTransformation
 import soil.form.compose.FormField
 import soil.form.compose.hasError
+import soil.form.compose.text.FormTextField
 
 @Composable
 fun FormField<String>.InputField(
@@ -38,5 +43,29 @@ fun FormField<String>.InputField(
         minLines = minLines,
         visualTransformation = visualTransformation,
         isError = hasError,
+    )
+}
+
+@Composable
+fun FormTextField.InputField(
+    modifier: Modifier = Modifier,
+    inputTransformation: InputTransformation? = null,
+    outputTransformation: OutputTransformation? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    onKeyboardAction: KeyboardActionHandler? = null,
+    lineLimits: TextFieldLineLimits = TextFieldLineLimits.SingleLine
+) {
+    OutlinedTextField(
+        state = state,
+        modifier = modifier
+            .onFocusChanged { state -> handleFocus(state.isFocused || state.hasFocus) }
+            .testTag(name),
+        enabled = isEnabled,
+        inputTransformation = inputTransformation,
+        outputTransformation = outputTransformation,
+        keyboardOptions = keyboardOptions,
+        onKeyboardAction = onKeyboardAction,
+        lineLimits = lineLimits,
+        isError = hasError
     )
 }
