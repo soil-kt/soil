@@ -64,11 +64,6 @@ interface FieldMeta {
     val mode: FieldValidationMode
 
     /**
-     * Whether the field value has been modified from its initial value.
-     */
-    val isDirty: Boolean
-
-    /**
      * Whether the field has been touched (focused and then blurred) by the user.
      */
     val isTouched: Boolean

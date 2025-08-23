@@ -62,11 +62,7 @@ import soil.form.noFieldError
  * @param V The type of the field value.
  */
 @Stable
-interface FormField<V> {
-    /**
-     * The unique name identifier for this field within the form.
-     */
-    val name: FieldName
+interface FormField<V> : BasicFormField {
 
     /**
      * The current value of the field.
@@ -74,71 +70,12 @@ interface FormField<V> {
     val value: V
 
     /**
-     * The current validation error for this field, if any.
-     */
-    val error: FieldError
-
-    /**
-     * Whether the field value has been modified from its initial value.
-     */
-    val isDirty: Boolean
-
-    /**
-     * Whether the field has been touched (focused and then blurred) by the user.
-     */
-    val isTouched: Boolean
-
-    /**
-     * Whether the field currently has focus.
-     */
-    val isFocused: Boolean
-
-    /**
-     * Whether the field is enabled for user interaction.
-     */
-    val isEnabled: Boolean
-
-    /**
      * Updates the field value and triggers validation if configured.
      *
      * @param value The new value for the field.
      */
     fun onValueChange(value: V)
-
-    /**
-     * Marks the field as focused.
-     */
-    fun onFocus()
-
-    /**
-     * Marks the field as blurred (not focused) and touched.
-     */
-    fun onBlur()
-
-    /**
-     * Handles focus state changes by calling onFocus() or onBlur() as appropriate.
-     *
-     * @param hasFocus Whether the field currently has focus.
-     */
-    fun handleFocus(hasFocus: Boolean)
-
-    /**
-     * Manually triggers validation for this field with the specified mode.
-     *
-     * @param mode The validation mode to trigger.
-     * @return True if validation was triggered, false if it was not needed.
-     */
-    fun trigger(mode: FieldValidationMode): Boolean
 }
-
-/**
- * Whether the field currently has any validation errors.
- *
- * This is a convenience property that returns true when the field has validation
- * error messages, false otherwise. It's commonly used to conditionally apply
- * error styling to UI components.
- */
-val FormField<*>.hasError: Boolean get() = error != noFieldError
 
 /**
  * Creates a form field with validation and state management.
@@ -472,12 +409,6 @@ internal class FormFieldController<T, V, S, U>(
             meta.error = value
         }
 
-    override var isDirty: Boolean
-        get() = meta.isDirty
-        set(value) {
-            meta.isDirty = value
-        }
-
     override var isTouched: Boolean
         get() = meta.isTouched
         set(value) {
@@ -501,7 +432,6 @@ internal class FormFieldController<T, V, S, U>(
 
     override fun onValueChange(value: U) {
         form.handleChange { updater(adapter.fromInput(value, rawValue)) }
-        isDirty = true
     }
 
     override fun onFocus() {

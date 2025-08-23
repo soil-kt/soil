@@ -45,12 +45,10 @@ class FormStateTest : UnitTest() {
         formState.meta.fields["firstName"] = FieldMetaState(
             error = FieldError("Some error"),
             mode = FieldValidationMode.Change,
-            isDirty = true,
             isTouched = true,
             isValidated = true
         )
         formState.meta.fields["lastName"] = FieldMetaState(
-            isDirty = true,
             isTouched = true
         )
 
@@ -94,8 +92,7 @@ class FormStateTest : UnitTest() {
 
         // Add some field metadata
         formState.meta.fields["firstName"] = FieldMetaState(
-            error = FieldError("Some error"),
-            isDirty = true
+            error = FieldError("Some error")
         )
         formState.meta.canSubmit = false
 
@@ -118,20 +115,17 @@ class FormStateTest : UnitTest() {
         val restoredFieldMeta = restored.meta.fields["firstName"]
         val originalFieldMeta = formState.meta.fields["firstName"]
         assertEquals(originalFieldMeta?.error, restoredFieldMeta?.error)
-        assertEquals(originalFieldMeta?.isDirty, restoredFieldMeta?.isDirty)
     }
 
     @Test
     fun testMetaState() {
         val fields = mapOf(
-            "firstName" to FieldMetaState(isDirty = true),
             "lastName" to FieldMetaState(isTouched = true)
         )
         val formMeta = FormMetaState(policy = FormPolicy(), fields = fields, canSubmit = true, resetCount = 0)
 
-        assertEquals(2, formMeta.fields.size)
+        assertEquals(1, formMeta.fields.size)
         assertTrue(formMeta.canSubmit)
-        assertTrue(formMeta.fields["firstName"]?.isDirty == true)
         assertTrue(formMeta.fields["lastName"]?.isTouched == true)
     }
 
@@ -146,7 +140,7 @@ class FormStateTest : UnitTest() {
     @Test
     fun testFormMetaState_saver() {
         val fields = mapOf(
-            "firstName" to FieldMetaState(isDirty = true, error = FieldError("Error"))
+            "firstName" to FieldMetaState(error = FieldError("Error"))
         )
         val policy = FormPolicy()
         val formMeta = FormMetaState(policy = policy, fields = fields, canSubmit = true, resetCount = 3)
@@ -168,7 +162,6 @@ class FormStateTest : UnitTest() {
 
         val restoredFieldMeta = restored.fields["firstName"]
         val originalFieldMeta = formMeta.fields["firstName"]
-        assertEquals(originalFieldMeta?.isDirty, restoredFieldMeta?.isDirty)
         assertEquals(originalFieldMeta?.error, restoredFieldMeta?.error)
     }
 
@@ -178,14 +171,12 @@ class FormStateTest : UnitTest() {
         val fieldMeta = FieldMetaState(
             error = error,
             mode = FieldValidationMode.Change,
-            isDirty = true,
             isTouched = true,
             isValidated = true
         )
 
         assertEquals(error, fieldMeta.error)
         assertEquals(FieldValidationMode.Change, fieldMeta.mode)
-        assertTrue(fieldMeta.isDirty)
         assertTrue(fieldMeta.isTouched)
         assertTrue(fieldMeta.isValidated)
     }
@@ -196,7 +187,6 @@ class FormStateTest : UnitTest() {
         val fieldMeta = FieldMetaState(
             error = error,
             mode = FieldValidationMode.Change,
-            isDirty = true,
             isTouched = true,
             isValidated = true
         )
@@ -214,7 +204,6 @@ class FormStateTest : UnitTest() {
 
         assertEquals(fieldMeta.error, restored.error)
         assertEquals(fieldMeta.mode, restored.mode)
-        assertEquals(fieldMeta.isDirty, restored.isDirty)
         assertEquals(fieldMeta.isTouched, restored.isTouched)
         assertEquals(fieldMeta.isValidated, restored.isValidated)
     }

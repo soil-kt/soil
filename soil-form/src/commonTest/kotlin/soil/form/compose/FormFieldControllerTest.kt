@@ -45,7 +45,6 @@ class FormFieldControllerTest : UnitTest() {
         assertEquals("", controller.value)
         assertEquals(noFieldError, controller.error)
         assertFalse(controller.hasError)
-        assertFalse(controller.isDirty)
         assertFalse(controller.isTouched)
         assertFalse(controller.isFocused)
         assertTrue(controller.isEnabled)
@@ -74,7 +73,6 @@ class FormFieldControllerTest : UnitTest() {
 
         assertEquals("John", formState.value.name)
         assertEquals("John", controller.value)
-        assertTrue(controller.isDirty)
     }
 
     @Test
@@ -100,7 +98,6 @@ class FormFieldControllerTest : UnitTest() {
 
         assertEquals(25, formState.value.age)
         assertEquals("25", controller.value)
-        assertTrue(controller.isDirty)
     }
 
     @Test
