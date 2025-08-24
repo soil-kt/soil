@@ -16,23 +16,20 @@ plugins {
     alias(libs.plugins.spotless)
 }
 
+private val publicModules = setOf(
+    ":soil-experimental:soil-lazyload",
+    ":soil-experimental:soil-optimistic-update",
+    ":soil-experimental:soil-reacty",
+    ":soil-query-core",
+    ":soil-query-compose",
+    ":soil-query-receivers:ktor",
+    ":soil-query-test",
+    ":soil-form",
+    ":soil-serialization-bundle",
+    ":soil-space"
+)
+
 allprojects {
-    buildTarget {
-        androidCompileSdk = providers.gradleProperty("androidCompileSdk").map { it.toInt() }
-        androidMinSdk = providers.gradleProperty("androidMinSdk").map { it.toInt() }
-        androidTargetSdk = providers.gradleProperty("androidTargetSdk").map { it.toInt() }
-        javaVersion = provider { JavaVersion.VERSION_11 }
-        composeCompilerDestination = layout.buildDirectory.dir("compose-compiler")
-        composeCompilerMetrics = providers.gradleProperty("composeCompilerMetrics").map { it.toBoolean() }
-        composeCompilerReports = providers.gradleProperty("composeCompilerReports").map { it.toBoolean() }
-    }
-
-    tasks.withType<KotlinJvmCompile>().configureEach {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
-        }
-    }
-
     tasks.withType<KotlinCompilationTask<*>>().configureEach {
         compilerOptions {
             // Note: Kotlin 2.0.20 ~

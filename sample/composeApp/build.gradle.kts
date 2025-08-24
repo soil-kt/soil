@@ -1,6 +1,7 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
@@ -10,8 +11,6 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
 }
-
-val buildTarget = the<BuildTargetExtension>()
 
 kotlin {
     applyDefaultHierarchyTemplate()
@@ -33,7 +32,11 @@ kotlin {
         binaries.executable()
     }
 
-    androidTarget()
+    androidTarget {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
+        }
+    }
 
     jvm("desktop")
 
@@ -116,7 +119,7 @@ kotlin {
 
 android {
     namespace = "soil.kmp"
-    compileSdk = buildTarget.androidCompileSdk.get()
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     sourceSets["main"].res.srcDirs("src/androidMain/res")
@@ -124,8 +127,8 @@ android {
 
     defaultConfig {
         applicationId = "soil.kmp"
-        minSdk = buildTarget.androidMinSdk.get()
-        targetSdk = buildTarget.androidTargetSdk.get()
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0.0"
     }
@@ -140,8 +143,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = buildTarget.javaVersion.get()
-        targetCompatibility = buildTarget.javaVersion.get()
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     dependencies {
         debugImplementation(compose.uiTooling)
