@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -19,7 +20,11 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.ui.tooling.preview.Preview
+import soil.form.FieldValidator
 import soil.form.compose.FormField
+import soil.form.compose.tooling.PreviewField
+import soil.form.rule.notNull
 import soil.playground.style.AppTheme
 
 @Composable
@@ -83,5 +88,34 @@ class RadioFieldScope<T : Any>(
                 )
             }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun RadioFieldPreview() {
+    AppTheme {
+        PreviewField<Boolean?>(
+            initialValue = null,
+            validator = FieldValidator {
+                notNull { "This field is required" }
+            },
+            render = { field ->
+                field.WithLayout {
+                    RadioField {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Option(true) {
+                                Text(text = "Yes")
+                            }
+                            Option(false) {
+                                Text(text = "No")
+                            }
+                        }
+                    }
+                }
+            }
+        )
     }
 }

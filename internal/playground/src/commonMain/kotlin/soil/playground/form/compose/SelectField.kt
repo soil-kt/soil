@@ -6,6 +6,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -16,8 +17,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.focus.onFocusEvent
+import org.jetbrains.compose.ui.tooling.preview.Preview
+import soil.form.FieldValidator
 import soil.form.compose.FormField
 import soil.form.compose.hasError
+import soil.form.compose.tooling.PreviewField
+import soil.form.rule.notNull
+import soil.playground.form.Title
+import soil.playground.style.AppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,6 +81,7 @@ class SelectFieldScope<T : Any>(
     @PublishedApi internal val onExpandedChange: (Boolean) -> Unit
 ) {
 
+    @Suppress("NOTHING_TO_INLINE")
     @Composable
     inline fun Option(
         value: T,
@@ -96,5 +104,29 @@ class SelectFieldScope<T : Any>(
                 enabled = enabled
             )
         }
+    }
+}
+
+@Preview
+@Composable
+private fun SelectFieldPreview() {
+    AppTheme {
+        PreviewField<Title?>(
+            initialValue = null,
+            validator = FieldValidator {
+                notNull { "This field is required" }
+            },
+            render = { field ->
+                field.WithLayout {
+                    SelectField(transform = { it?.name ?: "-" }) {
+                        Title.entries.forEach { value ->
+                            Option(value) {
+                                Text(text = value.name)
+                            }
+                        }
+                    }
+                }
+            }
+        )
     }
 }

@@ -27,9 +27,9 @@ import androidx.compose.ui.test.waitUntilDoesNotExist
 import androidx.compose.ui.test.waitUntilExactlyOneExists
 import soil.form.FieldValidator
 import soil.form.compose.rememberForm
-import soil.form.compose.ui.FieldLayout
 import soil.form.compose.ui.InputField
 import soil.form.compose.ui.Submit
+import soil.form.compose.ui.WithLayout
 import soil.form.rule.notEmpty
 import soil.testing.UnitTest
 import kotlin.test.Test
@@ -59,7 +59,7 @@ class TextFieldStateFormTest : UnitTest() {
                         notEmpty { "Must be not empty" }
                     },
                     render = { field ->
-                        FieldLayout(field) {
+                        field.WithLayout {
                             InputField()
                         }
                     }
