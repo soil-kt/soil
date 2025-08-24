@@ -26,9 +26,9 @@ import androidx.compose.ui.test.waitUntilExactlyOneExists
 import soil.form.FieldTypeAdapter
 import soil.form.FieldValidationMode
 import soil.form.FieldValidator
-import soil.form.compose.ui.FieldLayout
 import soil.form.compose.ui.InputField
 import soil.form.compose.ui.Submit
+import soil.form.compose.ui.WithLayout
 import soil.form.noFieldError
 import soil.form.rule.notEmpty
 import soil.testing.UnitTest
@@ -57,12 +57,12 @@ class FormTest : UnitTest() {
             ) {
                 Column {
                     form.FirstName { field ->
-                        FieldLayout(field) {
+                        field.WithLayout {
                             InputField()
                         }
                     }
                     form.LastName { field ->
-                        FieldLayout(field) {
+                        field.WithLayout {
                             InputField()
                         }
                     }
@@ -110,12 +110,12 @@ class FormTest : UnitTest() {
             ) {
                 Column {
                     form.FirstName { field ->
-                        FieldLayout(field) {
+                        field.WithLayout {
                             InputField()
                         }
                     }
                     form.LastName { field ->
-                        FieldLayout(field) {
+                        field.WithLayout {
                             InputField()
                         }
                     }
@@ -170,12 +170,12 @@ class FormTest : UnitTest() {
             ) {
                 Column {
                     form.FirstName { field ->
-                        FieldLayout(field) {
+                        field.WithLayout {
                             InputField()
                         }
                     }
                     form.LastName { field ->
-                        FieldLayout(field) {
+                        field.WithLayout {
                             InputField()
                         }
                     }

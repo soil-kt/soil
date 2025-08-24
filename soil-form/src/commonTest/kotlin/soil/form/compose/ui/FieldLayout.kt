@@ -14,20 +14,20 @@ import soil.form.compose.BasicFormField
 import soil.form.compose.hasError
 
 @Composable
-fun <T : BasicFormField> FieldLayout(
-    field: T,
+inline fun <T : BasicFormField> T.WithLayout(
     modifier: Modifier = Modifier,
+    verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(4.dp),
     content: @Composable T.() -> Unit
 ) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = verticalArrangement
     ) {
-        field.content()
-        if (field.isEnabled && field.hasError) {
+        content()
+        if (isEnabled && hasError) {
             FieldValidationError(
-                text = field.error.messages.first(),
-                modifier = Modifier.padding(horizontal = 16.dp).testTag("${field.name}_error")
+                text = error.messages.first(),
+                modifier = Modifier.padding(horizontal = 16.dp).testTag("${name}_error")
             )
         }
     }

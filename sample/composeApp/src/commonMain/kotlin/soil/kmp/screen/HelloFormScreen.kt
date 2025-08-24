@@ -14,6 +14,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component3
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component4
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component5
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component6
+import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component7
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
@@ -35,11 +42,11 @@ import soil.form.rule.notNull
 import soil.playground.LocalFeedbackHost
 import soil.playground.form.FormData
 import soil.playground.form.Title
-import soil.playground.form.compose.FieldLayout
 import soil.playground.form.compose.InputField
 import soil.playground.form.compose.RadioField
 import soil.playground.form.compose.SelectField
 import soil.playground.form.compose.Submit
+import soil.playground.form.compose.WithLayout
 import soil.playground.style.withAppTheme
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -77,7 +84,7 @@ private fun HelloFormContent(
     ) {
         val (f1, f2, f3, f4, f5, f6, f7) = FocusRequester.createRefs()
         form.FirstName { field ->
-            FieldLayout(field) {
+            field.WithLayout {
                 InputField(
                     modifier = Modifier.fillMaxWidth().focusRequester(f1),
                     label = { Text("First name") }
@@ -85,7 +92,7 @@ private fun HelloFormContent(
             }
         }
         form.LastName { field ->
-            FieldLayout(field) {
+            field.WithLayout {
                 InputField(
                     modifier = Modifier.fillMaxWidth().focusRequester(f2),
                     label = { Text("Last name") }
@@ -93,7 +100,7 @@ private fun HelloFormContent(
             }
         }
         form.Email { field ->
-            FieldLayout(field) {
+            field.WithLayout {
                 InputField(
                     modifier = Modifier.fillMaxWidth().focusRequester(f3),
                     label = { Text("Email") },
@@ -102,7 +109,7 @@ private fun HelloFormContent(
             }
         }
         form.MobileNumber { field ->
-            FieldLayout(field) {
+            field.WithLayout {
                 InputField(
                     modifier = Modifier.fillMaxWidth().focusRequester(f4),
                     label = { Text("Mobile number") },
@@ -111,7 +118,7 @@ private fun HelloFormContent(
             }
         }
         form.Title { field ->
-            FieldLayout(field) {
+            field.WithLayout {
                 SelectField(
                     transform = { it?.name ?: "" },
                     modifier = Modifier.fillMaxWidth().focusRequester(f5),
@@ -126,7 +133,7 @@ private fun HelloFormContent(
             }
         }
         form.Developer { field ->
-            FieldLayout(field) {
+            field.WithLayout {
                 RadioField(
                     modifier = Modifier.fillMaxWidth().focusRequester(f6)
                 ) {

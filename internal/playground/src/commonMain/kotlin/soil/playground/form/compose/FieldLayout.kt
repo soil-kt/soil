@@ -1,29 +1,34 @@
 package soil.playground.form.compose
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.dp
-import soil.form.compose.FormField
+import soil.form.compose.BasicFormField
 import soil.form.compose.hasError
 import soil.playground.style.withAppTheme
 
 @Composable
-fun <V> FieldLayout(
-    field: FormField<V>,
+inline fun <V : BasicFormField> V.WithLayout(
     modifier: Modifier = Modifier,
-    content: @Composable FormField<V>.() -> Unit
+    verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(4.dp),
+    content: @Composable V.() -> Unit
 ) = withAppTheme {
     Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        modifier = modifier
+            .ifTrue(!LocalInspectionMode.current) {
+                animateContentSize()
+            },
+        verticalArrangement = verticalArrangement
     ) {
-        field.content()
-        if (field.isEnabled && field.hasError) {
+        content()
+        if (isEnabled && hasError) {
             FieldValidationError(
-                text = field.error.messages.first(),
+                text = error.messages.first(),
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
         }
