@@ -1,5 +1,6 @@
 import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.library)
@@ -11,14 +12,15 @@ plugins {
     alias(libs.plugins.kover)
 }
 
-val buildTarget = the<BuildTargetExtension>()
-
 kotlin {
     applyDefaultHierarchyTemplate()
 
     jvm()
     androidTarget {
         publishLibraryVariants("release")
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
+        }
     }
 
     iosX64()
@@ -66,45 +68,20 @@ kotlin {
 
 android {
     namespace = "soil.plant.compose.optimistic"
-    compileSdk = buildTarget.androidCompileSdk.get()
-
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    sourceSets["main"].res.srcDirs("src/androidMain/res")
-    sourceSets["main"].resources.srcDirs("src/commonMain/resources")
-
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
     defaultConfig {
-        minSdk = buildTarget.androidMinSdk.get()
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-        }
+        minSdk = libs.versions.android.minSdk.get().toInt()
     }
     compileOptions {
-        sourceCompatibility = buildTarget.javaVersion.get()
-        targetCompatibility = buildTarget.javaVersion.get()
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     @Suppress("UnstableApiUsage")
     testOptions {
         unitTests.isIncludeAndroidResources = true
     }
     dependencies {
-        debugImplementation(libs.compose.ui.tooling)
-    }
-}
-
-composeCompiler {
-    if (buildTarget.composeCompilerMetrics.getOrElse(false)) {
-        metricsDestination = buildTarget.composeCompilerDestination
-    }
-    if (buildTarget.composeCompilerReports.getOrElse(false)) {
-        reportsDestination = buildTarget.composeCompilerDestination
+        debugImplementation(compose.uiTooling)
     }
 }
 
