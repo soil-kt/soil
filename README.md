@@ -104,6 +104,7 @@ Supported targets:
 
 - Android
 - iOS
+- macOS
 - Desktop (JVM)
 - Web (Wasm)
 
