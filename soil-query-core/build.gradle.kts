@@ -87,11 +87,3 @@ android {
         unitTests.isIncludeAndroidResources = true
     }
 }
-
-kover {
-    currentProject {
-        createVariant("soil") {
-            add("debug")
-        }
-    }
-}

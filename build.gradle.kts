@@ -1,7 +1,6 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
-import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
     alias(libs.plugins.android.application) apply false
@@ -45,9 +44,7 @@ allprojects {
             } else {
                 events(TestLogEvent.FAILED)
             }
-            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-            events(TestLogEvent.FAILED)
-            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+            exceptionFormat = TestExceptionFormat.FULL
             showStandardStreams = true
         }
     }
@@ -82,12 +79,14 @@ allprojects {
     }
 }
 
-kover {
-    currentProject {
-        createVariant("soil") {
-
-        }
+dependencies {
+    for (module in publicModules) {
+        kover(project(module))
+        dokka(project(module))
     }
+}
+
+kover {
     reports {
         filters {
             excludes {
@@ -99,11 +98,4 @@ kover {
 
 dokka {
     moduleName.set("Soil")
-}
-
-dependencies {
-    for (module in publicModules) {
-        kover(project(module))
-        dokka(project(module))
-    }
 }
