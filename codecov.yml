@@ -1,5 +1,9 @@
-coverage:
+coverage:  
   status:
+    # https://docs.codecov.com/docs/commit-status#disabling-a-status
     project: off
     patch: off
-    
+parsers:
+  jacoco:
+    # https://docs.codecov.com/docs/codecovyml-reference#parsersjacoco
+    partials_as_hits: true
