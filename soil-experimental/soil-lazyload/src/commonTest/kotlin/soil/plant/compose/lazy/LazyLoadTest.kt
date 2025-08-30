@@ -77,7 +77,8 @@ class LazyLoadTest : UnitTest() {
             .performScrollToIndex(items.lastIndex - 6)
 
         waitUntilExactlyOneExists(hasTestTag("Item ${items.lastIndex - 6}"))
-        waitUntil { loadMoreCalled == 1 }
+        waitForIdle()
+        waitUntil(conditionDescription = "loadMore callback waiting..", timeoutMillis = 2000L) { loadMoreCalled == 1 }
         assertEquals(1, pageNumber)
 
         onNodeWithTag("lazyColumn")
@@ -141,7 +142,8 @@ class LazyLoadTest : UnitTest() {
             .performScrollToIndex(items.lastIndex - 6)
 
         waitUntilExactlyOneExists(hasTestTag("Item ${items.lastIndex - 6}"))
-        waitUntil { loadMoreCalled == 1 }
+        waitForIdle()
+        waitUntil(conditionDescription = "loadMore callback waiting..", timeoutMillis = 2000L) { loadMoreCalled == 1 }
         assertEquals(1, pageNumber)
 
         onNodeWithTag("lazyGrid")

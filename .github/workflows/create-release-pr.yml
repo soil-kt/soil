@@ -36,7 +36,7 @@ jobs:
       - name: Update Version
         run: |
           echo "Bump up version to $RELEASE_VERSION"
-          sed -i "/version=/c version=$RELEASE_VERSION" gradle.properties
+          sed -i "/^version=/c version=$RELEASE_VERSION" gradle.properties
           if [[ -n $(git status -s) ]]; then
             git add gradle.properties
             git commit -m "Bump up version to $RELEASE_VERSION"
