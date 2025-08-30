@@ -51,7 +51,7 @@ jobs:
 
       - name: Run tests on macos
         if: matrix.os == 'macos-15' && matrix.job == 'test'
-        run: ./gradlew iosSimulatorArm64Test
+        run: ./gradlew iosX64Test
 
       # ubuntu-latest
       - name: Run tests on linux
