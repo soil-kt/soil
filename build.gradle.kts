@@ -49,6 +49,27 @@ allprojects {
         }
     }
 
+    // NOTE: Source code link to GitHub
+    // https://kotlinlang.org/docs/dokka-migration.html#source-links
+    plugins.withId("org.jetbrains.dokka") {
+        val githubSourceUrl = providers.zip(
+            providers.gradleProperty("source"),
+            providers.gradleProperty("version")
+        ) { source, version ->
+            val modulePath = project.path.replace(":", "/")
+            "${source}${version}${modulePath}/src"
+        }
+        configure<org.jetbrains.dokka.gradle.DokkaExtension> {
+            dokkaSourceSets.all {
+                sourceLink {
+                    localDirectory.set(file("src"))
+                    remoteUrl(githubSourceUrl)
+                    remoteLineSuffix.set("#L")
+                }
+            }
+        }
+    }
+
     apply(plugin = "com.diffplug.spotless")
     configure<com.diffplug.gradle.spotless.SpotlessExtension> {
         format("format") {
