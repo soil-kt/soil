@@ -50,6 +50,11 @@ sample.android.run:
 sample.desktop.run:
 	@$(GRADLE_CMD) runDistributable
 
+.PHONY: sample.desktop.hotRun
+sample.desktop.hotRun:
+	@$(GRADLE_CMD) hotRunDesktop --auto
+
+
 .PHONY: sample.wasm.dist
 sample.wasm.dist:
 	@$(GRADLE_CMD) wasmJsBrowserDistribution

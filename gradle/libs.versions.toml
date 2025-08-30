@@ -14,6 +14,7 @@ androidx-lifecycle = "2.9.1"
 androidx-test = "1.6.1"
 androidx-test-ext-junit = "1.2.1"
 compose = "1.8.2"
+compose-hotReload = "1.0.0-beta04"
 compose-multiplatform = "1.8.2"
 dokka = "2.0.0"
 jbx-core-bundle = "1.1.0-alpha03"
@@ -70,6 +71,7 @@ turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 android-application = { id = "com.android.application", version.ref = "android-gradle" }
 android-library = { id = "com.android.library", version.ref = "android-gradle" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
+compose-hotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "compose-hotReload" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 kotlin-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
