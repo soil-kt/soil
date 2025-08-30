@@ -32,7 +32,7 @@ jobs:
 
       - name: Create Release Tag
         run: |
-            export VERSION=$(cat gradle.properties | grep "version" | awk -F '=' '{print $2}') && \
+            export VERSION=$(cat gradle.properties | grep "^version" | awk -F '=' '{print $2}') && \
             gh config set prompt disabled && \
             gh release create \
               --target "$GITHUB_REF_NAME" \
