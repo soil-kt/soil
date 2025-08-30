@@ -85,11 +85,3 @@ android {
         debugImplementation(compose.uiTooling)
     }
 }
-
-kover {
-    currentProject {
-        createVariant("soil") {
-            add("debug")
-        }
-    }
-}
