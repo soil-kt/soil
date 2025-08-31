@@ -43,10 +43,22 @@ jobs:
         # ref. https://www.jetbrains.com/help/kotlin-multiplatform-dev/multiplatform-compatibility-guide.html#version-compatibility
         run: sudo xcode-select -s /Applications/Xcode_16.3.app
 
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@3c3833e0f8c1c83d449a7478aa59c036a9165498 # v3.29.11
+        with:
+          languages: java-kotlin
+          # ref. https://github.com/github/codeql-action#build-modes
+          build-mode: manual
+
       - name: Run build
         # TODO: fix flaky iosSimulatorArm64Test
         # ref. https://github.com/soil-kt/soil/pull/235
         run: ./gradlew --scan buildLibs -x iosSimulatorArm64Test
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@3c3833e0f8c1c83d449a7478aa59c036a9165498 # v3.29.11
+        with:
+          category: '/language:java-kotlin'
 
       - name: Generate test coverage report
         run: ./gradlew koverXmlReport
