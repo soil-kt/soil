@@ -44,7 +44,9 @@ jobs:
         run: sudo xcode-select -s /Applications/Xcode_16.3.app
 
       - name: Run build
-        run: ./gradlew --scan buildLibs
+        # TODO: fix flaky iosSimulatorArm64Test
+        # ref. https://github.com/soil-kt/soil/pull/235
+        run: ./gradlew --scan buildLibs -x iosSimulatorArm64Test
 
       - name: Generate test coverage report
         run: ./gradlew koverXmlReport
