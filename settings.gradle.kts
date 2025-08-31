@@ -29,7 +29,29 @@ dependencyResolutionManagement {
 }
 
 plugins {
+    id("com.gradle.develocity") version "4.1.1"
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
+
+val version: String by extra.properties
+develocity {
+    buildScan {
+        termsOfUseUrl = "https://gradle.com/terms-of-service"
+        termsOfUseAgree = "yes"
+
+        tag(if (System.getenv("CI").isNullOrBlank()) "Local" else "CI")
+        tag(version)
+
+        obfuscation {
+            username { "Redacted" }
+            hostname { "Redacted" }
+            ipAddresses { addresses -> addresses.map { "0.0.0.0" } }
+        }
+
+        // You can then add the --scan argument to any Gradle build to publish a Build Scan.
+        // https://docs.gradle.com/develocity/gradle-plugin/current/
+        publishing.onlyIf { false }
+    }
 }
 
 rootProject.name = "soil"
