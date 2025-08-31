@@ -44,7 +44,7 @@ jobs:
         run: sudo xcode-select -s /Applications/Xcode_16.3.app
 
       - name: Run build
-        run: ./gradlew buildLibs
+        run: ./gradlew --scan buildLibs
 
       - name: Generate test coverage report
         run: ./gradlew koverXmlReport
