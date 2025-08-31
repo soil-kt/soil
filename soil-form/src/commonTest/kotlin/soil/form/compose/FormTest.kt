@@ -11,15 +11,21 @@ import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isEnabled
 import androidx.compose.ui.test.isNotEnabled
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilExactlyOneExists
@@ -46,6 +52,8 @@ class FormTest : UnitTest() {
         val formState = FormState(value = TestData())
         var submittedFormData: TestData? = null
         setContent {
+            // ref: https://developer.android.com/codelabs/large-screens/keyboard-focus-management-in-compose#9
+            LocalInputModeManager.current.requestInputMode(InputMode.Keyboard)
             val form = rememberForm(state = formState) {
                 submittedFormData = it
             }
@@ -77,12 +85,16 @@ class FormTest : UnitTest() {
             .requestFocus()
             .performTextInput("Foo")
 
+        onNodeWithTag("firstName")
+            .performKeyInput { pressKey(Key.Tab) }
+
         onNodeWithTag("lastName")
-            .requestFocus()
             .performTextInput("Bar")
 
-        onNodeWithTag("submit")
-            .requestFocus()
+        onNodeWithTag("lastName")
+            .performKeyInput { pressKey(Key.Tab) }
+
+        onNodeWithTag("submit").assertIsFocused()
 
         waitUntilExactlyOneExists(hasTestTag("submit") and isEnabled())
 
@@ -99,6 +111,8 @@ class FormTest : UnitTest() {
         val formState = FormState(value = TestData(), policy = FormPolicy.Minimal)
         var submittedFormData: TestData? = null
         setContent {
+            // ref: https://developer.android.com/codelabs/large-screens/keyboard-focus-management-in-compose#9
+            LocalInputModeManager.current.requestInputMode(InputMode.Keyboard)
             val form = rememberForm(state = formState) {
                 submittedFormData = it
             }
@@ -138,12 +152,16 @@ class FormTest : UnitTest() {
             .requestFocus()
             .performTextInput("Foo")
 
+        onNodeWithTag("firstName")
+            .performKeyInput { pressKey(Key.Tab) }
+
         onNodeWithTag("lastName")
-            .requestFocus()
             .performTextInput("Bar")
 
-        onNodeWithTag("submit")
-            .requestFocus()
+        onNodeWithTag("lastName")
+            .performKeyInput { pressKey(Key.Tab) }
+
+        onNodeWithTag("submit").assertIsFocused()
 
         waitUntilExactlyOneExists(hasTestTag("submit") and isEnabled())
 
@@ -159,6 +177,8 @@ class FormTest : UnitTest() {
     fun testForm_withFieldValidationError() = runComposeUiTest {
         val formState = FormState(value = TestData())
         setContent {
+            // ref: https://developer.android.com/codelabs/large-screens/keyboard-focus-management-in-compose#9
+            LocalInputModeManager.current.requestInputMode(InputMode.Keyboard)
             val form = rememberForm(state = formState) {
                 // no-op
             }
@@ -192,16 +212,20 @@ class FormTest : UnitTest() {
             .requestFocus()
             .performTextInput("")
 
+        onNodeWithTag("firstName")
+            .performKeyInput { pressKey(Key.Tab) }
+
         onNodeWithTag("lastName_error").assertDoesNotExist()
+
         onNodeWithTag("lastName")
-            .requestFocus()
             .performTextInput("")
 
+        onNodeWithTag("lastName")
+            .performKeyInput { pressKey(Key.Tab) }
+
+        onNodeWithTag("submit").assertIsFocused()
+
         waitUntilExactlyOneExists(hasTestTag("firstName_error") and hasText("Must be not empty"))
-
-        onNodeWithTag("submit")
-            .requestFocus()
-
         waitUntilExactlyOneExists(hasTestTag("lastName_error") and hasText("Must be not empty"))
     }
 
@@ -213,6 +237,8 @@ class FormTest : UnitTest() {
         val formState = FormState(value = textFieldState, FormMetaState())
         var submittedFormData: CharSequence? = null
         setContent {
+            // ref: https://developer.android.com/codelabs/large-screens/keyboard-focus-management-in-compose#9
+            LocalInputModeManager.current.requestInputMode(InputMode.Keyboard)
             val form = rememberForm(state = formState) {
                 submittedFormData = it.text
             }
@@ -250,8 +276,10 @@ class FormTest : UnitTest() {
             .requestFocus()
             .performTextInput("Foo")
 
-        onNodeWithTag("submit")
-            .requestFocus()
+        onNodeWithTag("textFieldOnly")
+            .performKeyInput { pressKey(Key.Tab) }
+
+        onNodeWithTag("submit").assertIsFocused()
 
         waitUntilExactlyOneExists(hasTestTag("submit") and isEnabled())
 
