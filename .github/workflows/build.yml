@@ -10,6 +10,8 @@ jobs:
     timeout-minutes: 60
 
     permissions:
+      # ref. https://github.com/github/codeql-action#workflow-permissions
+      security-events: write
       contents: read
 
     steps:
