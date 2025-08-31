@@ -101,6 +101,16 @@ allprojects {
     }
 }
 
+tasks.register("buildLibs") {
+    group = "build"
+    description = "Build all public modules"
+    dependsOn(
+        subprojects
+            .filter { it.path in publicModules }
+            .map { it.tasks.named("build") }
+    )
+}
+
 dependencies {
     for (module in publicModules) {
         kover(project(module))
