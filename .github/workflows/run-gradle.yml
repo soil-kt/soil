@@ -46,3 +46,12 @@ jobs:
 
       - name: Run task on macos
         run: ./gradlew ${{ github.event.inputs.task }}
+
+      - name: Upload reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-build
+          path: |
+            **/build/reports/**
+          retention-days: 5
