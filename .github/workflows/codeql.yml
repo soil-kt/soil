@@ -1,15 +1,17 @@
-name: Build
+name: CodeQL
 
 on:
   workflow_dispatch:
 
 jobs:
-  build:
+  analyze:
 
-    runs-on: macos-15
+    runs-on: ubuntu-latest
     timeout-minutes: 60
 
     permissions:
+      # ref. https://github.com/github/codeql-action#workflow-permissions
+      security-events: write
       contents: read
 
     steps:
@@ -39,23 +41,19 @@ jobs:
           path: ~/.konan
           key: v1-${{ runner.os }}-konan-${{ steps.pj-key.outputs.KOTLIN_VERSION }}
 
-      - name: Set Xcode version
-        # ref. https://www.jetbrains.com/help/kotlin-multiplatform-dev/multiplatform-compatibility-guide.html#version-compatibility
-        run: sudo xcode-select -s /Applications/Xcode_16.3.app
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@3c3833e0f8c1c83d449a7478aa59c036a9165498 # v3.29.11
+        with:
+          languages: java-kotlin
+          # ref. https://github.com/github/codeql-action#build-modes
+          build-mode: manual
 
       - name: Run build
-        # TODO: fix flaky iosSimulatorArm64Test
-        # ref. https://github.com/soil-kt/soil/pull/235
-        run: ./gradlew --scan buildLibs -x iosSimulatorArm64Test
+        # CodeQL requires a complete build to take place in order to perform analysis.
+        # https://docs.github.com/en/code-security/code-scanning/troubleshooting-code-scanning/no-source-code-seen-during-build
+        run: ./gradlew --no-build-cache assemble
 
-      - name: Generate test coverage report
-        run: ./gradlew koverXmlReport
-
-      - name: Upload reports
-        if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - name: Analyze
+        uses: github/codeql-action/analyze@3c3833e0f8c1c83d449a7478aa59c036a9165498 # v3.29.11
         with:
-          name: reports-build
-          path: |
-            **/build/reports/**
-          retention-days: 5
+          category: '/language:java-kotlin'
