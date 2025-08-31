@@ -12,7 +12,7 @@ clean:
 
 .PHONY: build
 build:
-	@$(GRADLE_CMD) assemble
+	@$(GRADLE_CMD) buildLibs
 
 .PHONY: test
 test:
