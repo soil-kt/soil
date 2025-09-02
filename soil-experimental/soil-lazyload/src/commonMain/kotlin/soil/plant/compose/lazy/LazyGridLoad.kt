@@ -46,16 +46,13 @@ inline fun <T : Any> LazyLoad(
 /**
  * Configuration class for determining when to load more items in a LazyVerticalGrid or LazyHorizontalGrid.
  *
- * Loading more items is triggered when both of the following conditions are met:
- * - The number of remaining items is less than or equal to [remainingItems]
- * - The ratio of remaining items to total items is less than or equal to [remainingRatio]
+ * Loading more items is triggered when the number of remaining items
+ * is less than or equal to [remainingItems].
  *
  * @property remainingItems Threshold for the number of remaining items before triggering load more
- * @property remainingRatio Threshold for the ratio of remaining items to total items (0.2f = 20%)
  */
 class LazyGridThreshold(
-    val remainingItems: Int = 6,
-    val remainingRatio: Float = 0.2f
+    val remainingItems: Int = 6
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -63,16 +60,11 @@ class LazyGridThreshold(
 
         other as LazyGridThreshold
 
-        if (remainingItems != other.remainingItems) return false
-        if (remainingRatio != other.remainingRatio) return false
-
-        return true
+        return remainingItems == other.remainingItems
     }
 
     override fun hashCode(): Int {
-        var result = remainingItems
-        result = 31 * result + remainingRatio.hashCode()
-        return result
+        return remainingItems
     }
 }
 
@@ -80,7 +72,7 @@ class LazyGridThreshold(
  * Creates a default [LazyLoadStrategy] for lazy grids based on the specified [threshold].
  *
  * The strategy evaluates the current state of the lazy grid and determines if more items
- * should be loaded based on the remaining items count and ratio.
+ * should be loaded based on the remaining items count.
  *
  * @param threshold Configuration that determines when to trigger loading more items
  * @return A [LazyLoadStrategy] for lazy grids
@@ -89,13 +81,13 @@ class LazyGridThreshold(
 internal fun defaultLazyGridStrategy(threshold: LazyGridThreshold) = LazyLoadStrategy<LazyGridState> { state ->
     val layoutInfo = state.layoutInfo
     val totalItemsNumber = layoutInfo.totalItemsCount
-    val lastVisibleItemIndex = (layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) + 1
-    val remainingItems = totalItemsNumber - lastVisibleItemIndex
-    val remainingRatio = if (totalItemsNumber > 0) {
-        remainingItems.toFloat() / totalItemsNumber.toFloat()
-    } else {
-        0f
+
+    if (totalItemsNumber == 0 || layoutInfo.visibleItemsInfo.isEmpty()) {
+        return@LazyLoadStrategy false
     }
-    remainingItems <= threshold.remainingItems &&
-        remainingRatio <= threshold.remainingRatio
+
+    val nextItemIndex = layoutInfo.visibleItemsInfo.last().index + 1
+    val remainingItems = totalItemsNumber - nextItemIndex
+
+    remainingItems <= threshold.remainingItems
 }
