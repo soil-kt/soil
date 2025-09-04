@@ -29,9 +29,11 @@ import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilExactlyOneExists
+import soil.form.FieldOptions
 import soil.form.FieldTypeAdapter
 import soil.form.FieldValidationMode
 import soil.form.FieldValidator
+import soil.form.FormOptions
 import soil.form.compose.ui.InputField
 import soil.form.compose.ui.Submit
 import soil.form.compose.ui.WithLayout
@@ -43,13 +45,29 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
+import kotlin.time.Duration
 
 @OptIn(ExperimentalTestApi::class)
 class FormTest : UnitTest() {
 
+    private val testPolicy = FormPolicy(
+        formOptions = FormOptions(
+            preValidationDelayOnMount = Duration.ZERO,
+            preValidationDelayOnChange = Duration.ZERO
+        ),
+        fieldOptions = FieldOptions(
+            validationDelayOnMount = Duration.ZERO,
+            validationDelayOnBlur = Duration.ZERO,
+            validationDelayOnChange = Duration.ZERO
+        )
+    )
+
     @Test
     fun testForm() = runComposeUiTest {
-        val formState = FormState(value = TestData())
+        val formState = FormState(
+            value = TestData(),
+            policy = testPolicy
+        )
         var submittedFormData: TestData? = null
         setContent {
             // ref: https://developer.android.com/codelabs/large-screens/keyboard-focus-management-in-compose#9
@@ -175,7 +193,7 @@ class FormTest : UnitTest() {
 
     @Test
     fun testForm_withFieldValidationError() = runComposeUiTest {
-        val formState = FormState(value = TestData())
+        val formState = FormState(value = TestData(), policy = testPolicy)
         setContent {
             // ref: https://developer.android.com/codelabs/large-screens/keyboard-focus-management-in-compose#9
             LocalInputModeManager.current.requestInputMode(InputMode.Keyboard)

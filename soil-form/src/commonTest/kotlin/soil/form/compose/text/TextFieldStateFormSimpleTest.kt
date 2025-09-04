@@ -25,17 +25,34 @@ import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilDoesNotExist
 import androidx.compose.ui.test.waitUntilExactlyOneExists
+import soil.form.FieldOptions
 import soil.form.FieldValidator
+import soil.form.FormOptions
+import soil.form.compose.FormPolicy
 import soil.form.compose.rememberForm
+import soil.form.compose.rememberFormMetaState
 import soil.form.compose.ui.InputField
 import soil.form.compose.ui.Submit
 import soil.form.compose.ui.WithLayout
 import soil.form.rule.notEmpty
 import soil.testing.UnitTest
 import kotlin.test.Test
+import kotlin.time.Duration
 
 @OptIn(ExperimentalTestApi::class)
 class TextFieldStateFormTest : UnitTest() {
+
+    private val testPolicy = FormPolicy(
+        formOptions = FormOptions(
+            preValidationDelayOnMount = Duration.ZERO,
+            preValidationDelayOnChange = Duration.ZERO
+        ),
+        fieldOptions = FieldOptions(
+            validationDelayOnMount = Duration.ZERO,
+            validationDelayOnBlur = Duration.ZERO,
+            validationDelayOnChange = Duration.ZERO
+        )
+    )
 
     @Test
     fun testForm() = runComposeUiTest {
@@ -44,7 +61,9 @@ class TextFieldStateFormTest : UnitTest() {
         setContent {
             // ref: https://developer.android.com/codelabs/large-screens/keyboard-focus-management-in-compose#9
             LocalInputModeManager.current.requestInputMode(InputMode.Keyboard)
-            val form = rememberForm(state = textFieldState.asFormState()) {
+            val form = rememberForm(state = textFieldState.asFormState(
+                meta = rememberFormMetaState(policy = testPolicy)
+            )) {
                 // no-op
             }
             Scaffold(

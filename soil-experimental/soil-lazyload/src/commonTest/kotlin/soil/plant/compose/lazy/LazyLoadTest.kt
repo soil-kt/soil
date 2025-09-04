@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import soil.testing.UnitTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.time.Duration
 
 @OptIn(ExperimentalTestApi::class)
 class LazyLoadTest : UnitTest() {
@@ -53,8 +54,7 @@ class LazyLoadTest : UnitTest() {
                         text = item,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp)
-                            .padding(16.dp)
+                            .height(50.dp)
                             .testTag(item)
                     )
                 }
@@ -65,7 +65,9 @@ class LazyLoadTest : UnitTest() {
                 loadMoreParam = 1,
                 threshold = LazyListThreshold(
                     remainingItems = 6
-                )
+                ),
+                // Workaround: Set to ZERO for wasmJs tests to prevent getting stuck at debounce
+                debounceTimeout = Duration.ZERO
             )
         }
 
@@ -78,7 +80,8 @@ class LazyLoadTest : UnitTest() {
 
         waitUntilExactlyOneExists(hasTestTag("Item ${items.lastIndex - 6}"))
         waitForIdle()
-        waitUntil(conditionDescription = "loadMore callback waiting..", timeoutMillis = 2000L) { loadMoreCalled == 1 }
+
+        waitUntil { loadMoreCalled == 1 }
         assertEquals(1, pageNumber)
 
         onNodeWithTag("lazyColumn")
@@ -130,7 +133,9 @@ class LazyLoadTest : UnitTest() {
                 loadMoreParam = 1,
                 threshold = LazyGridThreshold(
                     remainingItems = 6
-                )
+                ),
+                // Workaround: Set to ZERO for wasmJs tests to prevent getting stuck at debounce
+                debounceTimeout = Duration.ZERO
             )
         }
 
@@ -143,7 +148,7 @@ class LazyLoadTest : UnitTest() {
 
         waitUntilExactlyOneExists(hasTestTag("Item ${items.lastIndex - 6}"))
         waitForIdle()
-        waitUntil(conditionDescription = "loadMore callback waiting..", timeoutMillis = 2000L) { loadMoreCalled == 1 }
+        waitUntil { loadMoreCalled == 1 }
         assertEquals(1, pageNumber)
 
         onNodeWithTag("lazyGrid")
@@ -194,7 +199,9 @@ class LazyLoadTest : UnitTest() {
                 loadMoreParam = null,
                 threshold = LazyListThreshold(
                     remainingItems = 6
-                )
+                ),
+                // Workaround: Set to ZERO for wasmJs tests to prevent getting stuck at debounce
+                debounceTimeout = Duration.ZERO
             )
         }
 
