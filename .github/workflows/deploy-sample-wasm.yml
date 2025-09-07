@@ -5,6 +5,8 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     env:
       RELEASE_PAGES_BRANCH: main
