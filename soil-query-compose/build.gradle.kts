@@ -29,22 +29,7 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        browser {
-            // TODO: Add WASM tests
-            //  If you add `implementation(compose.ui)`, the tasks needed to run tests are automatically defined, but Karma doesn't work
-            // - https://github.com/JetBrains/compose-multiplatform/blob/v1.7.3/gradle-plugins/compose/src/main/kotlin/org/jetbrains/compose/web/internal/configureWebApplication.kt#L47
-            // - https://github.com/JetBrains/compose-multiplatform/blob/v1.7.3/gradle-plugins/compose/src/main/kotlin/org/jetbrains/compose/web/internal/configureWebApplication.kt#L82
-            //
-            // > ./gradlew :soil-query-compose:wasmJsBrowserTest
-            // Karma v6.4.4 server started at http://localhost:9876/
-            // Launching browsers ChromeHeadless with concurrency unlimited
-            // Starting browser ChromeHeadless
-            // Connected on socket iqr25QfS_tnsIguBAAAB with id 19492594
-            // Disconnected (0 times) reconnect failed before timeout of 2000ms (ping timeout)
-            testTask {
-                enabled = false
-            }
-        }
+        browser()
     }
 
     sourceSets {
@@ -75,23 +60,18 @@ kotlin {
             }
         }
 
-        val skikoTest by creating {
-            dependsOn(commonTest.get())
-        }
-
-        iosTest {
-            dependsOn(skikoTest)
-        }
-
         jvmTest {
-            dependsOn(skikoTest)
             dependencies {
                 implementation(compose.desktop.currentOs)
             }
         }
 
-        wasmJsTest {
-            dependsOn(skikoTest)
+        // Workaround: "Module not found: Error: Can't resolve './skiko.mjs'"
+        // While not strictly required by dependencies, the skiko runtime is necessary to run Compose UI tests in wasmJsTest.
+        // The Compose Multiplatform plugin expects the `org.jetbrains.compose.ui:ui` package to be included in at least the main source set dependencies.
+        // https://github.com/JetBrains/compose-multiplatform/blob/v1.8.2/gradle-plugins/compose/src/main/kotlin/org/jetbrains/compose/web/internal/configureWebApplication.kt#L35-L53
+        wasmJsMain.dependencies {
+            runtimeOnly(compose.ui)
         }
     }
 }

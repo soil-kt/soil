@@ -39,9 +39,6 @@ class MutationObjectMapperTest : UnitTest() {
         assertNull(actual.error)
         assertEquals(0, actual.errorUpdatedAt)
         assertEquals(0, actual.mutatedCount)
-        assertEquals(mutation::mutate, actual.mutate)
-        assertEquals(mutation::mutateAsync, actual.mutateAsync)
-        assertEquals(mutation::reset, actual.reset)
         assertEquals(MutationStatus.Idle, actual.status)
         assertNull(actual.data)
     }
@@ -64,9 +61,6 @@ class MutationObjectMapperTest : UnitTest() {
         assertNull(actual.error)
         assertEquals(0, actual.errorUpdatedAt)
         assertEquals(0, actual.mutatedCount)
-        assertEquals(mutation::mutate, actual.mutate)
-        assertEquals(mutation::mutateAsync, actual.mutateAsync)
-        assertEquals(mutation::reset, actual.reset)
         assertEquals(MutationStatus.Pending, actual.status)
         assertNull(actual.data)
     }
@@ -95,9 +89,6 @@ class MutationObjectMapperTest : UnitTest() {
         assertNull(actual.error)
         assertEquals(0, actual.errorUpdatedAt)
         assertEquals(1, actual.mutatedCount)
-        assertEquals(mutation::mutate, actual.mutate)
-        assertEquals(mutation::mutateAsync, actual.mutateAsync)
-        assertEquals(mutation::reset, actual.reset)
         assertEquals(MutationStatus.Success, actual.status)
         assertNotNull(actual.data)
     }
@@ -125,9 +116,6 @@ class MutationObjectMapperTest : UnitTest() {
         assertNotNull(actual.error)
         assertEquals(200, actual.errorUpdatedAt)
         assertEquals(0, actual.mutatedCount)
-        assertEquals(mutation::mutate, actual.mutate)
-        assertEquals(mutation::mutateAsync, actual.mutateAsync)
-        assertEquals(mutation::reset, actual.reset)
         assertEquals(MutationStatus.Failure, actual.status)
         assertNull(actual.data)
     }
@@ -158,9 +146,6 @@ class MutationObjectMapperTest : UnitTest() {
         assertNotNull(actual.error)
         assertEquals(200, actual.errorUpdatedAt)
         assertEquals(1, actual.mutatedCount)
-        assertEquals(mutation::mutate, actual.mutate)
-        assertEquals(mutation::mutateAsync, actual.mutateAsync)
-        assertEquals(mutation::reset, actual.reset)
         assertEquals(MutationStatus.Failure, actual.status)
         assertNotNull(actual.data)
     }

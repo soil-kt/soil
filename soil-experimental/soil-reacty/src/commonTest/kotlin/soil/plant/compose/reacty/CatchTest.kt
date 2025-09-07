@@ -16,7 +16,9 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.waitUntilDoesNotExist
 import androidx.compose.ui.test.waitUntilExactlyOneExists
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import soil.query.QueryId
 import soil.query.QueryKey
 import soil.query.SwrCache
@@ -25,23 +27,18 @@ import soil.query.compose.SwrClientProvider
 import soil.query.compose.rememberQuery
 import soil.query.test.test
 import soil.testing.UnitTest
-import kotlin.test.Ignore
 import kotlin.test.Test
 
-// **NOTE:** Excluding flaky tests on CI until this commit is reflected in CMP:
-// https://android-review.googlesource.com/c/platform/frameworks/support/+/3509670
-
-@OptIn(ExperimentalTestApi::class)
+@OptIn(ExperimentalTestApi::class, ExperimentalCoroutinesApi::class)
 class CatchTest : UnitTest() {
 
-    @Ignore
     @Test
-    fun testCatch() = runUiTest {
+    fun testCatch() = runUiTest { testScope ->
         val deferred1 = CompletableDeferred<String>()
         val deferred2 = CompletableDeferred<String>()
         var isFirst = true
         val key = TestQueryKey("foo")
-        val client = SwrCache(coroutineScope = it).test {
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test {
             on(key.id) {
                 if (isFirst) {
                     isFirst = false
@@ -67,26 +64,28 @@ class CatchTest : UnitTest() {
             }
         }
         waitForIdle()
+        testScope.runCurrent()
         onNodeWithTag("catch").assertDoesNotExist()
 
         deferred1.completeExceptionally(RuntimeException("Error"))
+        testScope.runCurrent()
         waitUntilExactlyOneExists(hasTestTag("catch"))
         onNodeWithTag("catch").assertTextEquals("Error")
 
         onNodeWithTag("refresh").performClick()
         deferred2.complete("Hello, Soil!")
+        testScope.runCurrent()
         waitUntilDoesNotExist(hasTestTag("catch"))
     }
 
 
-    @Ignore
     @Test
-    fun testCatch_withErrorBoundary() = runUiTest {
+    fun testCatch_withErrorBoundary() = runUiTest { testScope ->
         val deferred1 = CompletableDeferred<String>()
         val deferred2 = CompletableDeferred<String>()
         var isFirst = true
         val key = TestQueryKey("foo")
-        val client = SwrCache(coroutineScope = it).test {
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test {
             on(key.id) {
                 if (isFirst) {
                     isFirst = false
@@ -114,14 +113,17 @@ class CatchTest : UnitTest() {
             }
         }
         waitForIdle()
+        testScope.runCurrent()
         onNodeWithTag("fallback").assertDoesNotExist()
 
         deferred1.completeExceptionally(RuntimeException("Error"))
+        testScope.runCurrent()
         waitUntilExactlyOneExists(hasTestTag("fallback"))
         onNodeWithTag("fallback").assertTextEquals("Error")
 
         onNodeWithTag("refresh").performClick()
         deferred2.complete("Hello, Soil!")
+        testScope.runCurrent()
         waitUntilDoesNotExist(hasTestTag("fallback"))
     }
 

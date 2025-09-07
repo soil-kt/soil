@@ -10,7 +10,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.waitUntilExactlyOneExists
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import soil.query.QueryFetchStatus
 import soil.query.QueryId
 import soil.query.QueryKey
@@ -26,13 +29,13 @@ import kotlin.test.assertEquals
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(ExperimentalTestApi::class)
+@OptIn(ExperimentalTestApi::class, ExperimentalCoroutinesApi::class)
 class QueryRecompositionOptimizerTest : UnitTest() {
 
     @Test
-    fun testRecompositionCount_default() = runUiTest {
+    fun testRecompositionCount_default() = runUiTest { testScope ->
         val key = TestQueryKey()
-        val client = SwrCache(coroutineScope = it).test()
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test()
         var recompositionCount = 0
         setContent {
             SwrClientProvider(client) {
@@ -44,7 +47,10 @@ class QueryRecompositionOptimizerTest : UnitTest() {
                 }
             }
         }
-
+        waitForIdle()
+        testScope.runCurrent()
+        waitForIdle()
+        testScope.advanceTimeBy(1000)
         waitUntilExactlyOneExists(hasTestTag("query"))
 
         // pending -> success
@@ -52,9 +58,9 @@ class QueryRecompositionOptimizerTest : UnitTest() {
     }
 
     @Test
-    fun testRecompositionCount_disabled() = runUiTest {
+    fun testRecompositionCount_disabled() = runUiTest { testScope ->
         val key = TestQueryKey()
-        val client = SwrCache(coroutineScope = it).test()
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test()
         var recompositionCount = 0
         setContent {
             SwrClientProvider(client) {
@@ -68,7 +74,10 @@ class QueryRecompositionOptimizerTest : UnitTest() {
                 }
             }
         }
-
+        waitForIdle()
+        testScope.runCurrent()
+        waitForIdle()
+        testScope.advanceTimeBy(1000)
         waitUntilExactlyOneExists(hasTestTag("query"))
 
         // pending -> pending(fetching) -> success

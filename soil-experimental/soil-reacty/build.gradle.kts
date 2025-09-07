@@ -29,13 +29,7 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        browser {
-            // TODO: We will consider using wasm tests when we update to 'org.jetbrains.compose.ui:ui:1.7.0' or later.
-            //  - https://slack-chats.kotlinlang.org/t/22883390/wasmjs-unit-testing-what-is-the-status-of-unit-testing-on-wa
-            testTask {
-                enabled = false
-            }
-        }
+        browser()
     }
 
     sourceSets {
@@ -64,23 +58,10 @@ kotlin {
             }
         }
 
-        val skikoTest by creating {
-            dependsOn(commonTest.get())
-        }
-
-        iosTest {
-            dependsOn(skikoTest)
-        }
-
         jvmTest {
-            dependsOn(skikoTest)
             dependencies {
                 implementation(compose.desktop.currentOs)
             }
-        }
-
-        wasmJsTest {
-            dependsOn(skikoTest)
         }
     }
 }

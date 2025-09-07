@@ -10,8 +10,11 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilExactlyOneExists
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runCurrent
 import soil.query.InfiniteQueryId
 import soil.query.InfiniteQueryKey
 import soil.query.QueryId
@@ -28,22 +31,17 @@ import soil.query.compose.tooling.QueryPreviewClient
 import soil.query.compose.tooling.SwrPreviewClient
 import soil.query.test.test
 import soil.testing.UnitTest
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.time.Duration
 
-// **NOTE:** Excluding flaky tests on CI until this commit is reflected in CMP:
-// https://android-review.googlesource.com/c/platform/frameworks/support/+/3509670
-
-@OptIn(ExperimentalTestApi::class)
+@OptIn(ExperimentalTestApi::class, ExperimentalCoroutinesApi::class)
 class AwaitTest : UnitTest() {
 
-    @Ignore
     @Test
-    fun testAwait() = runUiTest {
+    fun testAwait() = runUiTest { testScope ->
         val deferred = CompletableDeferred<String>()
         val key = TestQueryKey("foo")
-        val client = SwrCache(coroutineScope = it).test {
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test {
             on(key.id) { deferred.await() }
         }
         setContent {
@@ -55,21 +53,23 @@ class AwaitTest : UnitTest() {
             }
         }
         waitForIdle()
+        testScope.runCurrent()
         onNodeWithTag("await").assertDoesNotExist()
 
         deferred.complete("Hello, Soil!")
+        testScope.runCurrent()
+
         waitUntilExactlyOneExists(hasTestTag("await"))
         onNodeWithTag("await").assertTextEquals("Hello, Soil!")
     }
 
-    @Ignore
     @Test
-    fun testAwait_pair() = runUiTest {
+    fun testAwait_pair() = runUiTest { testScope ->
         val deferred1 = CompletableDeferred<String>()
         val deferred2 = CompletableDeferred<String>()
         val key1 = TestQueryKey("foo")
         val key2 = TestQueryKey("bar")
-        val client = SwrCache(coroutineScope = it).test {
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test {
             on(key1.id) { deferred1.await() }
             on(key2.id) { deferred2.await() }
         }
@@ -83,27 +83,29 @@ class AwaitTest : UnitTest() {
             }
         }
         waitForIdle()
+        testScope.runCurrent()
         onNodeWithTag("await").assertDoesNotExist()
 
         deferred1.complete("Hello, Soil!")
+        testScope.runCurrent()
         waitForIdle()
         onNodeWithTag("await").assertDoesNotExist()
 
         deferred2.complete("Hello, Compose!")
+        testScope.runCurrent()
         waitUntilExactlyOneExists(hasTestTag("await"))
         onNodeWithTag("await").assertTextEquals("Hello, Soil!Hello, Compose!")
     }
 
-    @Ignore
     @Test
-    fun testAwait_triple() = runUiTest {
+    fun testAwait_triple() = runUiTest { testScope ->
         val deferred1 = CompletableDeferred<String>()
         val deferred2 = CompletableDeferred<String>()
         val deferred3 = CompletableDeferred<Int>()
         val key1 = TestQueryKey("foo")
         val key2 = TestQueryKey("bar")
         val key3 = TestInfiniteQueryKey()
-        val client = SwrCache(coroutineScope = it).test {
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test {
             on(key1.id) { deferred1.await() }
             on(key2.id) { deferred2.await() }
             on(key3.id) { deferred3.await() }
@@ -119,24 +121,27 @@ class AwaitTest : UnitTest() {
             }
         }
         waitForIdle()
+        testScope.runCurrent()
         onNodeWithTag("await").assertDoesNotExist()
 
         deferred1.complete("Hello, Soil!")
+        testScope.runCurrent()
         waitForIdle()
         onNodeWithTag("await").assertDoesNotExist()
 
         deferred2.complete("Hello, Compose!")
+        testScope.runCurrent()
         waitForIdle()
         onNodeWithTag("await").assertDoesNotExist()
 
         deferred3.complete(3)
+        testScope.runCurrent()
         waitUntilExactlyOneExists(hasTestTag("await"))
         onNodeWithTag("await").assertTextEquals("Hello, Soil!Hello, Compose!3")
     }
 
-    @Ignore
     @Test
-    fun testAwait_withSuspense() = runUiTest {
+    fun testAwait_withSuspense() = runComposeUiTest {
         val key1 = TestQueryKey("foo")
         val key2 = TestQueryKey("bar")
         val client = SwrPreviewClient(
@@ -163,9 +168,8 @@ class AwaitTest : UnitTest() {
         onNodeWithTag("await").assertDoesNotExist()
     }
 
-    @Ignore
     @Test
-    fun testAwait_error() = runUiTest {
+    fun testAwait_error() = runComposeUiTest {
         val key1 = TestQueryKey("foo")
         val key2 = TestQueryKey("bar")
         val client = SwrPreviewClient(
@@ -190,9 +194,8 @@ class AwaitTest : UnitTest() {
         onNodeWithTag("await").assertDoesNotExist()
     }
 
-    @Ignore
     @Test
-    fun testAwait_errorWithReply() = runUiTest {
+    fun testAwait_errorWithReply() = runComposeUiTest {
         val key1 = TestQueryKey("foo")
         val key2 = TestQueryKey("bar")
         val client = SwrPreviewClient(
@@ -217,9 +220,8 @@ class AwaitTest : UnitTest() {
         onNodeWithTag("error").assertDoesNotExist()
     }
 
-    @Ignore
     @Test
-    fun testAwait_errorWithErrorBoundary() = runUiTest {
+    fun testAwait_errorWithErrorBoundary() = runComposeUiTest {
         val key1 = TestQueryKey("foo")
         val key2 = TestQueryKey("bar")
         val client = SwrPreviewClient(
@@ -246,9 +248,8 @@ class AwaitTest : UnitTest() {
         onNodeWithTag("await").assertDoesNotExist()
     }
 
-    @Ignore
     @Test
-    fun testAwait_orNone() = runUiTest {
+    fun testAwait_orNone() = runComposeUiTest {
         setContent {
             val query: QueryObject<String>? = null /* rememberQueryIf(..) */
             Suspense(
@@ -265,9 +266,8 @@ class AwaitTest : UnitTest() {
         onNodeWithTag("fallback").assertDoesNotExist()
     }
 
-    @Ignore
     @Test
-    fun testAwait_orPending() = runUiTest {
+    fun testAwait_orPending() = runComposeUiTest {
         setContent {
             val query: QueryObject<String>? = null /* rememberQueryIf(..) */
             Suspense(

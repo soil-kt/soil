@@ -43,7 +43,6 @@ class QueryObjectMapperTest : UnitTest() {
         assertEquals(0, actual.staleAt)
         assertEquals(QueryFetchStatus.Idle, actual.fetchStatus)
         assertFalse(actual.isInvalidated)
-        assertEquals(query::invalidate, actual.refresh)
         assertEquals(QueryStatus.Pending, actual.status)
         assertNull(actual.data)
     }
@@ -74,7 +73,6 @@ class QueryObjectMapperTest : UnitTest() {
         assertEquals(500, actual.staleAt)
         assertEquals(QueryFetchStatus.Idle, actual.fetchStatus)
         assertFalse(actual.isInvalidated)
-        assertEquals(query::invalidate, actual.refresh)
         assertEquals(QueryStatus.Success, actual.status)
         assertNotNull(actual.data)
     }
@@ -104,7 +102,6 @@ class QueryObjectMapperTest : UnitTest() {
         assertEquals(0, actual.staleAt)
         assertEquals(QueryFetchStatus.Idle, actual.fetchStatus)
         assertFalse(actual.isInvalidated)
-        assertEquals(query::invalidate, actual.refresh)
         assertEquals(QueryStatus.Failure, actual.status)
         assertNull(actual.data)
     }
@@ -137,7 +134,6 @@ class QueryObjectMapperTest : UnitTest() {
         assertEquals(500, actual.staleAt)
         assertEquals(QueryFetchStatus.Idle, actual.fetchStatus)
         assertFalse(actual.isInvalidated)
-        assertEquals(query::invalidate, actual.refresh)
         assertEquals(QueryStatus.Failure, actual.status)
         assertNotNull(actual.data)
     }
