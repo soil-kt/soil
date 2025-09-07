@@ -6,7 +6,6 @@ package soil.query.compose
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.Button
 import androidx.compose.material.Text
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,9 +54,6 @@ class QueryComposableTest : UnitTest() {
                 when (val reply = query.reply) {
                     is Reply.Some -> Text(reply.value, modifier = Modifier.testTag("query"))
                     is Reply.None -> Unit
-                }
-                LaunchedEffect(query) {
-                    println("Query: $query")
                 }
             }
         }
