@@ -5,16 +5,12 @@ package soil.form.compose
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.LocalInputModeManager
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.hasTestTag
@@ -30,7 +26,6 @@ import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilExactlyOneExists
 import soil.form.FieldOptions
-import soil.form.FieldTypeAdapter
 import soil.form.FieldValidationMode
 import soil.form.FieldValidator
 import soil.form.FormOptions
@@ -40,7 +35,6 @@ import soil.form.compose.ui.WithLayout
 import soil.form.noFieldError
 import soil.form.rule.notEmpty
 import soil.testing.UnitTest
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -247,65 +241,6 @@ class FormTest : UnitTest() {
         waitUntilExactlyOneExists(hasTestTag("lastName_error") and hasText("Must be not empty"))
     }
 
-    // TODO: Temporarily excluded because jvmTest is not running.
-    @Test
-    @Ignore
-    fun testForm_withFieldValueStateOnly() = runComposeUiTest {
-        val textFieldState = TextFieldState("")
-        val formState = FormState(value = textFieldState, FormMetaState())
-        var submittedFormData: CharSequence? = null
-        setContent {
-            // ref: https://developer.android.com/codelabs/large-screens/keyboard-focus-management-in-compose#9
-            LocalInputModeManager.current.requestInputMode(InputMode.Keyboard)
-            val form = rememberForm(state = formState) {
-                submittedFormData = it.text
-            }
-            Scaffold(
-                modifier = Modifier.fillMaxSize(),
-                bottomBar = {
-                    form.Submit()
-                }
-            ) {
-                Column {
-                    form.Field(
-                        selector = { it },
-                        updater = { it },
-                        adapter = TextFieldStateAdapter,
-                        render = { field ->
-                            BasicTextField(
-                                state = field.value,
-                                modifier = Modifier
-                                    .onFocusChanged { state ->
-                                        field.handleFocus(state.isFocused || state.hasFocus)
-                                    }
-                                    .testTag("textFieldOnly"),
-                                enabled = field.isEnabled
-                            )
-                        }
-                    )
-                }
-            }
-        }
-        waitUntil { formState.meta.fields.count() == 1 }
-
-        waitUntilExactlyOneExists(hasTestTag("submit") and isNotEnabled())
-
-        onNodeWithTag("textFieldOnly")
-            .requestFocus()
-            .performTextInput("Foo")
-
-        onNodeWithTag("textFieldOnly")
-            .performKeyInput { pressKey(Key.Tab) }
-
-        onNodeWithTag("submit").assertIsFocused()
-
-        waitUntilExactlyOneExists(hasTestTag("submit") and isEnabled())
-
-        onNodeWithTag("submit").performClick()
-
-        waitUntil { submittedFormData == formState.value.text }
-    }
-
     data class TestData(
         val firstName: String = "",
         val lastName: String = ""
@@ -343,11 +278,5 @@ class FormTest : UnitTest() {
             enabled = enabled,
             render = content
         )
-    }
-
-    object TextFieldStateAdapter : FieldTypeAdapter<TextFieldState, String, TextFieldState> {
-        override fun toValidationTarget(value: TextFieldState): String = value.text.toString()
-        override fun toInput(value: TextFieldState): TextFieldState = value
-        override fun fromInput(value: TextFieldState, current: TextFieldState): TextFieldState = current
     }
 }
