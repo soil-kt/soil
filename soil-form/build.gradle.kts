@@ -1,6 +1,7 @@
 import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import kotlin.time.Duration.Companion.seconds
 
 plugins {
     alias(libs.plugins.android.library)
@@ -29,7 +30,15 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        browser()
+        browser {
+            testTask {
+                useMocha {
+                    // Workaround: "Error: Timeout of 2000ms exceeded. For async tests and hooks, ensure "done()" is called; if returning a Promise, ensure it resolves."
+                    // https://stackoverflow.com/questions/75471611/kotlin-javascript-karma-test-fails
+                    timeout = "10s"
+                }
+            }
+        }
     }
 
     sourceSets {
