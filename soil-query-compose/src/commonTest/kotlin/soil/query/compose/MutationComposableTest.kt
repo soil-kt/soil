@@ -18,8 +18,11 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilExactlyOneExists
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import soil.query.MutationId
 import soil.query.MutationKey
 import soil.query.MutationState
@@ -34,13 +37,13 @@ import soil.query.test.test
 import soil.testing.UnitTest
 import kotlin.test.Test
 
-@OptIn(ExperimentalTestApi::class)
+@OptIn(ExperimentalTestApi::class, ExperimentalCoroutinesApi::class)
 class MutationComposableTest : UnitTest() {
 
     @Test
-    fun testRememberMutation() = runUiTest {
+    fun testRememberMutation() = runUiTest { testScope ->
         val key = TestMutationKey()
-        val client = SwrCache(coroutineScope = it).test()
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test()
         setContent {
             SwrClientProvider(client) {
                 val mutation = rememberMutation(key, config = MutationConfig {
@@ -70,14 +73,17 @@ class MutationComposableTest : UnitTest() {
         onNodeWithTag("result").assertDoesNotExist()
         onNodeWithTag("mutation").performClick()
 
+        waitForIdle()
+        testScope.runCurrent()
+
         waitUntilExactlyOneExists(hasTestTag("result"))
         onNodeWithTag("result").assertTextEquals("Soil - 1")
     }
 
     @Test
-    fun testRememberMutation_throwError() = runUiTest {
+    fun testRememberMutation_throwError() = runUiTest { testScope ->
         val key = TestMutationKey()
-        val client = SwrCache(coroutineScope = it).test {
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test {
             on(key.id) { throw RuntimeException("Failed to do something :(") }
         }
         setContent {
@@ -96,7 +102,7 @@ class MutationComposableTest : UnitTest() {
                         scope.launch {
                             try {
                                 mutation.mutate(TestForm("Soil", 1))
-                            } catch (e: RuntimeException) {
+                            } catch (_: RuntimeException) {
                                 // unused
                             }
                         }
@@ -110,14 +116,17 @@ class MutationComposableTest : UnitTest() {
 
         onNodeWithTag("mutation").performClick()
 
+        waitForIdle()
+        testScope.runCurrent()
+
         waitUntilExactlyOneExists(hasTestTag("result"))
         onNodeWithTag("result").assertTextEquals("error")
     }
 
     @Test
-    fun testRememberMutation_throwErrorAsync() = runUiTest {
+    fun testRememberMutation_throwErrorAsync() = runUiTest { testScope ->
         val key = TestMutationKey()
-        val client = SwrCache(coroutineScope = it).test {
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test {
             on(key.id) { throw RuntimeException("Failed to do something :(") }
         }
         setContent {
@@ -146,12 +155,15 @@ class MutationComposableTest : UnitTest() {
 
         onNodeWithTag("mutation").performClick()
 
+        waitForIdle()
+        testScope.runCurrent()
+
         waitUntilExactlyOneExists(hasTestTag("result"))
         onNodeWithTag("result").assertTextEquals("error")
     }
 
     @Test
-    fun testRememberMutation_idlePreview() = runUiTest {
+    fun testRememberMutation_idlePreview() = runComposeUiTest {
         val key = TestMutationKey()
         val client = SwrPreviewClient(
             mutation = MutationPreviewClient {
@@ -172,7 +184,7 @@ class MutationComposableTest : UnitTest() {
     }
 
     @Test
-    fun testRememberMutation_loadingPreview() = runUiTest {
+    fun testRememberMutation_loadingPreview() = runComposeUiTest {
         val key = TestMutationKey()
         val client = SwrPreviewClient(
             mutation = MutationPreviewClient {
@@ -193,7 +205,7 @@ class MutationComposableTest : UnitTest() {
     }
 
     @Test
-    fun testRememberMutation_successPreview() = runUiTest {
+    fun testRememberMutation_successPreview() = runComposeUiTest {
         val key = TestMutationKey()
         val client = SwrPreviewClient(
             mutation = MutationPreviewClient {
@@ -214,7 +226,7 @@ class MutationComposableTest : UnitTest() {
     }
 
     @Test
-    fun testRememberQuery_errorPreview() = runUiTest {
+    fun testRememberQuery_errorPreview() = runComposeUiTest {
         val key = TestMutationKey()
         val client = SwrPreviewClient(
             mutation = MutationPreviewClient {
@@ -239,9 +251,9 @@ class MutationComposableTest : UnitTest() {
     }
 
     @Test
-    fun testRememberMutationIf() = runUiTest {
+    fun testRememberMutationIf() = runUiTest { testScope ->
         val key = TestMutationKey()
-        val client = SwrCache(coroutineScope = it).test()
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test()
         setContent {
             SwrClientProvider(client) {
                 var enabled by remember { mutableStateOf(false) }
@@ -274,9 +286,15 @@ class MutationComposableTest : UnitTest() {
         onNodeWithTag("mutation").assertDoesNotExist()
         onNodeWithTag("toggle").performClick()
 
+        waitForIdle()
+        testScope.runCurrent()
+
         waitUntilExactlyOneExists(hasTestTag("mutation"))
         onNodeWithTag("result").assertDoesNotExist()
         onNodeWithTag("mutation").performClick()
+
+        waitForIdle()
+        testScope.runCurrent()
 
         waitUntilExactlyOneExists(hasTestTag("result"))
         onNodeWithTag("result").assertTextEquals("Soil - 1")

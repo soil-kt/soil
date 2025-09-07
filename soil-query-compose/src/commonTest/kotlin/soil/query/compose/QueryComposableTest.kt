@@ -6,6 +6,7 @@ package soil.query.compose
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.Button
 import androidx.compose.material.Text
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,7 +18,10 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.runComposeUiTest
 import androidx.compose.ui.test.waitUntilExactlyOneExists
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runCurrent
 import soil.query.QueryId
 import soil.query.QueryKey
 import soil.query.QueryState
@@ -32,13 +36,14 @@ import soil.query.test.test
 import soil.testing.UnitTest
 import kotlin.test.Test
 
-@OptIn(ExperimentalTestApi::class)
+
+@OptIn(ExperimentalTestApi::class, ExperimentalCoroutinesApi::class)
 class QueryComposableTest : UnitTest() {
 
     @Test
-    fun testRememberQuery() = runUiTest {
+    fun testRememberQuery() = runUiTest { testScope ->
         val key = TestQueryKey()
-        val client = SwrCache(coroutineScope = it).test()
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test()
         setContent {
             SwrClientProvider(client) {
                 val query = rememberQuery(key, config = QueryConfig {
@@ -51,17 +56,21 @@ class QueryComposableTest : UnitTest() {
                     is Reply.Some -> Text(reply.value, modifier = Modifier.testTag("query"))
                     is Reply.None -> Unit
                 }
+                LaunchedEffect(query) {
+                    println("Query: $query")
+                }
             }
         }
-
+        waitForIdle()
+        testScope.runCurrent()
         waitUntilExactlyOneExists(hasTestTag("query"))
         onNodeWithTag("query").assertTextEquals("Hello, Soil!")
     }
 
     @Test
-    fun testRememberQuery_select() = runUiTest {
+    fun testRememberQuery_select() = runUiTest { testScope ->
         val key = TestQueryKey()
-        val client = SwrCache(coroutineScope = it).test {
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test {
             on(key.id) { "Hello, Compose!" }
         }
         setContent {
@@ -73,15 +82,16 @@ class QueryComposableTest : UnitTest() {
                 }
             }
         }
-
+        waitForIdle()
+        testScope.runCurrent()
         waitUntilExactlyOneExists(hasTestTag("query"))
         onNodeWithTag("query").assertTextEquals("HELLO, COMPOSE!")
     }
 
     @Test
-    fun testRememberQuery_throwError() = runUiTest {
+    fun testRememberQuery_throwError() = runUiTest { testScope ->
         val key = TestQueryKey()
-        val client = SwrCache(coroutineScope = it).test {
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test {
             on(key.id) { throw RuntimeException("Failed to do something :(") }
         }
         setContent {
@@ -96,16 +106,17 @@ class QueryComposableTest : UnitTest() {
                 }
             }
         }
-
+        waitForIdle()
+        testScope.runCurrent()
         waitUntilExactlyOneExists(hasTestTag("query"))
         onNodeWithTag("query").assertTextEquals("error")
     }
 
     @Test
-    fun testRememberQuery_combineTwo() = runUiTest {
+    fun testRememberQuery_combineTwo() = runUiTest { testScope ->
         val key1 = TestQueryKey(number = 1)
         val key2 = TestQueryKey(number = 2)
-        val client = SwrCache(coroutineScope = it).test {
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test {
             on(key1.id) { "Hello, Compose!" }
             on(key2.id) { "Hello, Soil!" }
         }
@@ -118,17 +129,18 @@ class QueryComposableTest : UnitTest() {
                 }
             }
         }
-
+        waitForIdle()
+        testScope.runCurrent()
         waitUntilExactlyOneExists(hasTestTag("query"))
         onNodeWithTag("query").assertTextEquals("Hello, Compose!Hello, Soil!")
     }
 
     @Test
-    fun testRememberQuery_combineThree() = runUiTest {
+    fun testRememberQuery_combineThree() = runUiTest { testScope ->
         val key1 = TestQueryKey(number = 1)
         val key2 = TestQueryKey(number = 2)
         val key3 = TestQueryKey(number = 3)
-        val client = SwrCache(coroutineScope = it).test {
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test {
             on(key1.id) { "Hello, Compose!" }
             on(key2.id) { "Hello, Soil!" }
             on(key3.id) { "Hello, Kotlin!" }
@@ -143,17 +155,18 @@ class QueryComposableTest : UnitTest() {
                 }
             }
         }
-
+        waitForIdle()
+        testScope.runCurrent()
         waitUntilExactlyOneExists(hasTestTag("query"))
         onNodeWithTag("query").assertTextEquals("Hello, Compose!Hello, Soil!Hello, Kotlin!")
     }
 
     @Test
-    fun testRememberQuery_combineN() = runUiTest {
+    fun testRememberQuery_combineN() = runUiTest { testScope ->
         val key1 = TestQueryKey(number = 1)
         val key2 = TestQueryKey(number = 2)
         val key3 = TestQueryKey(number = 3)
-        val client = SwrCache(coroutineScope = it).test {
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test {
             on(key1.id) { "Hello, Compose!" }
             on(key2.id) { "Hello, Soil!" }
             on(key3.id) { "Hello, Kotlin!" }
@@ -167,13 +180,14 @@ class QueryComposableTest : UnitTest() {
                 }
             }
         }
-
+        waitForIdle()
+        testScope.runCurrent()
         waitUntilExactlyOneExists(hasTestTag("query"))
         onNodeWithTag("query").assertTextEquals("Hello, Compose!|Hello, Soil!|Hello, Kotlin!")
     }
 
     @Test
-    fun testRememberQuery_loadingPreview() = runUiTest {
+    fun testRememberQuery_loadingPreview() = runComposeUiTest {
         val key = TestQueryKey()
         val client = SwrPreviewClient(
             query = QueryPreviewClient {
@@ -194,7 +208,7 @@ class QueryComposableTest : UnitTest() {
     }
 
     @Test
-    fun testRememberQuery_successPreview() = runUiTest {
+    fun testRememberQuery_successPreview() = runComposeUiTest {
         val key = TestQueryKey()
         val client = SwrPreviewClient(
             query = QueryPreviewClient {
@@ -215,7 +229,7 @@ class QueryComposableTest : UnitTest() {
     }
 
     @Test
-    fun testRememberQuery_loadingErrorPreview() = runUiTest {
+    fun testRememberQuery_loadingErrorPreview() = runComposeUiTest {
         val key = TestQueryKey()
         val client = SwrPreviewClient(
             query = QueryPreviewClient {
@@ -240,7 +254,7 @@ class QueryComposableTest : UnitTest() {
     }
 
     @Test
-    fun testRememberQuery_refreshErrorPreview() = runUiTest {
+    fun testRememberQuery_refreshErrorPreview() = runComposeUiTest {
         val key = TestQueryKey()
         val client = SwrPreviewClient(
             query = QueryPreviewClient {
@@ -261,9 +275,9 @@ class QueryComposableTest : UnitTest() {
     }
 
     @Test
-    fun testRememberQueryIf() = runUiTest {
+    fun testRememberQueryIf() = runUiTest { testScope ->
         val key = TestQueryKey()
-        val client = SwrCache(coroutineScope = it).test()
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test()
         setContent {
             SwrClientProvider(client) {
                 var enabled by remember { mutableStateOf(false) }
@@ -279,18 +293,20 @@ class QueryComposableTest : UnitTest() {
                 }
             }
         }
-
         onNodeWithTag("query").assertDoesNotExist()
         onNodeWithTag("toggle").performClick()
+
+        waitForIdle()
+        testScope.runCurrent()
 
         waitUntilExactlyOneExists(hasTestTag("query"))
         onNodeWithTag("query").assertTextEquals("Hello, Soil!")
     }
 
     @Test
-    fun testRememberQueryIf_select() = runUiTest {
+    fun testRememberQueryIf_select() = runUiTest { testScope ->
         val key = TestQueryKey()
-        val client = SwrCache(coroutineScope = it).test {
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test {
             on(key.id) { "Hello, Compose!" }
         }
         setContent {
@@ -316,15 +332,18 @@ class QueryComposableTest : UnitTest() {
         onNodeWithTag("query").assertDoesNotExist()
         onNodeWithTag("toggle").performClick()
 
+        waitForIdle()
+        testScope.runCurrent()
+
         waitUntilExactlyOneExists(hasTestTag("query"))
         onNodeWithTag("query").assertTextEquals("HELLO, COMPOSE!")
     }
 
     @Test
-    fun testRememberQueryIf_combineTwo() = runUiTest {
+    fun testRememberQueryIf_combineTwo() = runUiTest { testScope ->
         val key1 = TestQueryKey(number = 1)
         val key2 = TestQueryKey(number = 2)
-        val client = SwrCache(coroutineScope = it).test {
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test {
             on(key1.id) { "Hello, Compose!" }
             on(key2.id) { "Hello, Soil!" }
         }
@@ -350,16 +369,19 @@ class QueryComposableTest : UnitTest() {
         onNodeWithTag("query").assertDoesNotExist()
         onNodeWithTag("toggle").performClick()
 
+        waitForIdle()
+        testScope.runCurrent()
+
         waitUntilExactlyOneExists(hasTestTag("query"))
         onNodeWithTag("query").assertTextEquals("Hello, Compose!Hello, Soil!")
     }
 
     @Test
-    fun testRememberQueryIf_combineThree() = runUiTest {
+    fun testRememberQueryIf_combineThree() = runUiTest { testScope ->
         val key1 = TestQueryKey(number = 1)
         val key2 = TestQueryKey(number = 2)
         val key3 = TestQueryKey(number = 3)
-        val client = SwrCache(coroutineScope = it).test {
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test {
             on(key1.id) { "Hello, Compose!" }
             on(key2.id) { "Hello, Soil!" }
             on(key3.id) { "Hello, Kotlin!" }
@@ -382,20 +404,22 @@ class QueryComposableTest : UnitTest() {
                 }
             }
         }
-
         onNodeWithTag("query").assertDoesNotExist()
         onNodeWithTag("toggle").performClick()
+
+        waitForIdle()
+        testScope.runCurrent()
 
         waitUntilExactlyOneExists(hasTestTag("query"))
         onNodeWithTag("query").assertTextEquals("Hello, Compose!Hello, Soil!Hello, Kotlin!")
     }
 
     @Test
-    fun testRememberQueryIf_combineN() = runUiTest {
+    fun testRememberQueryIf_combineN() = runUiTest { testScope ->
         val key1 = TestQueryKey(number = 1)
         val key2 = TestQueryKey(number = 2)
         val key3 = TestQueryKey(number = 3)
-        val client = SwrCache(coroutineScope = it).test {
+        val client = SwrCache(policy = testScope.newSwrCachePolicy()).test {
             on(key1.id) { "Hello, Compose!" }
             on(key2.id) { "Hello, Soil!" }
             on(key3.id) { "Hello, Kotlin!" }
@@ -421,6 +445,9 @@ class QueryComposableTest : UnitTest() {
 
         onNodeWithTag("query").assertDoesNotExist()
         onNodeWithTag("toggle").performClick()
+
+        waitForIdle()
+        testScope.runCurrent()
 
         waitUntilExactlyOneExists(hasTestTag("query"))
         onNodeWithTag("query").assertTextEquals("Hello, Compose!|Hello, Soil!|Hello, Kotlin!")

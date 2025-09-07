@@ -29,13 +29,7 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        browser {
-            // TODO: We will consider using wasm tests when we update to 'org.jetbrains.compose.ui:ui:1.7.0' or later.
-            //  - https://slack-chats.kotlinlang.org/t/22883390/wasmjs-unit-testing-what-is-the-status-of-unit-testing-on-wa
-            testTask {
-                enabled = false
-            }
-        }
+        browser()
     }
 
     sourceSets {
@@ -62,6 +56,14 @@ kotlin {
 
         jvmTest.dependencies {
             implementation(compose.desktop.currentOs)
+        }
+
+        // Workaround: "Module not found: Error: Can't resolve './skiko.mjs'"
+        // While not strictly required by dependencies, the skiko runtime is necessary to run Compose UI tests in wasmJsTest.
+        // The Compose Multiplatform plugin expects the `org.jetbrains.compose.ui:ui` package to be included in at least the main source set dependencies.
+        // https://github.com/JetBrains/compose-multiplatform/blob/v1.8.2/gradle-plugins/compose/src/main/kotlin/org/jetbrains/compose/web/internal/configureWebApplication.kt#L35-L53
+        wasmJsMain.dependencies {
+            runtimeOnly(compose.ui)
         }
     }
 }

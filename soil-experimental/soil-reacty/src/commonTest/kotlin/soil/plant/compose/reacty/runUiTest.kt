@@ -7,26 +7,20 @@ package soil.plant.compose.reacty
 
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
-import kotlinx.coroutines.CoroutineScope
+import androidx.compose.ui.test.runComposeUiTest
+import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 
 /**
- * FIXME Workaround for flaky tests.
- *
- * NOTE:
- * Upon investigation, we found that this is a known issue reported in the Google Issue Tracker.
- *
- * - https://github.com/soil-kt/soil/pull/152
- * - https://github.com/soil-kt/soil/actions/runs/14419696209/job/40440710141
- * - https://issuetracker.google.com/issues/321690042
- *
- * To work around this issue, we're attempting to pass `effectContext` to `runComposeUiTest`.
- * Unfortunately, `effectContext` is not yet supported on non-Android platforms (Skiko),
- * even in the latest versions such as 1.8+dev2308.
- *
- * As a result, we introduced the `runUiTest` function to abstract the test runner
- * and switch between Android and Skiko implementations accordingly.
+ * NOTE: Uses Coroutine Test to run UI tests because Coroutine behavior differs across platforms.
+ * TestScope requires calling runCurrent on the test side to advance Channel(Command) processing inside SwrCache.
  */
 @OptIn(ExperimentalTestApi::class)
-expect fun runUiTest(
-    block: ComposeUiTest.(CoroutineScope) -> Unit
-)
+fun runUiTest(
+    block: ComposeUiTest.(TestScope) -> Unit
+): TestResult = runTest {
+    runComposeUiTest {
+        block(this@runTest)
+    }
+}

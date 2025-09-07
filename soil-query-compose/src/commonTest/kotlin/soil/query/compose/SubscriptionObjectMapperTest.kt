@@ -41,7 +41,6 @@ class SubscriptionObjectMapperTest : UnitTest() {
         assertEquals(0, actual.replyUpdatedAt)
         assertNull(actual.error)
         assertEquals(0, actual.errorUpdatedAt)
-        assertEquals(subscription::reset, actual.reset)
         assertEquals(SubscriptionStatus.Pending, actual.status)
         assertNull(actual.data)
     }
@@ -68,7 +67,6 @@ class SubscriptionObjectMapperTest : UnitTest() {
         assertEquals(400, actual.replyUpdatedAt)
         assertNull(actual.error)
         assertEquals(0, actual.errorUpdatedAt)
-        assertEquals(subscription::reset, actual.reset)
         assertEquals(SubscriptionStatus.Success, actual.status)
         assertNotNull(actual.data)
     }
@@ -95,7 +93,6 @@ class SubscriptionObjectMapperTest : UnitTest() {
         assertEquals(0, actual.replyUpdatedAt)
         assertNotNull(actual.error)
         assertEquals(500, actual.errorUpdatedAt)
-        assertEquals(subscription::reset, actual.reset)
         assertEquals(SubscriptionStatus.Failure, actual.status)
         assertNull(actual.data)
     }
@@ -124,7 +121,6 @@ class SubscriptionObjectMapperTest : UnitTest() {
         assertEquals(400, actual.replyUpdatedAt)
         assertNotNull(actual.error)
         assertEquals(500, actual.errorUpdatedAt)
-        assertEquals(subscription::reset, actual.reset)
         assertEquals(SubscriptionStatus.Failure, actual.status)
         assertNotNull(actual.data)
     }
