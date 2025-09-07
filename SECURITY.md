@@ -11,4 +11,4 @@ currently being supported with security updates.
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability with Coil, please [report the vulnerability through Github](https://github.com/soil-kt/soil/security/advisories).
+If you discover a security vulnerability with Soil, please [report the vulnerability through Github](https://github.com/soil-kt/soil/security/advisories).
