@@ -53,14 +53,6 @@ kotlin {
             implementation(projects.internal.testing)
         }
 
-        val skikoMain by creating {
-            dependsOn(commonMain.get())
-        }
-
-        val skikoTest by creating {
-            dependsOn(commonTest.get())
-        }
-
         val androidUnitTest by getting {
             dependencies {
                 implementation(libs.compose.ui.test.junit4.android)
@@ -68,31 +60,11 @@ kotlin {
             }
         }
 
-        iosMain {
-            dependsOn(skikoMain)
-        }
-
-        iosTest {
-            dependsOn(skikoTest)
-        }
-
-        jvmMain {
-            dependsOn(skikoMain)
-        }
-
         jvmTest {
-            dependsOn(skikoTest)
             dependencies {
+                implementation(compose.desktop.uiTestJUnit4)
                 implementation(compose.desktop.currentOs)
             }
-        }
-
-        wasmJsMain {
-            dependsOn(skikoMain)
-        }
-
-        wasmJsTest {
-            dependsOn(skikoTest)
         }
     }
 }
