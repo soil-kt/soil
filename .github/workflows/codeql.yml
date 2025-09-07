@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  analyze:
+  analyze-kotlin:
 
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -57,3 +57,25 @@ jobs:
         uses: github/codeql-action/analyze@3c3833e0f8c1c83d449a7478aa59c036a9165498 # v3.29.11
         with:
           category: '/language:java-kotlin'
+
+  analyze-actions:
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    permissions:
+      # ref. https://github.com/github/codeql-action#workflow-permissions
+      security-events: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@3c3833e0f8c1c83d449a7478aa59c036a9165498 # v3.29.11
+        with:
+          languages: actions
+          build-mode: "none"
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@3c3833e0f8c1c83d449a7478aa59c036a9165498 # v3.29.11
