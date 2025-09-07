@@ -34,7 +34,7 @@ typealias StringRuleBuilder = ValidationRuleBuilder<String>
 fun StringRule(
     predicate: String.() -> Boolean,
     message: () -> String
-): StringRule = { value ->
+): StringRule = ValidationRule { value ->
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 

@@ -10,7 +10,7 @@ import soil.form.core.rules
 
 fun <V> createTestRule(block: ValidationRuleBuilder<V>.() -> Unit): ValidationRule<V> {
     val allRules = rules(block)
-    return { value ->
+    return ValidationRule { value ->
         val errorMessages = allRules.flatMap { rule ->
             when (val result = rule.invoke(value)) {
                 is ValidationResult.Valid -> emptyList()

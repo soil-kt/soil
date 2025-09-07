@@ -57,7 +57,7 @@ typealias OptionalRuleBuilder<V> = ValidationRuleBuilder<V?>
  */
 fun <V : Any> OptionalRuleBuilder<V?>.notNull(message: () -> String): ValidationRuleChainer<V> {
     // Immediately add the null check rule
-    val nullCheckRule: OptionalRule<V?> = { value ->
+    val nullCheckRule: OptionalRule<V?> = OptionalRule { value ->
         if (value == null) {
             ValidationResult.Invalid(message())
         } else {
@@ -69,7 +69,7 @@ fun <V : Any> OptionalRuleBuilder<V?>.notNull(message: () -> String): Validation
     // Return a chainer for optional additional rules
     return ValidationRuleChainer { block ->
         val ruleSet = rules(block)
-        val additionalRule: OptionalRule<V?> = { value ->
+        val additionalRule: OptionalRule<V?> = OptionalRule { value ->
             if (value == null) {
                 // If value is null, the null check rule above will handle it
                 ValidationResult.Valid

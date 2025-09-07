@@ -34,7 +34,7 @@ typealias DoubleRuleBuilder = ValidationRuleBuilder<Double>
 fun DoubleRule(
     predicate: Double.() -> Boolean,
     message: () -> String
-): DoubleRule = { value ->
+): DoubleRule = ValidationRule { value ->
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 

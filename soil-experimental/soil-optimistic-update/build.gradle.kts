@@ -27,6 +27,10 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
+    js(IR) {
+        browser()
+    }
+
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
@@ -57,6 +61,10 @@ kotlin {
         jvmTest.dependencies {
             implementation(compose.desktop.uiTestJUnit4)
             implementation(compose.desktop.currentOs)
+        }
+
+        jsTest.dependencies {
+            runtimeOnly(compose.ui)
         }
 
         // Workaround: "Module not found: Error: Can't resolve './skiko.mjs'"

@@ -34,7 +34,7 @@ typealias FloatRuleBuilder = ValidationRuleBuilder<Float>
 fun FloatRule(
     predicate: Float.() -> Boolean,
     message: () -> String
-): FloatRule = { value ->
+): FloatRule = ValidationRule { value ->
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 

@@ -33,7 +33,7 @@ typealias LongRuleBuilder = ValidationRuleBuilder<Long>
 fun LongRule(
     predicate: Long.() -> Boolean,
     message: () -> String
-): LongRule = { value ->
+): LongRule = ValidationRule { value ->
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 

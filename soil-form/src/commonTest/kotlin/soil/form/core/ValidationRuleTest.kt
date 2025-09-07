@@ -21,9 +21,9 @@ class ValidationRuleTest : UnitTest() {
     @Test
     fun validate_withAllValidRules() {
         val rules: ValidationRuleSet<String> = setOf(
-            { ValidationResult.Valid },
-            { ValidationResult.Valid },
-            { ValidationResult.Valid }
+            ValidationRule { ValidationResult.Valid },
+            ValidationRule { ValidationResult.Valid },
+            ValidationRule { ValidationResult.Valid }
         )
         val actual = validate("test", rules)
 
@@ -33,7 +33,7 @@ class ValidationRuleTest : UnitTest() {
     @Test
     fun validate_withSingleInvalidRule() {
         val rules: ValidationRuleSet<String> = setOf(
-            { ValidationResult.Invalid("Value is invalid") }
+            ValidationRule { ValidationResult.Invalid("Value is invalid") }
         )
         val actual = validate("test", rules)
 
@@ -45,9 +45,9 @@ class ValidationRuleTest : UnitTest() {
     @Test
     fun validate_withMultipleInvalidRules() {
         val rules: ValidationRuleSet<String> = setOf(
-            { ValidationResult.Invalid("Error 1") },
-            { ValidationResult.Invalid("Error 2") },
-            { ValidationResult.Invalid("Error 3") }
+            ValidationRule { ValidationResult.Invalid("Error 1") },
+            ValidationRule { ValidationResult.Invalid("Error 2") },
+            ValidationRule { ValidationResult.Invalid("Error 3") }
         )
         val actual = validate("test", rules)
 
@@ -61,10 +61,10 @@ class ValidationRuleTest : UnitTest() {
     @Test
     fun validate_withMixedValidAndInvalidRules() {
         val rules: ValidationRuleSet<String> = setOf(
-            { ValidationResult.Valid },
-            { ValidationResult.Invalid("Error 1") },
-            { ValidationResult.Valid },
-            { ValidationResult.Invalid("Error 2") }
+            ValidationRule { ValidationResult.Valid },
+            ValidationRule { ValidationResult.Invalid("Error 1") },
+            ValidationRule { ValidationResult.Valid },
+            ValidationRule { ValidationResult.Invalid("Error 2") }
         )
         val result = validate("test", rules)
 

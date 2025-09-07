@@ -38,7 +38,15 @@ package soil.form.core
  *
  * @param V The type of the value to be validated.
  */
-typealias ValidationRule<V> = (value: V) -> ValidationResult
+fun interface ValidationRule<V> {
+    /**
+     * Validates the given value and returns a [ValidationResult].
+     *
+     * @param value The value to validate.
+     * @return A [ValidationResult.Valid] if validation passes, or [ValidationResult.Invalid] with error messages if it fails.
+     */
+    operator fun invoke(value: V): ValidationResult
+}
 
 /**
  * A type alias for a set of validation rules.
