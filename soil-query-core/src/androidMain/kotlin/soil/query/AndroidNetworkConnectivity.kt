@@ -54,12 +54,14 @@ class AndroidNetworkConnectivity(
     class ObserverWrapper(
         private val observer: NetworkConnectivity.Observer
     ) : ConnectivityManager.NetworkCallback() {
-        override fun onAvailable(network: Network) {
-            observer.onReceive(NetworkConnectivityEvent.Available)
-        }
-
         override fun onLost(network: Network) {
             observer.onReceive(NetworkConnectivityEvent.Lost)
+        }
+
+        override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+            if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)) {
+                observer.onReceive(NetworkConnectivityEvent.Available)
+            }
         }
     }
 }
