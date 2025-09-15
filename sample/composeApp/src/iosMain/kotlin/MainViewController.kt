@@ -4,6 +4,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import soil.playground.createHttpClient
 import soil.query.IosMemoryPressure
+import soil.query.IosNetworkConnectivity
 import soil.query.IosWindowVisibility
 import soil.query.SwrCachePlus
 import soil.query.SwrCachePlusPolicy
@@ -17,6 +18,7 @@ private val swrClient = SwrCachePlus(
     policy = SwrCachePlusPolicy(
         coroutineScope = SwrCacheScope(),
         memoryPressure = IosMemoryPressure(),
+        networkConnectivity = IosNetworkConnectivity(),
         windowVisibility = IosWindowVisibility()
     ) {
         httpClient = createHttpClient {
