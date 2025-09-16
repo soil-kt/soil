@@ -41,6 +41,70 @@ enum class NetworkConnectivityEvent {
     Lost
 }
 
+/**
+ * Abstract base class for implementing platform-specific network connectivity providers.
+ *
+ * This class provides a common pattern for implementing network connectivity monitoring
+ * across different platforms by managing the lifecycle of a platform-specific receiver
+ * that monitors network state changes.
+ */
+abstract class NetworkConnectivityProvider : AbstractNotifier<NetworkConnectivityEvent>(),
+    NetworkConnectivity {
+
+    private var receiver: Receiver? = null
+
+    override fun addListener(listener: Listener<NetworkConnectivityEvent>) {
+        super.addListener(listener)
+        if (receiver == null) {
+            receiver = createReceiver()
+            receiver?.start()
+        }
+    }
+
+    override fun removeListener(listener: Listener<NetworkConnectivityEvent>) {
+        super.removeListener(listener)
+        if (!hasListeners()) {
+            receiver?.stop()
+            receiver = null
+        }
+    }
+
+    /**
+     * Creates a platform-specific receiver for monitoring network connectivity.
+     *
+     * Subclasses must implement this method to provide a receiver that can monitor
+     * network connectivity changes on their specific platform (Android, iOS, Web, etc.).
+     *
+     * @return A receiver instance that can start/stop monitoring network connectivity
+     */
+    protected abstract fun createReceiver(): Receiver
+
+    /**
+     * Interface for platform-specific network connectivity receivers.
+     *
+     * Implementations should monitor network connectivity changes and notify
+     * the provider when the network state changes.
+     */
+    interface Receiver {
+
+        /**
+         * Starts monitoring network connectivity changes.
+         *
+         * Should register appropriate platform-specific listeners or observers
+         * to detect when network connectivity is gained or lost.
+         */
+        fun start()
+
+        /**
+         * Stops monitoring network connectivity changes.
+         *
+         * Should unregister any platform-specific listeners or observers
+         * to clean up resources and prevent memory leaks.
+         */
+        fun stop()
+    }
+}
+
 internal suspend fun observeOnNetworkReconnect(
     networkConnectivity: NetworkConnectivity,
     networkResumeAfterDelay: Duration,
