@@ -10,10 +10,9 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import androidx.annotation.RequiresPermission
-import soil.query.core.AbstractNotifier
-import soil.query.core.Listener
 import soil.query.core.NetworkConnectivity
 import soil.query.core.NetworkConnectivityEvent
+import soil.query.core.NetworkConnectivityProvider
 import soil.query.core.Notifier
 
 /**
@@ -29,31 +28,18 @@ import soil.query.core.Notifier
  */
 class AndroidNetworkConnectivity(
     private val context: Context
-) : AbstractNotifier<NetworkConnectivityEvent>(), NetworkConnectivity {
+) : NetworkConnectivityProvider() {
 
-    private var monitor: Monitor? = null
+    override fun createReceiver(): Receiver = Monitor(
+        connectivityManager = context.getSystemService(ConnectivityManager::class.java),
+        notifier = this
+    )
 
-    @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
-    override fun addListener(listener: Listener<NetworkConnectivityEvent>) {
-        super.addListener(listener)
-        if (monitor == null) {
-            monitor = Monitor.create(context = context, notifier = this)
-            monitor?.start()
-        }
-    }
-
-    override fun removeListener(listener: Listener<NetworkConnectivityEvent>) {
-        super.removeListener(listener)
-        if (!hasListeners()) {
-            monitor?.stop()
-            monitor = null
-        }
-    }
-
-    internal class Monitor(
+    private class Monitor(
         private val connectivityManager: ConnectivityManager,
         private val notifier: Notifier<NetworkConnectivityEvent>
-    ) : ConnectivityManager.NetworkCallback() {
+    ) : Receiver, ConnectivityManager.NetworkCallback() {
+
         private var isOnline: Boolean? = null
 
         @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
@@ -72,7 +58,7 @@ class AndroidNetworkConnectivity(
         }
 
         @RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
-        fun start() {
+        override fun start() {
             if (isOnline == null) {
                 isOnline = hasValidatedNetwork()
                 notifyListeners()
@@ -85,7 +71,7 @@ class AndroidNetworkConnectivity(
             )
         }
 
-        fun stop() {
+        override fun stop() {
             connectivityManager.unregisterNetworkCallback(this)
             isOnline = null
         }
@@ -103,16 +89,6 @@ class AndroidNetworkConnectivity(
             val activeNetwork = connectivityManager.activeNetwork ?: return false
             val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
             return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-        }
-
-        companion object {
-            fun create(
-                context: Context,
-                notifier: Notifier<NetworkConnectivityEvent>
-            ) = Monitor(
-                connectivityManager = context.getSystemService(ConnectivityManager::class.java),
-                notifier = notifier
-            )
         }
     }
 }
