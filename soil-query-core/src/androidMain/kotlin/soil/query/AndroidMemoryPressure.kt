@@ -8,6 +8,8 @@ import android.content.Context
 import android.content.res.Configuration
 import soil.query.core.MemoryPressure
 import soil.query.core.MemoryPressureLevel
+import soil.query.core.MemoryPressureProvider
+import soil.query.core.Notifier
 
 /**
  * Implementation of [MemoryPressure] for Android.
@@ -28,29 +30,25 @@ import soil.query.core.MemoryPressureLevel
  */
 class AndroidMemoryPressure(
     private val context: Context
-) : MemoryPressure {
+) : MemoryPressureProvider() {
 
-    private var obw: ObserverWrapper? = null
-    override fun addObserver(observer: MemoryPressure.Observer) {
-        context.registerComponentCallbacks(ObserverWrapper(observer).also { obw = it })
-    }
+    override fun createReceiver(): Receiver = Monitor(
+        register = context::registerComponentCallbacks,
+        unregister = context::unregisterComponentCallbacks,
+        notifier = this
+    )
 
-    override fun removeObserver(observer: MemoryPressure.Observer) {
-        obw?.let { context.unregisterComponentCallbacks(it) }
-        obw = null
-    }
-
-    /**
-     * Implementation of [ComponentCallbacks2] for observing memory pressure.
-     */
-    class ObserverWrapper(
-        private val observer: MemoryPressure.Observer
-    ) : ComponentCallbacks2 {
+    private class Monitor(
+        val register: (ComponentCallbacks2) -> Unit,
+        val unregister: (ComponentCallbacks2) -> Unit,
+        val notifier: Notifier<MemoryPressureLevel>
+    ) : Receiver, ComponentCallbacks2 {
 
         override fun onConfigurationChanged(newConfig: Configuration) = Unit
 
+        @Deprecated("Deprecated in Java")
         override fun onLowMemory() {
-            observer.onReceive(MemoryPressureLevel.High)
+            notifier.notify(MemoryPressureLevel.High)
         }
 
         override fun onTrimMemory(level: Int) {
@@ -60,14 +58,18 @@ class AndroidMemoryPressure(
                 ComponentCallbacks2.TRIM_MEMORY_MODERATE,
                 ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE,
                 ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW -> {
-                    observer.onReceive(MemoryPressureLevel.Low)
+                    notifier.notify(MemoryPressureLevel.Low)
                 }
 
                 ComponentCallbacks2.TRIM_MEMORY_COMPLETE,
                 ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL -> {
-                    observer.onReceive(MemoryPressureLevel.High)
+                    notifier.notify(MemoryPressureLevel.High)
                 }
             }
         }
+
+        override fun start() = register(this)
+
+        override fun stop() = unregister(this)
     }
 }
