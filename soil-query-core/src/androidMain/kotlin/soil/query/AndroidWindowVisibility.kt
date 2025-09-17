@@ -8,8 +8,10 @@ import android.os.Looper
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
+import soil.query.core.Notifier
 import soil.query.core.WindowVisibility
 import soil.query.core.WindowVisibilityEvent
+import soil.query.core.WindowVisibilityProvider
 
 /**
  * Implementation of [WindowVisibility] for Android.
@@ -19,41 +21,56 @@ import soil.query.core.WindowVisibilityEvent
  */
 class AndroidWindowVisibility(
     private val lifecycleOwner: LifecycleOwner = ProcessLifecycleOwner.get()
-) : WindowVisibility {
+) : WindowVisibilityProvider() {
 
-    // NOTE: ProcessLifecycleOwner only supports calls from the main thread.
-    private val mainHandler = Handler(Looper.getMainLooper())
-    private var cbw: CallbackWrapper? = null
-
-    override fun addObserver(observer: WindowVisibility.Observer) {
-        if (mainHandler.looper.isCurrentThread) {
-            lifecycleOwner.lifecycle.addObserver(CallbackWrapper(observer).also { cbw = it })
-        } else {
-            mainHandler.post { addObserver(observer) }
-        }
-    }
-
-    override fun removeObserver(observer: WindowVisibility.Observer) {
-        if (mainHandler.looper.isCurrentThread) {
-            cbw?.let { lifecycleOwner.lifecycle.removeObserver(it) }
-            cbw = null
-        } else {
-            mainHandler.post { removeObserver(observer) }
-        }
-    }
+    override fun createReceiver(): Receiver = Monitor(
+        lifecycleOwner = lifecycleOwner,
+        notifier = this
+    )
 
     /**
      * Implementation of [DefaultLifecycleObserver] for observing window visibility.
      */
-    class CallbackWrapper(
-        private val callback: WindowVisibility.Observer
-    ) : DefaultLifecycleObserver {
+    private class Monitor(
+        private val lifecycleOwner: LifecycleOwner,
+        private val notifier: Notifier<WindowVisibilityEvent>
+    ) : DefaultLifecycleObserver, Receiver {
+
+        // NOTE: ProcessLifecycleOwner only supports calls from the main thread.
+        private val mainHandler = Handler(Looper.getMainLooper())
+        private var runnable: Runnable? = null
+
         override fun onStart(owner: LifecycleOwner) {
-            callback.onReceive(WindowVisibilityEvent.Foreground)
+            notifier.notify(WindowVisibilityEvent.Foreground)
         }
 
         override fun onStop(owner: LifecycleOwner) {
-            callback.onReceive(WindowVisibilityEvent.Background)
+            notifier.notify(WindowVisibilityEvent.Background)
+        }
+
+        override fun start() {
+            ensureCancelRunnable()
+            if (mainHandler.looper.isCurrentThread) {
+                lifecycleOwner.lifecycle.addObserver(this)
+            } else {
+                val r = Runnable { start() }.also { runnable = it }
+                mainHandler.post(r)
+            }
+        }
+
+        override fun stop() {
+            ensureCancelRunnable()
+            if (mainHandler.looper.isCurrentThread) {
+                lifecycleOwner.lifecycle.removeObserver(this)
+            } else {
+                val r = Runnable { stop() }.also { runnable = it }
+                mainHandler.post(r)
+            }
+        }
+
+        private fun ensureCancelRunnable() {
+            runnable?.let(mainHandler::removeCallbacks)
+            runnable = null
         }
     }
 }

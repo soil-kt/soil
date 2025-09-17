@@ -4,38 +4,50 @@
 package soil.query
 
 import kotlinx.browser.document
+import org.w3c.dom.Document
 import org.w3c.dom.events.Event
+import soil.query.core.Notifier
 import soil.query.core.WindowVisibility
 import soil.query.core.WindowVisibilityEvent
+import soil.query.core.WindowVisibilityProvider
 import soil.query.core.document as documentAlt
 
 /**
  * Implementation of [WindowVisibility] for WasmJs.
  */
-class WasmJsWindowVisibility : WindowVisibility {
+class WasmJsWindowVisibility : WindowVisibilityProvider() {
 
-    private var visibilityListener: ((Event) -> Unit)? = null
+    override fun createReceiver(): Receiver = Monitor(
+        document = document,
+        visibilityState = { documentAlt.visibilityState },
+        notifier = this
+    )
 
-    override fun addObserver(observer: WindowVisibility.Observer) {
-        visibilityListener = {
-            if (documentAlt.visibilityState == VISIBILITY_STATE_VISIBLE) {
-                observer.onReceive(WindowVisibilityEvent.Foreground)
+    private class Monitor(
+        private val document: Document,
+        visibilityState: () -> String,
+        notifier: Notifier<WindowVisibilityEvent>
+    ) : Receiver {
+
+        private var visibilityListener: (Event) -> Unit = {
+            if (visibilityState() == VISIBILITY_STATE_VISIBLE) {
+                notifier.notify(WindowVisibilityEvent.Foreground)
             } else {
-                observer.onReceive(WindowVisibilityEvent.Background)
+                notifier.notify(WindowVisibilityEvent.Background)
             }
         }
-        document.addEventListener(TYPE_VISIBILITY_CHANGE, visibilityListener)
-    }
 
-    override fun removeObserver(observer: WindowVisibility.Observer) {
-        visibilityListener?.let { document.removeEventListener(TYPE_VISIBILITY_CHANGE, it) }
-        visibilityListener = null
-    }
+        override fun start() {
+            document.addEventListener(TYPE_VISIBILITY_CHANGE, visibilityListener)
+        }
 
-    companion object {
-        // https://developer.mozilla.org/en-US/docs/Web/API/Document/visibilitychange_event
-        @Suppress("SpellCheckingInspection")
-        private const val TYPE_VISIBILITY_CHANGE = "visibilitychange"
-        private const val VISIBILITY_STATE_VISIBLE = "visible"
+        override fun stop() {
+            document.removeEventListener(TYPE_VISIBILITY_CHANGE, visibilityListener)
+        }
     }
 }
+
+// https://developer.mozilla.org/en-US/docs/Web/API/Document/visibilitychange_event
+@Suppress("SpellCheckingInspection")
+private const val TYPE_VISIBILITY_CHANGE = "visibilitychange"
+private const val VISIBILITY_STATE_VISIBLE = "visible"
