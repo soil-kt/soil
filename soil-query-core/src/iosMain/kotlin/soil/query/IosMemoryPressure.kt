@@ -14,6 +14,8 @@ import platform.UIKit.UIApplicationDidReceiveMemoryWarningNotification
 import platform.darwin.NSObject
 import soil.query.core.MemoryPressure
 import soil.query.core.MemoryPressureLevel
+import soil.query.core.MemoryPressureProvider
+import soil.query.core.Notifier
 
 /**
  * Implementation of [MemoryPressure] for iOS.
@@ -27,55 +29,68 @@ import soil.query.core.MemoryPressureLevel
  *
  */
 @OptIn(BetaInteropApi::class, ExperimentalForeignApi::class)
-class IosMemoryPressure : MemoryPressure {
+class IosMemoryPressure(
+    private val notificationCenter: NSNotificationCenter = NSNotificationCenter.defaultCenter
+) : MemoryPressureProvider() {
 
-    private var obw: ObserverWrapper? = null
+    override fun createReceiver(): Receiver = Monitor(
+        notificationCenter = notificationCenter,
+        notifier = this
+    )
 
-    override fun addObserver(observer: MemoryPressure.Observer) {
-        val nativeObserver = ObserverWrapper(observer).also { obw = it }
-        NSNotificationCenter.defaultCenter.addObserver(
-            observer = nativeObserver,
-            selector = NSSelectorFromString(ObserverWrapper::appDidEnterBackground.name + ":"),
-            name = UIApplicationDidEnterBackgroundNotification,
-            `object` = null
-        )
-        NSNotificationCenter.defaultCenter.addObserver(
-            observer = nativeObserver,
-            selector = NSSelectorFromString(ObserverWrapper::appDidReceiveMemoryWarning.name + ":"),
-            name = UIApplicationDidReceiveMemoryWarningNotification,
-            `object` = null
-        )
+    private class Monitor(
+        private val notificationCenter: NSNotificationCenter,
+        notifier: Notifier<MemoryPressureLevel>
+    ) : Receiver {
+
+        private val notification = Notification(notifier)
+
+        override fun start() {
+            notificationCenter.addObserver(
+                observer = notification,
+                selector = NSSelectorFromString(Notification::appDidEnterBackground.name + ":"),
+                name = UIApplicationDidEnterBackgroundNotification,
+                `object` = null
+            )
+            notificationCenter.addObserver(
+                observer = notification,
+                selector = NSSelectorFromString(Notification::appDidReceiveMemoryWarning.name + ":"),
+                name = UIApplicationDidReceiveMemoryWarningNotification,
+                `object` = null
+            )
+        }
+
+        override fun stop() {
+            notificationCenter.removeObserver(
+                observer = notification,
+                name = UIApplicationDidEnterBackgroundNotification,
+                `object` = null
+            )
+            notificationCenter.removeObserver(
+                observer = notification,
+                name = UIApplicationDidReceiveMemoryWarningNotification,
+                `object` = null
+            )
+        }
     }
 
-    override fun removeObserver(observer: MemoryPressure.Observer) {
-        val nativeObserver = obw ?: return
-        NSNotificationCenter.defaultCenter.removeObserver(
-            observer = nativeObserver,
-            name = UIApplicationDidEnterBackgroundNotification,
-            `object` = null
-        )
-        NSNotificationCenter.defaultCenter.removeObserver(
-            observer = nativeObserver,
-            name = UIApplicationDidReceiveMemoryWarningNotification,
-            `object` = null
-        )
-        obw = null
-    }
-
-    class ObserverWrapper(
-        private val observer: MemoryPressure.Observer
+    // NOTE: The Monitor class cannot directly inherit from NSObject because it already
+    // implements the Receiver interface. The Kotlin compiler error states:
+    // "Mixing Kotlin and Objective-C supertypes is not supported"
+    // This is why the notification handling is separated into this dedicated class.
+    private class Notification(
+        private val notifier: Notifier<MemoryPressureLevel>
     ) : NSObject() {
-
         @Suppress("unused", "UNUSED_PARAMETER")
         @ObjCAction
         fun appDidEnterBackground(arg: NSNotification) {
-            observer.onReceive(MemoryPressureLevel.Low)
+            notifier.notify(MemoryPressureLevel.Low)
         }
 
         @Suppress("unused", "UNUSED_PARAMETER")
         @ObjCAction
         fun appDidReceiveMemoryWarning(arg: NSNotification) {
-            observer.onReceive(MemoryPressureLevel.High)
+            notifier.notify(MemoryPressureLevel.High)
         }
     }
 }
