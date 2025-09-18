@@ -186,6 +186,56 @@ class FormTest : UnitTest() {
     }
 
     @Test
+    fun testForm_withInitialValidValues() = runComposeUiTest {
+        val initialData = TestData(
+            firstName = "foo",
+            lastName = "bar"
+        )
+        val formState = FormState(
+            value = initialData,
+            policy = testPolicy
+        )
+        var submittedFormData: TestData? = null
+        setContent {
+            // ref: https://developer.android.com/codelabs/large-screens/keyboard-focus-management-in-compose#9
+            LocalInputModeManager.current.requestInputMode(InputMode.Keyboard)
+            val form = rememberForm(state = formState) {
+                submittedFormData = it
+            }
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                bottomBar = {
+                    form.Submit()
+                }
+            ) {
+                Column {
+                    form.FirstName { field ->
+                        field.WithLayout {
+                            InputField()
+                        }
+                    }
+                    form.LastName { field ->
+                        field.WithLayout {
+                            InputField()
+                        }
+                    }
+                }
+            }
+        }
+
+        waitUntil { formState.meta.fields.count() == 2 }
+
+        waitUntilExactlyOneExists(hasTestTag("submit") and isEnabled())
+
+        onNodeWithTag("submit").performClick()
+
+        waitUntil { submittedFormData == formState.value }
+
+        assertEquals(initialData.firstName, submittedFormData?.firstName)
+        assertEquals(initialData.lastName, submittedFormData?.lastName)
+    }
+
+    @Test
     fun testForm_withFieldValidationError() = runComposeUiTest {
         val formState = FormState(value = TestData(), policy = testPolicy)
         setContent {
