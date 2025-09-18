@@ -122,7 +122,7 @@ fun <T> rememberForm(
         LaunchedEffect(control) {
             // validateOnMount
             launch {
-                snapshotFlow { control.fields }
+                snapshotFlow { control.fields.toSet() }
                     .filter { it.isNotEmpty() }
                     .debounce(control.options.preValidationDelayOnMount)
                     .collect {
