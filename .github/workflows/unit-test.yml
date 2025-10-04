@@ -48,7 +48,7 @@ jobs:
         uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
 
       - name: Cache konan
-        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           # ref. https://kotlinlang.org/docs/native-improving-compilation-time.html#preserve-downloaded-and-cached-components-between-builds
           path: ~/.konan
