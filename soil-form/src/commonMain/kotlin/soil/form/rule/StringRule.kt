@@ -20,7 +20,7 @@ typealias StringRule = ValidationRule<String>
  *
  * String rule builders provide a DSL for constructing validation rules
  * specifically for String values, with convenient methods like [notEmpty],
- * [notBlank], [minLength], [maxLength], and [pattern].
+ * [notBlank], [minLength] and [maxLength].
  */
 typealias StringRuleBuilder = ValidationRuleBuilder<String>
 
@@ -37,12 +37,6 @@ fun StringRule(
 ): StringRule = { value ->
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
-
-@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
-class StringRuleTester(
-    predicate: String.() -> Boolean,
-    message: () -> String
-) : StringRule by StringRule(predicate, message)
 
 /**
  * Validates that the string value is not empty.
@@ -108,42 +102,6 @@ fun StringRuleBuilder.minLength(limit: Int, message: () -> String) {
  */
 fun StringRuleBuilder.maxLength(limit: Int, message: () -> String) {
     extend(StringRule({ length <= limit }, message))
-}
-
-/**
- * Validates that the string matches the [pattern].
- *
- * Usage:
- * ```kotlin
- * rules<String> {
- *     pattern("^[A-Za-z]+$") { "must be alphabetic" }
- * }
- * ```
- *
- * @param pattern The regular expression pattern the string must match.
- * @param message The message to return when the test fails.
- */
-@Deprecated("Use `match` instead. This will be removed in a future version.", ReplaceWith("match(pattern, message)"))
-fun StringRuleBuilder.pattern(pattern: String, message: () -> String) {
-    pattern(Regex(pattern), message)
-}
-
-/**
- * Validates that the string matches the [pattern].
- *
- * Usage:
- * ```kotlin
- * rules<String> {
- *     pattern(Regex("^[A-Za-z]+$")) { "must be alphabetic" }
- * }
- * ```
- *
- * @param pattern The regular expression pattern the string must match.
- * @param message The message to return when the test fails.
- */
-@Deprecated("Use `match` instead. This will be removed in a future version.", ReplaceWith("match(pattern, message)"))
-fun StringRuleBuilder.pattern(pattern: Regex, message: () -> String) {
-    extend(StringRule({ pattern.matches(this) }, message))
 }
 
 /**

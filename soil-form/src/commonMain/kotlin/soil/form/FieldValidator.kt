@@ -52,6 +52,7 @@ typealias FieldValidator<V> = (V) -> FieldError
  * @param block A lambda that builds the validation rules using [ValidationRuleBuilder].
  * @return A [FieldValidator] that applies all the specified validation rules.
  */
+@Suppress("NOTHING_TO_INLINE")
 inline fun <V> FieldValidator(
     noinline block: ValidationRuleBuilder<V>.() -> Unit
 ): FieldValidator<V> = { value ->

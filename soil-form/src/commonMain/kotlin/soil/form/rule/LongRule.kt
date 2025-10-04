@@ -37,12 +37,6 @@ fun LongRule(
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
-@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
-class LongRuleTester(
-    predicate: Long.() -> Boolean,
-    message: () -> String
-) : LongRule by LongRule(predicate, message)
-
 /**
  * Validates that the long value is greater than or equal to [limit].
  *

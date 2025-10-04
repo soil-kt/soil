@@ -37,12 +37,6 @@ fun IntRule(
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
-@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
-class IntRuleTester(
-    predicate: Int.() -> Boolean,
-    message: () -> String
-) : IntRule by IntRule(predicate, message)
-
 /**
  * Validates that the integer value is greater than or equal to [limit].
  *

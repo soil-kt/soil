@@ -41,12 +41,6 @@ fun <V> ObjectRule(
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
-@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
-class ObjectRuleTester<V>(
-    predicate: V.() -> Boolean,
-    message: () -> String
-) : ObjectRule<V> by ObjectRule(predicate, message)
-
 /**
  * Validates that the object value is equal to the expected value.
  *
