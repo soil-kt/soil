@@ -37,12 +37,6 @@ fun BooleanRule(
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
-@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
-class BooleanRuleTester(
-    predicate: Boolean.() -> Boolean,
-    message: () -> String
-) : BooleanRule by BooleanRule(predicate, message)
-
 /**
  * Validates that the boolean value is `true`.
  *

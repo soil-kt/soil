@@ -97,6 +97,7 @@ class FormState<T>(
      *
      * @param newValue The new value to reset the form to.
      */
+    @Suppress("NOTHING_TO_INLINE")
     inline fun reset(newValue: T) {
         meta.reset { value = newValue }
     }
@@ -118,6 +119,7 @@ class FormState<T>(
      *
      * @param pairs Pairs of field names and their corresponding errors.
      */
+    @Suppress("NOTHING_TO_INLINE")
     inline fun setError(vararg pairs: Pair<FieldName, FieldError>) {
         meta.setError(*pairs)
     }

@@ -38,12 +38,6 @@ fun FloatRule(
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
-@Deprecated("Please migrate to the new form implementation. This legacy code will be removed in a future version.")
-class FloatRuleTester(
-    predicate: Float.() -> Boolean,
-    message: () -> String
-) : FloatRule by FloatRule(predicate, message)
-
 /**
  * Validates that the float value is greater than or equal to [limit].
  *
