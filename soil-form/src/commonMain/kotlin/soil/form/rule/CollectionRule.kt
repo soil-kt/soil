@@ -36,7 +36,7 @@ typealias CollectionRuleBuilder<V> = ValidationRuleBuilder<Collection<V>>
 fun <V> CollectionRule(
     predicate: Collection<V>.() -> Boolean,
     message: () -> String
-): CollectionRule<V> = { value ->
+): CollectionRule<V> = ValidationRule { value ->
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
@@ -113,7 +113,7 @@ fun <V> CollectionRuleBuilder<V>.maxSize(limit: Int, message: () -> String) {
  */
 fun <V> CollectionRuleBuilder<V>.element(block: ValidationRuleBuilder<V>.() -> Unit) {
     val ruleSet = rules(block)
-    val chainedRule: CollectionRule<V> = { collection ->
+    val chainedRule: CollectionRule<V> = CollectionRule { collection ->
         val allErrorMessages = collection.flatMap { element ->
             when (val result = validate(element, ruleSet)) {
                 is ValidationResult.Valid -> emptyList()

@@ -52,7 +52,9 @@ fun interface BatchSchedulerFactory {
     }
 }
 
-typealias BatchTask = () -> Unit
+fun interface BatchTask {
+    operator fun invoke()
+}
 
 internal class DefaultBatchScheduler(
     scope: CoroutineScope,

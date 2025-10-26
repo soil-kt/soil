@@ -33,7 +33,7 @@ typealias IntRuleBuilder = ValidationRuleBuilder<Int>
 fun IntRule(
     predicate: Int.() -> Boolean,
     message: () -> String
-): IntRule = { value ->
+): IntRule = ValidationRule { value ->
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 

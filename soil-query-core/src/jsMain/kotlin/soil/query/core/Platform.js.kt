@@ -3,10 +3,8 @@
 
 package soil.query.core
 
+import kotlin.js.Date
+
 actual fun epoch(): Long {
     return Date.now().toString().toLong() / 1000
-}
-
-external object Date {
-    fun now(): JsNumber
 }

@@ -16,6 +16,16 @@ plugins {
 kotlin {
     applyDefaultHierarchyTemplate()
 
+    js(IR) {
+        outputModuleName = "composeApp"
+        browser {
+            commonWebpackConfig {
+                outputFileName = "composeApp.js"
+            }
+        }
+        binaries.executable()
+    }
+
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         outputModuleName = "composeApp"
@@ -112,8 +122,17 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
         }
 
-        wasmJsMain {
+        val webMain by creating {
+            resources.setSrcDirs(resources.srcDirs)
             dependsOn(skikoMain)
+        }
+
+        jsMain {
+            dependsOn(webMain)
+        }
+
+        wasmJsMain {
+            dependsOn(webMain)
         }
     }
 }

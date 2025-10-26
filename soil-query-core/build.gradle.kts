@@ -24,6 +24,16 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
+    js(IR) {
+        browser {
+            testTask {
+                useKarma {
+                    useChromeHeadless()
+                }
+            }
+        }
+    }
+
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser {
@@ -68,8 +78,16 @@ kotlin {
             }
         }
 
-        wasmJsMain {
+        val webMain by creating {
             dependsOn(skikoMain)
+        }
+
+        jsMain {
+            dependsOn(webMain)
+        }
+
+        wasmJsMain {
+            dependsOn(webMain)
             dependencies {
                 // https://kotlinlang.org/docs/whatsnew21.html#browser-apis-moved-to-the-kotlinx-browser-stand-alone-library
                 implementation(libs.kotlinx.browser)
