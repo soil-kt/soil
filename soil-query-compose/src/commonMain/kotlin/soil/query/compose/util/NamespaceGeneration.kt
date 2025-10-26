@@ -5,8 +5,10 @@ package soil.query.compose.util
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.currentCompositeKeyHash
+import androidx.compose.runtime.currentCompositeKeyHashCode
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.toString
 import soil.query.core.Namespace
 import soil.query.core.uuid
 
@@ -48,7 +50,7 @@ internal val Namespace.Companion.Saver
 val Namespace.Companion.autoCompositionKeyHash: Namespace
     @Composable
     get() {
-        val keyHash = currentCompositeKeyHash.toString(MaxSupportedRadix)
+        val keyHash = currentCompositeKeyHashCode.toString(MaxSupportedRadix)
         return Namespace("auto/$keyHash")
     }
 

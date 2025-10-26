@@ -7,9 +7,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.currentCompositeKeyHash
+import androidx.compose.runtime.currentCompositeKeyHashCode
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.LocalSaveableStateRegistry
+import androidx.compose.runtime.toString
 import androidx.savedstate.SavedState
 import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.savedState
@@ -90,7 +92,7 @@ fun rememberSaveableStore(key: String? = null): AtomStore {
     val finalKey = if (!key.isNullOrEmpty()) {
         key
     } else {
-        currentCompositeKeyHash.toString(MaxSupportedRadix)
+        currentCompositeKeyHashCode.toString(MaxSupportedRadix)
     }
     val registry = LocalSaveableStateRegistry.current
     val store = remember(registry) {
