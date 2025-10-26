@@ -28,6 +28,16 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
+    js(IR) {
+        browser {
+            testTask {
+                // NOTE: ReferenceError: org_jetbrains_skia_Surface__1nMakeRasterN32Premul is not defined
+                // https://youtrack.jetbrains.com/issue/CMP-4906/1nMakeRasterN32Premul-is-not-defined-when-running-runComposeUiTest-with-js
+                enabled = false
+            }
+        }
+    }
+
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser {

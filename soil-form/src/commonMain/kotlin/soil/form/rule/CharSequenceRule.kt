@@ -34,7 +34,7 @@ typealias CharSequenceRuleBuilder = ValidationRuleBuilder<CharSequence>
 fun CharSequenceRule(
     predicate: CharSequence.() -> Boolean,
     message: () -> String
-): CharSequenceRule = { value ->
+): CharSequenceRule = ValidationRule { value ->
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 

@@ -52,7 +52,7 @@ class OptionalRuleTest : UnitTest() {
 
     @Test
     fun rule_custom_optional() {
-        val customRule: OptionalRule<String> = { value ->
+        val customRule: OptionalRule<String> = OptionalRule { value ->
             when {
                 value == null -> ValidationResult.Invalid("Custom: Value is required!")
                 value.startsWith("test") -> ValidationResult.Valid

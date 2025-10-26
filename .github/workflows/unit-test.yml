@@ -67,7 +67,7 @@ jobs:
       # ubuntu-latest
       - name: Run tests on linux
         if: matrix.os == 'ubuntu-latest' && matrix.job == 'test'
-        run: ./gradlew testDebugUnitTest desktopTest wasmJsTest
+        run: ./gradlew testDebugUnitTest desktopTest wasmJsTest jsTest
 
       - name: Upload reports
         if: failure()

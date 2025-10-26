@@ -36,7 +36,7 @@ typealias ArrayRuleBuilder<V> = ValidationRuleBuilder<Array<V>>
 fun <V> ArrayRule(
     predicate: Array<V>.() -> Boolean,
     message: () -> String
-): ArrayRule<V> = { value ->
+): ArrayRule<V> = ValidationRule { value ->
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
@@ -113,7 +113,7 @@ fun <V> ArrayRuleBuilder<V>.maxSize(limit: Int, message: () -> String) {
  */
 fun <V> ArrayRuleBuilder<V>.element(block: ValidationRuleBuilder<V>.() -> Unit) {
     val ruleSet = rules(block)
-    val chainedRule: ArrayRule<V> = { collection ->
+    val chainedRule: ArrayRule<V> = ArrayRule { collection ->
         val allErrorMessages = collection.flatMap { element ->
             when (val result = validate(element, ruleSet)) {
                 is ValidationResult.Valid -> emptyList()

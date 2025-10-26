@@ -25,6 +25,16 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
+    js(IR) {
+        browser {
+            testTask {
+                useKarma {
+                    useChromeHeadless()
+                }
+            }
+        }
+    }
+
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser {

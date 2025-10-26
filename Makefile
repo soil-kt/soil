@@ -62,3 +62,11 @@ sample.wasm.dist:
 .PHONY: sample.wasm.run
 sample.wasm.run:
 	@$(GRADLE_CMD) wasmJsBrowserDevelopmentRun
+
+.PHONY: sample.js.dist
+sample.js.dist:
+	@$(GRADLE_CMD) jsBrowserDistribution
+
+.PHONY: sample.js.run
+sample.js.run:
+	@$(GRADLE_CMD) jsBrowserDevelopmentRun

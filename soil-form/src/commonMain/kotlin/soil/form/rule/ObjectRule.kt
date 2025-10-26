@@ -37,7 +37,7 @@ typealias ObjectRuleBuilder<V> = ValidationRuleBuilder<V>
 fun <V> ObjectRule(
     predicate: V.() -> Boolean,
     message: () -> String
-): ObjectRule<V> = { value ->
+): ObjectRule<V> = ValidationRule { value ->
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
@@ -132,7 +132,7 @@ fun <V : Any> ObjectRuleBuilder<V>.satisfy(predicate: V.() -> Boolean, message: 
 fun <V : Any, S> ObjectRuleBuilder<V>.cast(transform: (V) -> S): ValidationRuleChainer<S> =
     ValidationRuleChainer { block ->
         val ruleSet = rules(block)
-        val chainedRule: ObjectRule<V> = { value ->
+        val chainedRule: ObjectRule<V> = ObjectRule { value ->
             validate(transform(value), ruleSet)
         }
         extend(chainedRule)

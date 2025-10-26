@@ -33,7 +33,7 @@ typealias BooleanRuleBuilder = ValidationRuleBuilder<Boolean>
 fun BooleanRule(
     predicate: Boolean.() -> Boolean,
     message: () -> String
-): BooleanRule = { value ->
+): BooleanRule = ValidationRule { value ->
     if (value.predicate()) ValidationResult.Valid else ValidationResult.Invalid(message())
 }
 
