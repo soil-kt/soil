@@ -25,40 +25,35 @@ import soil.playground.style.withAppTheme
 
 
 @Composable
-fun App() {
-    AppTheme {
-        Content()
-    }
-}
-
-@Composable
-private fun Content(
+fun App(
     navController: NavHostController = rememberNavController()
-) = withAppTheme {
+) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val navigator = remember(navController) { Navigator(navController) }
     val canNavigateBack = remember(backStackEntry) { navigator.canBack() }
     val hostState = remember { SnackbarHostState() }
     val feedbackAction = remember { FeedbackAction(hostState) }
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        topBar = {
-            AppBar(
-                canNavigateBack = canNavigateBack,
-                navigateUp = { navigator.back() }
-            )
-        },
-        snackbarHost = {
-            SnackbarHost(hostState)
-        }
-    ) { innerPadding ->
-        CompositionLocalProvider(LocalFeedbackHost provides feedbackAction) {
-            NavRouterHost(
-                navigator = navigator,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            )
+    AppTheme {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            topBar = {
+                AppBar(
+                    canNavigateBack = canNavigateBack,
+                    navigateUp = { navigator.back() }
+                )
+            },
+            snackbarHost = {
+                SnackbarHost(hostState)
+            }
+        ) { innerPadding ->
+            CompositionLocalProvider(LocalFeedbackHost provides feedbackAction) {
+                NavRouterHost(
+                    navigator = navigator,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                )
+            }
         }
     }
 }

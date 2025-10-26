@@ -1,5 +1,9 @@
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
+import androidx.navigation.ExperimentalBrowserHistoryApi
+import androidx.navigation.bindToBrowserNavigation
+import androidx.navigation.compose.rememberNavController
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
@@ -32,11 +36,15 @@ private val swrClient = SwrCachePlus(
     }
 )
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalSoilQueryApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalSoilQueryApi::class, ExperimentalBrowserHistoryApi::class)
 fun main() {
     ComposeViewport {
         SwrClientProvider(client = swrClient) {
-            App()
+            val navController = rememberNavController()
+            App(navController)
+            LaunchedEffect(Unit) {
+                navController.bindToBrowserNavigation()
+            }
         }
     }
 }
