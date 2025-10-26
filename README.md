@@ -74,7 +74,7 @@ Soil is available on `mavenCentral()`.
 
 ```kts
 dependencies {
-    val soil = "1.0.0-alpha14"
+    val soil = "1.0.0-alpha15"
 
     // Query
     implementation("com.soil-kt.soil:query-core:$soil")
@@ -105,7 +105,7 @@ Supported targets:
 - Android
 - iOS
 - Desktop (JVM)
-- Web (Wasm)
+- Web (Wasm/JS)
 
 
 ## Documentation
