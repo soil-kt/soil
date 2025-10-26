@@ -17,7 +17,7 @@ kotlin {
     applyDefaultHierarchyTemplate()
 
     js(IR) {
-        outputModuleName = "composeApp"
+        outputModuleName = "composeJs"
         browser {
             commonWebpackConfig {
                 outputFileName = "composeApp.js"
@@ -28,7 +28,7 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        outputModuleName = "composeApp"
+        outputModuleName = "composeWasmJs"
         browser {
             commonWebpackConfig {
                 outputFileName = "composeApp.js"
