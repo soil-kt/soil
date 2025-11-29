@@ -23,7 +23,7 @@ typealias ObjectRule<V> = ValidationRule<V>
  * A type alias for builders that create object validation rules.
  *
  * Object rule builders provide a DSL for constructing validation rules
- * for any object type, with convenient methods like [test] and [cast].
+ * for any object type, with convenient methods like [satisfy] and [cast].
  */
 typealias ObjectRuleBuilder<V> = ValidationRuleBuilder<V>
 
@@ -65,27 +65,6 @@ fun <V> ObjectRule(
  */
 fun <V : Any> ObjectRuleBuilder<V>.equalTo(expected: () -> V, message: () -> String) {
     extend(ObjectRule({ this == expected() }, message))
-}
-
-/**
- * Validates that the object value passes the given [predicate].
- *
- * Usage:
- * ```kotlin
- * rules<Post> {
- *     test({ title.isNotBlank() }) { "Title must be not blank" }
- * }
- * ```
- *
- * @param predicate The predicate to test the object value. Returns `true` if the test passes; `false` otherwise.
- * @param message The message to return when the test fails.
- */
-@Deprecated(
-    "Use `satisfy` instead. This will be removed in a future version.",
-    ReplaceWith("satisfy(predicate, message)")
-)
-fun <V : Any> ObjectRuleBuilder<V>.test(predicate: V.() -> Boolean, message: () -> String) {
-    extend(ObjectRule(predicate, message))
 }
 
 /**
