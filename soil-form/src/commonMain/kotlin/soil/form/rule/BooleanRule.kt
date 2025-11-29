@@ -19,7 +19,7 @@ typealias BooleanRule = ValidationRule<Boolean>
  * A type alias for builders that create Boolean validation rules.
  *
  * Boolean rule builders provide a DSL for constructing validation rules
- * specifically for Boolean values, with convenient methods like [isTrue] and [isFalse].
+ * specifically for Boolean values, with convenient methods like [truthy] and [falsy].
  */
 typealias BooleanRuleBuilder = ValidationRuleBuilder<Boolean>
 
@@ -43,23 +43,6 @@ fun BooleanRule(
  * Usage:
  * ```kotlin
  * rules<Boolean> {
- *     isTrue { "must be true" }
- * }
- * ```
- *
- * @param message The message to return when the test fails.
- */
-@Deprecated("Use `truthy` instead. This will be removed in a future version.", ReplaceWith("truthy(message)"))
-fun BooleanRuleBuilder.isTrue(message: () -> String) {
-    extend(BooleanRule({ this }, message))
-}
-
-/**
- * Validates that the boolean value is `true`.
- *
- * Usage:
- * ```kotlin
- * rules<Boolean> {
  *     truthy { "must be true" }
  * }
  * ```
@@ -68,23 +51,6 @@ fun BooleanRuleBuilder.isTrue(message: () -> String) {
  */
 fun BooleanRuleBuilder.truthy(message: () -> String) {
     extend(BooleanRule({ this }, message))
-}
-
-/**
- * Validates that the boolean value is `false`.
- *
- * Usage:
- * ```kotlin
- * rules<Boolean> {
- *     isFalse { "must be false" }
- * }
- * ```
- *
- * @param message The message to return when the test fails.
- */
-@Deprecated("Use `falsy` instead. This will be removed in a future version.", ReplaceWith("falsy(message)"))
-fun BooleanRuleBuilder.isFalse(message: () -> String) {
-    extend(BooleanRule({ !this }, message))
 }
 
 /**
