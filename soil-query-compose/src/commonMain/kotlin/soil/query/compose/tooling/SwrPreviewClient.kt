@@ -47,8 +47,6 @@ class SwrPreviewClient(
 ) : SwrClient, SwrClientPlus, QueryClient by query, MutationClient by mutation, SubscriptionClient by subscription {
     override fun gc(level: MemoryPressureLevel) = Unit
     override fun purgeAll() = Unit
-
-    @Deprecated("Use effect(block: Effect) instead.", replaceWith = ReplaceWith("effect(block)"))
     override fun effect(block: Effect): Job = Job()
     override fun onMount(id: String) = Unit
     override fun onUnmount(id: String) = Unit
