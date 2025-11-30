@@ -69,7 +69,6 @@ include(
     ":soil-query-receivers:ktor",
     ":soil-query-test",
     ":soil-form",
-    ":soil-serialization-bundle",
     ":soil-space"
 )
 
