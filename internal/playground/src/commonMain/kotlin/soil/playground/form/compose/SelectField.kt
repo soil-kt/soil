@@ -2,9 +2,9 @@ package soil.playground.form.compose
 
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,7 +48,7 @@ fun <T : Any> FormField<T?>.SelectField(
             value = transform(value),
             onValueChange = { /* no-op: read-only */ },
             modifier = Modifier
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable, isEnabled)
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, isEnabled)
                 .onFocusEvent { state ->
                     if (state.isFocused && value == null) {
                         isExpanded = true
