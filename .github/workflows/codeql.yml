@@ -42,7 +42,7 @@ jobs:
           key: v1-${{ runner.os }}-konan-${{ steps.pj-key.outputs.KOTLIN_VERSION }}
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@e12f0178983d466f2f6028f5cc7a6d786fd97f4b # v4.31.4
+        uses: github/codeql-action/init@fdbfb4d2750291e159f0156def62b853c2798ca2 # v4.31.5
         with:
           languages: java-kotlin
           # ref. https://github.com/github/codeql-action#build-modes
@@ -54,7 +54,7 @@ jobs:
         run: ./gradlew --no-build-cache assemble
 
       - name: Analyze
-        uses: github/codeql-action/analyze@e12f0178983d466f2f6028f5cc7a6d786fd97f4b # v4.31.4
+        uses: github/codeql-action/analyze@fdbfb4d2750291e159f0156def62b853c2798ca2 # v4.31.5
         with:
           category: '/language:java-kotlin'
 
@@ -72,10 +72,10 @@ jobs:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@e12f0178983d466f2f6028f5cc7a6d786fd97f4b # v4.31.4
+        uses: github/codeql-action/init@fdbfb4d2750291e159f0156def62b853c2798ca2 # v4.31.5
         with:
           languages: actions
           build-mode: "none"
 
       - name: Analyze
-        uses: github/codeql-action/analyze@e12f0178983d466f2f6028f5cc7a6d786fd97f4b # v4.31.4
+        uses: github/codeql-action/analyze@fdbfb4d2750291e159f0156def62b853c2798ca2 # v4.31.5
