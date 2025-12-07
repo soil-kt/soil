@@ -13,7 +13,7 @@ typealias QueryEffect = QueryEffectClient.() -> Unit
  * Interface for causing side effects on [Query] under the control of [QueryClient].
  *
  * [QueryEffect] is designed to allow side effects such as updating, deleting, and revalidating queries.
- * It is useful for handling [MutationKey.onQueryUpdate] after executing [Mutation] that affects [Query] data.
+ * It is useful for handling [MutationKey.onMutateEffect] after executing [Mutation] that affects [Query] data.
  */
 interface QueryEffectClient : QueryReadonlyClient {
 

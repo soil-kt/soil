@@ -44,7 +44,7 @@ inline fun <T : Any> LazyLoad(
 }
 
 /**
- * Configuration class for determining when to load more items in a [LazyColumn] or [LazyRow].
+ * Configuration class for determining when to load more items in a LazyColumn or LazyRow.
  *
  * Loading more items is triggered when the number of remaining items
  * is less than or equal to [remainingItems].
