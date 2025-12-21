@@ -33,7 +33,7 @@ class IosNetworkConnectivity : NetworkConnectivityProvider() {
         private val notifier: Notifier<NetworkConnectivityEvent>
     ) : Receiver {
 
-        private var nwPathMonitor: nw_path_monitor_t? = null
+        private var nwPathMonitor: nw_path_monitor_t = null
         private var isOnline: Boolean? = null
 
         override fun start() {
