@@ -89,16 +89,12 @@ kotlin {
             }
         }
 
-        val webMain by creating {
+        jsMain {
             dependsOn(skikoMain)
         }
 
-        jsMain {
-            dependsOn(webMain)
-        }
-
         wasmJsMain {
-            dependsOn(webMain)
+            dependsOn(skikoMain)
         }
     }
 }
