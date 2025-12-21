@@ -15,7 +15,7 @@ package soil.query.core
  */
 class PriorityQueue<E>(
     capacity: Int
-) where E : Any, E : Comparable<E> {
+) where E : Comparable<E> {
 
     private val data = ArrayList<E>(capacity)
 
